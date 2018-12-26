@@ -1,4 +1,13 @@
-# C2 Scripting Engine
+# C2 scripting
+
+C2 scripts allow to define key management policies that are automatically enforced. 
+Currently, you can define key rotation policies per client or per topic, to ensure that a key is updated every `N` hour, where `N` is the period defined in the script.
+
+Future rules will include the capability to:
+
+* Add or remove right of a client to a certain topic at a future time
+* Register new clients to C2 automatically at a given time
+* Register new topics to C2 automatically at a given time
 
 ## Script format and database
 
@@ -35,7 +44,7 @@ Here the `ID` fields serve as primary key, because string and byte arrays cannot
 The client id is an alias, from which the actual id is later computed in the scripting engine.
 
 
-## Script reader: c2ser
+## Script reader: c2sr
 
 `c2ser` is the command-line utility that takes one or more e4s scripts as arguments, and for each script does the following:
 
@@ -45,7 +54,7 @@ The client id is an alias, from which the actual id is later computed in the scr
     - If the database already includes a rule for the given client id or topic already, then this rule is *not* overwritten (and the new proposed rule is ignored)
 
 
-## Service: c2se
+## Script engine: c2se
 
 `c2se` is the service that sends requests to `c2backend` corresponding
 to the rules in the database.
