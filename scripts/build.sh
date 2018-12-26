@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PROJECT=c2ser
+PROJECT=c2sr
 
 echo "$PROJECT build script (c) Teserakt AG 2018. All rights reserved."
 echo ""
