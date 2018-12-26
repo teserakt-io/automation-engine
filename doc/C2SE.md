@@ -17,6 +17,7 @@ where
 The topic is an UTF-8 string, the client is a client identifier alias (that is, a string). 
 The period `N` is a positive integer, at most 9000.
 If `N` is set to zero, then any rule in the database with the given topic or client id is deleted from the database.
+Comments in a script file should start with a `#`. Blank lines are ignored.
 
 
 The database includes two table with the following schemas:

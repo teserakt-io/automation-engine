@@ -57,6 +57,11 @@ func parseRules(rulesFilePath string) (rc []RuleClient, rt []RuleTopic, err erro
 			continue
 		}
 
+		// skip comments
+		if strings.HasPrefix(line, "#") {
+			continue
+		}
+
 		splitLine := strings.Split(line, " ")
 		if len(splitLine) != 3 {
 			return nil, nil, errors.New("a line does not have 3 space-separated values")

@@ -1,9 +1,13 @@
+# this is a comment
+
+## topic rules
 T sometopic 10
 T othertopic 100
 T sometopic 20
 T sometopic 0
 T sometopic 20
 
+## client rules
 C someid 0
 C otherid 0
 C unknownid 0
