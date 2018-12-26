@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 
@@ -111,6 +112,9 @@ func updateRulesClient(rules []RuleClient) {
 		res := db.Where(&RuleClient{E4IDAlias: rule.E4IDAlias}).First(&somerule)
 		if gorm.IsRecordNotFoundError(res.Error) {
 
+			// set LastUpdate to current time
+			rule.LastUpdate = uint64(time.Now().Unix())
+
 			if res := db.Create(&rule); res.Error != nil {
 				log.Printf("ERROR\tfailed to add rule for client %v: %v", rule.E4IDAlias, res.Error)
 			} else {
@@ -122,9 +126,43 @@ func updateRulesClient(rules []RuleClient) {
 	}
 }
 
-func updateRulesTopic(rules []RuleTopic) error {
+func updateRulesTopic(rules []RuleTopic) {
 
-	return nil
+	for _, rule := range rules {
+
+		// if frequency is 0 then remove any entry for this client
+		if rule.KeyPeriod == 0 {
+			var oldrule RuleTopic
+			res := db.Where(&RuleTopic{Topic: rule.Topic}).First(&oldrule)
+			if !gorm.IsRecordNotFoundError(res.Error) {
+				if res = db.Delete(&oldrule); res.Error != nil {
+					log.Printf("ERROR\tfailed to delete rule for topic %v: %v", oldrule.Topic, res.Error)
+				} else {
+					log.Printf("OK\trule deleted for topic %v", oldrule.Topic)
+				}
+			} else {
+				log.Printf("WARN\trule with Period=0 entered but no rule to delete for topic %v", rule.Topic)
+			}
+			continue
+		}
+
+		// otherwise insert rule, if doesn't already exists
+		var somerule RuleTopic
+		res := db.Where(&RuleTopic{Topic: rule.Topic}).First(&somerule)
+		if gorm.IsRecordNotFoundError(res.Error) {
+
+			// set LastUpdate to current time
+			rule.LastUpdate = uint64(time.Now().Unix())
+
+			if res := db.Create(&rule); res.Error != nil {
+				log.Printf("ERROR\tfailed to add rule for topic %v: %v", rule.Topic, res.Error)
+			} else {
+				log.Printf("OK\tkey period set to %v for topic %v", rule.KeyPeriod, rule.Topic)
+			}
+		} else {
+			log.Printf("WARN\ta rule already exists for topic %v, to remove it set Period=0", rule.Topic)
+		}
+	}
 }
 
 func main() {
