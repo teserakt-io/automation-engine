@@ -5,36 +5,43 @@
 A script is a sequence of lines of one the two following format:
 
 ```
-C <client id> N
+C <client> N
 T <topic> N
 ```
 
 where
 
-* `C` lines define a rule to `client id`'s key every `N` hours
+* `C` lines define a rule to `client`'s key every `N` hours
 * `T` lines define a rule to update `topic`'s key every `N` hours
 
-The topic is an UTF-8 string, the client is a valid client identifier.
+The topic is an UTF-8 string, the client is a client identifier alias (that is, a string). 
+The period `N` is a positive integer, at most 9000.
+If `N` is set to zero, then any rule in the database with the given topic or client id is deleted from the database.
 
-`N` must be a positive integer. If `N` is set to zero, then any rule in
-the database with the given topic or client id is removed from the
-database.
 
-The database includes a table with the following schema:
+The database includes two table with the following schemas:
 
+For client keys:
 ```
-ID | type (C or T) | topic or client id | frequency (hours) | last update (in Unix seconds)
+ID | client id alias (unique) | key period (hours) | last update (in Unix seconds)
 ```
+For topics keys:
+```
+ID | topic (unique) | key period (hours) | last update (in Unix seconds)
+```
+Here the `ID` fields serve as primary key, because string and byte arrays cannot be used as primary keys in some databases.
 
-Initially the database is empty.
+The client id is an alias, from which the actual id is later computed in the scripting engine.
 
 
 ## Script reader: c2ser
 
-`c2ser` reads an e4s scripts, verifies its validity (discarding the file
-if any non-empty line is not a valid line), and updates the
-database accordingly (adding all rules to the database, removing rules
-for which zero is given as an update frequency).
+`c2ser` is the command-line utility that takes one or more e4s scripts as arguments, and for each script does the following:
+
+1. Verifies the script its validity, discarding the file entirely if any non-empty line is not a valid line
+1. Updates the database according to the rules in the script, such that:
+    - If a rule has a period 0, then any database entry with the rule's client id or topic is deleted
+    - If the database already includes a rule for the given client id or topic already, then this rule is *not* overwritten (and the new proposed rule is ignored)
 
 
 ## Service: c2se
