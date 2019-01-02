@@ -56,14 +56,12 @@ The client id is an alias, from which the actual id is later computed in the scr
 
 ## Script engine: c2se
 
-`c2se` is the service that sends requests to `c2backend` corresponding
-to the rules in the database.
+`c2se` is the service that sends requests to `c2backend` corresponding to the rules in the database.
 Every hour, for each database entry, `c2se` does the following:
 If `current time - last update >= frequency`, then:
 
-* For `C` rules: send a `SetClientKey` request
-* For `T` rules: send a `SetTopicKey` request to all clients registered
-  to the given topic
+* For `C` rules: send a `SetClientKey` request 
+* For `T` rules: send a `SetTopicKey` request to all clients registered to the given topic
 
 
 
