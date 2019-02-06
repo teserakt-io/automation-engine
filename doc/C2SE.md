@@ -46,7 +46,7 @@ The client id is an alias, from which the actual id is later computed in the scr
 
 ## Script reader: c2sr
 
-`c2ser` is the command-line utility that takes one or more e4s scripts as arguments, and for each script does the following:
+`c2sr` is the command-line utility that takes one or more e4s scripts as arguments, and for each script does the following:
 
 1. Verifies the script its validity, discarding the file entirely if any non-empty line is not a valid line
 1. Updates the database according to the rules in the script, such that:
