@@ -37,7 +37,6 @@ message Target {
 message Trigger {
     TriggerType type = 1;
     bytes settings = 2;
-    bytes state = 3;
 }
 
 message Rule {
