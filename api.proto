@@ -1,13 +1,13 @@
 syntax = "proto3";
 
-package c2se;
+package pb;
 
 import "google/protobuf/timestamp.proto";
 
 service C2ScriptEngine {
-    rpc ListRules (ListRulesRequest) returns (ListRulesResponse) {}
-    rpc AddRule (AddRuleRequest) returns (AddRuleResponse) {}
-    rpc UpdateRule (UpdateRuleRequest) returns (UpdateRuleResponse) {}
+    rpc ListRules (ListRulesRequest) returns (RulesResponse) {}
+    rpc AddRule (AddRuleRequest) returns (RuleResponse) {}
+    rpc UpdateRule (UpdateRuleRequest) returns (RuleResponse) {}
     rpc DeleteRule (DeleteRuleRequest) returns (DeleteRuleResponse) {}
 }
 
@@ -30,30 +30,37 @@ enum TriggerType {
 }
 
 message Target {
-    TargetType type = 1;
-    string expr = 2;
+    int32 id = 1;
+    TargetType type = 2;
+    string expr = 3;
 }
 
 message Trigger {
-    TriggerType type = 1;
-    bytes settings = 2;
+    int32 id = 1;
+    TriggerType type = 2;
+    bytes settings = 3;
+    bytes state = 4;
 }
 
 message Rule {
     int32 id = 1;
     string description = 2;
     ActionType action = 3;
-    google.protobuf.Timestamp lastUpdated = 4;
+    google.protobuf.Timestamp lastExectued = 4;
     repeated Trigger triggers = 5;
+    repeated Target targets = 6;
+}
+
+message RulesResponse {
+    repeated Rule rules = 1;
+}
+
+message RuleResponse {
+    Rule rule = 1;
 }
 
 message ListRulesRequest {
     // Empty for now, can add pagination or whatever filter here.
-}
-message ListRulesResponse {
-    bool success = 1;
-    string err = 2;
-    repeated Rule rules = 3;
 }
 
 message AddRuleRequest {
@@ -61,11 +68,6 @@ message AddRuleRequest {
     ActionType action = 2;
     repeated Trigger triggers = 3;
     repeated Target targets = 4;
-}
-message AddRuleResponse {
-    bool success = 1;
-    string err = 2;
-    Rule rule = 3;
 }
 
 message UpdateRuleRequest {
@@ -75,17 +77,10 @@ message UpdateRuleRequest {
     repeated Trigger triggers = 4;
     repeated Target targets = 5;
 }
-message UpdateRuleResponse {
-    bool success = 1;
-    string err = 2;
-    Rule rule = 3;
-}
 
 message DeleteRuleRequest {
     int32 ruleId = 1;
 }
 message DeleteRuleResponse {
-    bool success = 1;
-    string err = 2;
-    Rule rule = 3;
+    // Emtpy
 }
