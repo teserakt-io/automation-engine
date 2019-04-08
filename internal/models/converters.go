@@ -1,5 +1,7 @@
 package models
 
+//go:generate mockgen -destination=../mocks/models_converter.go -package=mocks gitlab.com/teserakt/c2se/internal/models Converter
+
 import (
 	"github.com/golang/protobuf/ptypes"
 	"gitlab.com/teserakt/c2se/internal/pb"

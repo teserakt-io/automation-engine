@@ -1,5 +1,7 @@
 package services
 
+//go:generate mockgen -destination=../mocks/services_rule.go -package=mocks gitlab.com/teserakt/c2se/internal/services RuleService
+
 import (
 	"github.com/jinzhu/gorm"
 	"gitlab.com/teserakt/c2se/internal/models"

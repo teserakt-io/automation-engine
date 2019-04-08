@@ -16,6 +16,7 @@ import (
 
 // Server interface
 type Server interface {
+	pb.C2ScriptEngineServer
 	ListenAndServe() error
 }
 
