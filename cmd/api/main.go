@@ -51,10 +51,12 @@ func main() {
 	defer db.Close()
 
 	ruleService := services.NewRuleService(db)
+	converter := models.NewConverter()
 
 	server := api.NewServer(
 		":8080",
 		ruleService,
+		converter,
 	)
 
 	if err := server.ListenAndServe(); err != nil {

@@ -5,19 +5,49 @@ import (
 	"gitlab.com/teserakt/c2se/internal/pb"
 )
 
+// Converter interface defines methods to switch between protobuf and models types.
+type Converter interface {
+	RuleToPb(Rule) (*pb.Rule, error)
+	RulesToPb([]Rule) ([]*pb.Rule, error)
+
+	TargetToPb(Target) (*pb.Target, error)
+	TargetsToPb([]Target) ([]*pb.Target, error)
+
+	TriggerToPb(Trigger) (*pb.Trigger, error)
+	TriggersToPb([]Trigger) ([]*pb.Trigger, error)
+
+	PbToRule(*pb.Rule) (Rule, error)
+	PbToRules([]*pb.Rule) ([]Rule, error)
+
+	PbToTarget(*pb.Target) (Target, error)
+	PbToTargets([]*pb.Target) ([]Target, error)
+
+	PbToTrigger(*pb.Trigger) (Trigger, error)
+	PbToTriggers([]*pb.Trigger) ([]Trigger, error)
+}
+
+type converter struct{}
+
+var _ Converter = &converter{}
+
+// NewConverter creates a new Converter
+func NewConverter() Converter {
+	return &converter{}
+}
+
 // RuleToPb converts a models.Rule to a pb.Rule
-func RuleToPb(rule Rule) (*pb.Rule, error) {
+func (c *converter) RuleToPb(rule Rule) (*pb.Rule, error) {
 	lastExecuted, err := ptypes.TimestampProto(rule.LastExecuted)
 	if err != nil {
 		return nil, err
 	}
 
-	targets, err := TargetsToPb(rule.Targets)
+	targets, err := c.TargetsToPb(rule.Targets)
 	if err != nil {
 		return nil, err
 	}
 
-	triggers, err := TriggersToPb(rule.Triggers)
+	triggers, err := c.TriggersToPb(rule.Triggers)
 	if err != nil {
 		return nil, err
 	}
@@ -33,10 +63,10 @@ func RuleToPb(rule Rule) (*pb.Rule, error) {
 }
 
 // RulesToPb converts a []models.Rule to a []pb.Rule
-func RulesToPb(rules []Rule) ([]*pb.Rule, error) {
+func (c *converter) RulesToPb(rules []Rule) ([]*pb.Rule, error) {
 	var out []*pb.Rule
 	for _, r := range rules {
-		cr, err := RuleToPb(r)
+		cr, err := c.RuleToPb(r)
 		if err != nil {
 			return nil, err
 		}
@@ -48,7 +78,7 @@ func RulesToPb(rules []Rule) ([]*pb.Rule, error) {
 }
 
 // TargetToPb converts a models.Target to a pb.Target
-func TargetToPb(target Target) (*pb.Target, error) {
+func (c *converter) TargetToPb(target Target) (*pb.Target, error) {
 	return &pb.Target{
 		Id:   int32(target.ID),
 		Expr: target.Expr,
@@ -57,10 +87,10 @@ func TargetToPb(target Target) (*pb.Target, error) {
 }
 
 // TargetsToPb converts a []models.Target to a []pb.Target
-func TargetsToPb(targets []Target) ([]*pb.Target, error) {
+func (c *converter) TargetsToPb(targets []Target) ([]*pb.Target, error) {
 	var out []*pb.Target
 	for _, t := range targets {
-		tc, err := TargetToPb(t)
+		tc, err := c.TargetToPb(t)
 		if err != nil {
 			return nil, err
 		}
@@ -71,7 +101,7 @@ func TargetsToPb(targets []Target) ([]*pb.Target, error) {
 }
 
 // TriggerToPb converts a models.Trigger to a pb.Trigger
-func TriggerToPb(trigger Trigger) (*pb.Trigger, error) {
+func (c *converter) TriggerToPb(trigger Trigger) (*pb.Trigger, error) {
 	return &pb.Trigger{
 		Id:       int32(trigger.ID),
 		Type:     trigger.TriggerType,
@@ -81,10 +111,10 @@ func TriggerToPb(trigger Trigger) (*pb.Trigger, error) {
 }
 
 // TriggersToPb converts a []models.Trigger to a []pb.Trigger
-func TriggersToPb(triggers []Trigger) ([]*pb.Trigger, error) {
+func (c *converter) TriggersToPb(triggers []Trigger) ([]*pb.Trigger, error) {
 	var out []*pb.Trigger
 	for _, t := range triggers {
-		tc, err := TriggerToPb(t)
+		tc, err := c.TriggerToPb(t)
 		if err != nil {
 			return nil, err
 		}
@@ -95,19 +125,19 @@ func TriggersToPb(triggers []Trigger) ([]*pb.Trigger, error) {
 }
 
 // PbToRule converts a pb.Rule to a models.Rule
-func PbToRule(rule *pb.Rule) (Rule, error) {
+func (c *converter) PbToRule(rule *pb.Rule) (Rule, error) {
 
 	lastExecuted, err := ptypes.Timestamp(rule.LastExectued)
 	if err != nil {
 		return Rule{}, err
 	}
 
-	targets, err := PbToTargets(rule.Targets)
+	targets, err := c.PbToTargets(rule.Targets)
 	if err != nil {
 		return Rule{}, err
 	}
 
-	triggers, err := PbToTriggers(rule.Triggers)
+	triggers, err := c.PbToTriggers(rule.Triggers)
 	if err != nil {
 		return Rule{}, err
 	}
@@ -122,8 +152,22 @@ func PbToRule(rule *pb.Rule) (Rule, error) {
 	}, nil
 }
 
+func (c *converter) PbToRules(rules []*pb.Rule) ([]Rule, error) {
+	var out []Rule
+	for _, t := range rules {
+		tc, err := c.PbToRule(t)
+		if err != nil {
+			return nil, err
+		}
+
+		out = append(out, tc)
+	}
+
+	return out, nil
+}
+
 // PbToTrigger converts a pb.Trigger to a models.Trigger
-func PbToTrigger(trigger *pb.Trigger) (Trigger, error) {
+func (c *converter) PbToTrigger(trigger *pb.Trigger) (Trigger, error) {
 	return Trigger{
 		ID:          int(trigger.Id),
 		TriggerType: trigger.Type,
@@ -133,10 +177,10 @@ func PbToTrigger(trigger *pb.Trigger) (Trigger, error) {
 }
 
 // PbToTriggers convers a []pb.Trigger to a []models.Trigger
-func PbToTriggers(triggers []*pb.Trigger) ([]Trigger, error) {
+func (c *converter) PbToTriggers(triggers []*pb.Trigger) ([]Trigger, error) {
 	var out []Trigger
 	for _, t := range triggers {
-		tc, err := PbToTrigger(t)
+		tc, err := c.PbToTrigger(t)
 		if err != nil {
 			return nil, err
 		}
@@ -148,7 +192,7 @@ func PbToTriggers(triggers []*pb.Trigger) ([]Trigger, error) {
 }
 
 // PbToTarget converts a pb.Target to a models.Target
-func PbToTarget(target *pb.Target) (Target, error) {
+func (c *converter) PbToTarget(target *pb.Target) (Target, error) {
 	return Target{
 		ID:   int(target.Id),
 		Type: target.Type,
@@ -157,10 +201,10 @@ func PbToTarget(target *pb.Target) (Target, error) {
 }
 
 // PbToTargets converts a []pb.Target to a []models.Target
-func PbToTargets(targets []*pb.Target) ([]Target, error) {
+func (c *converter) PbToTargets(targets []*pb.Target) ([]Target, error) {
 	var out []Target
 	for _, t := range targets {
-		tc, err := PbToTarget(t)
+		tc, err := c.PbToTarget(t)
 		if err != nil {
 			return nil, err
 		}

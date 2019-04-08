@@ -22,20 +22,21 @@ type Server interface {
 type apiServer struct {
 	addr        string
 	ruleService services.RuleService
+	converter   models.Converter
 }
 
 var _ pb.C2ScriptEngineServer = &apiServer{}
 
 // NewServer creates a new Server implementing the C2ScriptEngineServer interface
-func NewServer(addr string, ruleService services.RuleService) Server {
+func NewServer(addr string, ruleService services.RuleService, converter models.Converter) Server {
 	return &apiServer{
 		addr:        addr,
 		ruleService: ruleService,
+		converter:   converter,
 	}
 }
 
 func (s *apiServer) ListenAndServe() error {
-
 	lis, err := net.Listen("tcp", s.addr)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -53,7 +54,7 @@ func (s *apiServer) ListRules(ctx context.Context, req *pb.ListRulesRequest) (*p
 		return nil, err
 	}
 
-	pbRules, err := models.RulesToPb(rules)
+	pbRules, err := s.converter.RulesToPb(rules)
 	if err != nil {
 		return nil, err
 	}
@@ -65,13 +66,12 @@ func (s *apiServer) ListRules(ctx context.Context, req *pb.ListRulesRequest) (*p
 	return response, err
 }
 func (s *apiServer) AddRule(ctx context.Context, req *pb.AddRuleRequest) (*pb.RuleResponse, error) {
-
-	triggers, err := models.PbToTriggers(req.Triggers)
+	triggers, err := s.converter.PbToTriggers(req.Triggers)
 	if err != nil {
 		return nil, err
 	}
 
-	targets, err := models.PbToTargets(req.Targets)
+	targets, err := s.converter.PbToTargets(req.Targets)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (s *apiServer) AddRule(ctx context.Context, req *pb.AddRuleRequest) (*pb.Ru
 		return nil, err
 	}
 
-	pbRule, err := models.RuleToPb(*rule)
+	pbRule, err := s.converter.RuleToPb(*rule)
 	if err != nil {
 		return nil, err
 	}
