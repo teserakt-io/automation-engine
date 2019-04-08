@@ -6,6 +6,13 @@ import (
 	"gitlab.com/teserakt/c2se/internal/pb"
 )
 
+// All list all defined models. To be used in DBConfig.Models for auto migrations
+var All = []interface{}{
+	Trigger{},
+	Target{},
+	Rule{},
+}
+
 // Rule holds database information of a rule.
 type Rule struct {
 	ID           int `gorm:"primary_key:true"`

@@ -37,11 +37,7 @@ func main() {
 		Dialect:   models.DBDialectSQLite,
 		CnxString: appConfig.DBFilepath,
 		LogMode:   true,
-		Models: []interface{}{
-			models.Trigger{},
-			models.Target{},
-			models.Rule{},
-		},
+		Models:    models.All,
 	}
 
 	db, err := models.NewDB(dbConfig)

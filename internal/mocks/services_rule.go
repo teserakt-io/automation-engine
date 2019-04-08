@@ -49,10 +49,10 @@ func (mr *MockRuleServiceMockRecorder) All() *gomock.Call {
 }
 
 // ByID mocks base method
-func (m *MockRuleService) ByID(arg0 int) (*models.Rule, error) {
+func (m *MockRuleService) ByID(arg0 int) (models.Rule, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ByID", arg0)
-	ret0, _ := ret[0].(*models.Rule)
+	ret0, _ := ret[0].(models.Rule)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

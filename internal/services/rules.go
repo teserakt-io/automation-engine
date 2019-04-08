@@ -10,7 +10,7 @@ import (
 // RuleService defines methods to interact with rules models and database
 type RuleService interface {
 	All() ([]models.Rule, error)
-	ByID(ruleID int) (*models.Rule, error)
+	ByID(ruleID int) (models.Rule, error)
 	Save(rule *models.Rule) error
 }
 
@@ -22,6 +22,7 @@ var _ RuleService = &ruleService{}
 
 // NewRuleService creates a new RuleService
 func NewRuleService(db models.Database) RuleService {
+
 	return &ruleService{
 		db: db,
 	}
@@ -37,31 +38,24 @@ func (s *ruleService) All() ([]models.Rule, error) {
 }
 
 func (s *ruleService) Save(rule *models.Rule) error {
-	if s.gorm().NewRecord(*rule) {
-		if result := s.gorm().Create(rule); result.Error != nil {
-			return result.Error
-		}
-	} else {
-
-		if result := s.gorm().Save(rule); result.Error != nil {
-			return result.Error
-		}
+	if result := s.gorm().Save(rule); result.Error != nil {
+		return result.Error
 	}
 
 	return nil
 }
 
-func (s *ruleService) ByID(ruleID int) (*models.Rule, error) {
+func (s *ruleService) ByID(ruleID int) (models.Rule, error) {
 
-	r := &models.Rule{}
+	r := models.Rule{}
 
 	if result := s.gorm().First(&r, ruleID); result.Error != nil {
-		return nil, result.Error
+		return r, result.Error
 	}
 
 	return r, nil
 }
 
 func (s *ruleService) gorm() *gorm.DB {
-	return s.db.Connection()
+	return s.db.Connection().Set("gorm:auto_preload", true)
 }
