@@ -10,8 +10,6 @@ import (
 	"gitlab.com/teserakt/c2se/internal/services"
 
 	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 )
 
 // Server interface
@@ -61,11 +59,9 @@ func (s *apiServer) ListRules(ctx context.Context, req *pb.ListRulesRequest) (*p
 		return nil, err
 	}
 
-	response := &pb.RulesResponse{
+	return &pb.RulesResponse{
 		Rules: pbRules,
-	}
-
-	return response, err
+	}, nil
 }
 func (s *apiServer) AddRule(ctx context.Context, req *pb.AddRuleRequest) (*pb.RuleResponse, error) {
 	triggers, err := s.converter.PbToTriggers(req.Triggers)
@@ -95,15 +91,55 @@ func (s *apiServer) AddRule(ctx context.Context, req *pb.AddRuleRequest) (*pb.Ru
 		return nil, err
 	}
 
-	response := &pb.RuleResponse{
+	return &pb.RuleResponse{
 		Rule: pbRule,
+	}, nil
+}
+func (s *apiServer) UpdateRule(ctx context.Context, req *pb.UpdateRuleRequest) (*pb.RuleResponse, error) {
+
+	rule, err := s.ruleService.ByID(int(req.RuleId))
+	if err != nil {
+		return nil, err
 	}
 
-	return response, err
+	triggers, err := s.converter.PbToTriggers(req.Triggers)
+	if err != nil {
+		return nil, err
+	}
+
+	targets, err := s.converter.PbToTargets(req.Targets)
+	if err != nil {
+		return nil, err
+	}
+
+	rule.Description = req.Description
+	rule.ActionType = req.Action
+	rule.Triggers = triggers
+	rule.Targets = targets
+
+	if err := s.ruleService.Save(&rule); err != nil {
+		return nil, err
+	}
+
+	pbRule, err := s.converter.RuleToPb(rule)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.RuleResponse{
+		Rule: pbRule,
+	}, nil
 }
-func (*apiServer) UpdateRule(ctx context.Context, req *pb.UpdateRuleRequest) (*pb.RuleResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateRule not implemented")
-}
-func (*apiServer) DeleteRule(ctx context.Context, req *pb.DeleteRuleRequest) (*pb.DeleteRuleResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteRule not implemented")
+
+func (s *apiServer) DeleteRule(ctx context.Context, req *pb.DeleteRuleRequest) (*pb.DeleteRuleResponse, error) {
+	rule, err := s.ruleService.ByID(int(req.RuleId))
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.ruleService.Delete(rule); err != nil {
+		return nil, err
+	}
+
+	return &pb.DeleteRuleResponse{}, nil
 }
