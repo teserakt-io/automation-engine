@@ -24,6 +24,7 @@ func main() {
 
 	var appConfig config.API
 	flag.StringVar(&appConfig.DBFilepath, "db", "", "path to the sqlite db file")
+	flag.StringVar(&appConfig.Addr, "addr", "127.0.0.1:5556", "interface:port to listen for incoming connections")
 	flag.Parse()
 
 	if err := appConfig.Validate(); err != nil {
@@ -50,7 +51,7 @@ func main() {
 	converter := models.NewConverter()
 
 	server := api.NewServer(
-		":8080",
+		appConfig.Addr,
 		ruleService,
 		converter,
 	)

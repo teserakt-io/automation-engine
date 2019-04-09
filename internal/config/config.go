@@ -5,6 +5,7 @@ import "errors"
 // API describes the configuration required for the API application
 type API struct {
 	DBFilepath string
+	Addr       string
 }
 
 // Config validation errors

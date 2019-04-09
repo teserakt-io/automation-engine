@@ -46,6 +46,7 @@ func (s *apiServer) ListenAndServe() error {
 	grpcServer := grpc.NewServer()
 	pb.RegisterC2ScriptEngineServer(grpcServer, s)
 
+	log.Printf("Starting api grpc server listening on %s\n", s.addr)
 	return grpcServer.Serve(lis)
 }
 
