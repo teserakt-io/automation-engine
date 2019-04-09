@@ -6,13 +6,6 @@ import (
 	"gitlab.com/teserakt/c2se/internal/pb"
 )
 
-// All list all defined models. To be used in DBConfig.Models for auto migrations
-var All = []interface{}{
-	Trigger{},
-	Target{},
-	Rule{},
-}
-
 // Rule holds database information of a rule.
 type Rule struct {
 	ID           int `gorm:"primary_key:true"`
@@ -26,7 +19,7 @@ type Rule struct {
 // Trigger holds database informations for a rule trigger
 type Trigger struct {
 	ID          int `gorm:"primary_key"`
-	RuleID      int
+	RuleID      int `gorm:"type:int REFERENCES rules(id) ON DELETE CASCADE"`
 	TriggerType pb.TriggerType
 	Settings    []byte
 	State       []byte
@@ -35,7 +28,7 @@ type Trigger struct {
 // Target holds database informations for a rule target
 type Target struct {
 	ID     int `gorm:"primary_key"`
-	RuleID int
+	RuleID int `gorm:"type:int REFERENCES rules(id) ON DELETE CASCADE"`
 	Type   pb.TargetType
 	Expr   string
 }

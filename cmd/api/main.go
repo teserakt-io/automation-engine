@@ -38,14 +38,21 @@ func main() {
 		Dialect:   models.DBDialectSQLite,
 		CnxString: appConfig.DBFilepath,
 		LogMode:   true,
-		Models:    models.All,
 	}
 
 	db, err := models.NewDB(dbConfig)
 	if err != nil {
-		log.Fatalf("FATAL: database creation failed: %v", err)
+		log.Printf("FATAL: database creation failed: %s", err)
+
+		return
 	}
 	defer db.Close()
+
+	if err := db.Migrate(); err != nil {
+		log.Printf("FATAL: database migration failed: %s", err)
+
+		return
+	}
 
 	ruleService := services.NewRuleService(db)
 	converter := models.NewConverter()

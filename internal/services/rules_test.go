@@ -22,11 +22,14 @@ func getTestDB(t *testing.T) (models.Database, func()) {
 		Dialect:   models.DBDialectSQLite,
 		CnxString: f.Name(),
 		LogMode:   true,
-		Models:    models.All,
 	})
 
 	if err != nil {
 		t.Fatalf("Cannot open database: %s", err)
+	}
+
+	if err := db.Migrate(); err != nil {
+		t.Fatalf("Cannot migrate database: %s", err)
 	}
 
 	return db, func() {
@@ -34,6 +37,41 @@ func getTestDB(t *testing.T) (models.Database, func()) {
 		f.Close()
 		os.Remove(f.Name())
 	}
+}
+
+func createRules(t *testing.T, srv RuleService) (rule1 models.Rule, rule2 models.Rule) {
+	rule1 = models.Rule{
+		ActionType:  pb.ActionType_KEY_ROTATION,
+		Description: "rule1",
+		Targets: []models.Target{
+			models.Target{ID: 1},
+		},
+		Triggers: []models.Trigger{
+			models.Trigger{ID: 1},
+		},
+	}
+	rule2 = models.Rule{
+		ActionType:  pb.ActionType_KEY_ROTATION,
+		Description: "rule2",
+		Targets: []models.Target{
+			models.Target{ID: 2},
+		},
+		Triggers: []models.Trigger{
+			models.Trigger{ID: 2},
+		},
+	}
+
+	err := srv.Save(&rule1)
+	if err != nil {
+		t.Errorf("Expected nil error, got %s", err)
+	}
+
+	err = srv.Save(&rule2)
+	if err != nil {
+		t.Errorf("Expected nil error, got %s", err)
+	}
+
+	return rule1, rule2
 }
 
 func TestRuleService(t *testing.T) {
@@ -53,36 +91,7 @@ func TestRuleService(t *testing.T) {
 			t.Errorf("Expected 0 rules, got %d", len(rules))
 		}
 
-		rule1 := models.Rule{
-			ActionType:  pb.ActionType_KEY_ROTATION,
-			Description: "rule1",
-			Targets: []models.Target{
-				models.Target{ID: 1},
-			},
-			Triggers: []models.Trigger{
-				models.Trigger{ID: 1},
-			},
-		}
-		rule2 := models.Rule{
-			ActionType:  pb.ActionType_KEY_ROTATION,
-			Description: "rule2",
-			Targets: []models.Target{
-				models.Target{ID: 2},
-			},
-			Triggers: []models.Trigger{
-				models.Trigger{ID: 2},
-			},
-		}
-
-		err = srv.Save(&rule1)
-		if err != nil {
-			t.Errorf("Expected nil error, got %s", err)
-		}
-
-		err = srv.Save(&rule2)
-		if err != nil {
-			t.Errorf("Expected nil error, got %s", err)
-		}
+		rule1, rule2 := createRules(t, srv)
 
 		rules, err = srv.All()
 		if len(rules) != 2 {
@@ -148,35 +157,9 @@ func TestRuleService(t *testing.T) {
 
 		srv := NewRuleService(db)
 
-		rule1 := models.Rule{
-			ActionType:  pb.ActionType_KEY_ROTATION,
-			Description: "rule1",
-			Targets: []models.Target{
-				models.Target{ID: 1},
-			},
-			Triggers: []models.Trigger{
-				models.Trigger{ID: 1},
-			},
-		}
-		rule2 := models.Rule{
-			ActionType:  pb.ActionType_KEY_ROTATION,
-			Description: "rule2",
-			Targets: []models.Target{
-				models.Target{ID: 2},
-			},
-			Triggers: []models.Trigger{
-				models.Trigger{ID: 2},
-			},
-		}
+		rule1, rule2 := createRules(t, srv)
 
-		if err := srv.Save(&rule1); err != nil {
-			t.Errorf("Expected err to be nil, got %s", err)
-		}
-		if err := srv.Save(&rule2); err != nil {
-			t.Errorf("Expected err to be nil, got %s", err)
-		}
-
-		rule, err := srv.ByID(1)
+		rule, err := srv.ByID(rule1.ID)
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
@@ -185,7 +168,7 @@ func TestRuleService(t *testing.T) {
 			t.Errorf("Expected rule 1 to be %#v, got %#v", rule1, rule)
 		}
 
-		rule, err = srv.ByID(2)
+		rule, err = srv.ByID(rule2.ID)
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
@@ -198,6 +181,111 @@ func TestRuleService(t *testing.T) {
 		if err == nil {
 			t.Errorf("Expected err to be %s, got %s", gorm.ErrRecordNotFound, err)
 		}
+	})
 
+	t.Run("Delete removes the rule and dependancies from database", func(t *testing.T) {
+		db, closeFunc := getTestDB(t)
+		defer closeFunc()
+
+		srv := NewRuleService(db)
+
+		rule1, rule2 := createRules(t, srv)
+
+		if err := srv.Delete(rule1); err != nil {
+			t.Errorf("Expected err to be nil, got %s", err)
+		}
+
+		_, err := srv.ByID(rule1.ID)
+		if err != gorm.ErrRecordNotFound {
+			t.Errorf("Expected err to be %s, got %s", gorm.ErrRecordNotFound, err)
+		}
+
+		_, err = srv.TriggerByID(rule1.Triggers[0].ID)
+		if err != gorm.ErrRecordNotFound {
+			t.Errorf("Expected err to be %s, got %s", gorm.ErrRecordNotFound, err)
+		}
+
+		_, err = srv.TargetByID(rule1.Targets[0].ID)
+		if err != gorm.ErrRecordNotFound {
+			t.Errorf("Expected err to be %s, got %s", gorm.ErrRecordNotFound, err)
+		}
+
+		_, err = srv.ByID(rule2.ID)
+		if err != nil {
+			t.Errorf("Expected err to be nil, got %s", err)
+		}
+		_, err = srv.TriggerByID(rule2.Triggers[0].ID)
+		if err != nil {
+			t.Errorf("Expected err to be nil, got %s", err)
+		}
+
+		_, err = srv.TargetByID(rule2.Targets[0].ID)
+		if err != nil {
+			t.Errorf("Expected err to be nil, got %s", err)
+		}
+	})
+
+	t.Run("TriggerByID retrieve proper trigger", func(t *testing.T) {
+		db, closeFunc := getTestDB(t)
+		defer closeFunc()
+
+		srv := NewRuleService(db)
+
+		rule1, rule2 := createRules(t, srv)
+
+		trigger, err := srv.TriggerByID(rule1.Triggers[0].ID)
+		if err != nil {
+			t.Errorf("Expected err to be nil, got %s", err)
+		}
+
+		if reflect.DeepEqual(trigger, rule1.Triggers[0]) == false {
+			t.Errorf("Expected trigger to be %#v, got %#v", rule1.Triggers[0], trigger)
+		}
+
+		trigger, err = srv.TriggerByID(rule2.Triggers[0].ID)
+		if err != nil {
+			t.Errorf("Expected err to be nil, got %s", err)
+		}
+
+		if reflect.DeepEqual(trigger, rule2.Triggers[0]) == false {
+			t.Errorf("Expected trigger to be %#v, got %#v", rule2.Triggers[0], trigger)
+		}
+
+		_, err = srv.TriggerByID(3)
+		if err != gorm.ErrRecordNotFound {
+			t.Errorf("Expected err to be %s, got %s", gorm.ErrRecordNotFound, err)
+		}
+	})
+
+	t.Run("TargetByID retrieve proper target", func(t *testing.T) {
+		db, closeFunc := getTestDB(t)
+		defer closeFunc()
+
+		srv := NewRuleService(db)
+
+		rule1, rule2 := createRules(t, srv)
+
+		target, err := srv.TargetByID(rule1.Targets[0].ID)
+		if err != nil {
+			t.Errorf("Expected err to be nil, got %s", err)
+		}
+
+		if reflect.DeepEqual(target, rule1.Targets[0]) == false {
+			t.Errorf("Expected trigger to be %#v, got %#v", rule1.Targets[0], target)
+		}
+
+		target, err = srv.TargetByID(2)
+		if err != nil {
+			t.Errorf("Expected err to be nil, got %s", err)
+		}
+
+		if reflect.DeepEqual(target, rule2.Targets[0]) == false {
+			t.Errorf("Expected trigger to be %#v, got %#v", rule2.Targets[0], target)
+		}
+
+		_, err = srv.TargetByID(3)
+		if err != gorm.ErrRecordNotFound {
+			t.Errorf("Expected err to be %s, got %s", gorm.ErrRecordNotFound, err)
+		}
 	})
 }

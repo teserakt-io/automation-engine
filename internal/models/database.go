@@ -26,6 +26,7 @@ const (
 type Database interface {
 	Close() error
 	Connection() *gorm.DB
+	Migrate() error
 }
 
 // DBConfig holds generic database options and configuration
@@ -33,18 +34,17 @@ type DBConfig struct {
 	Dialect   string
 	CnxString string
 	LogMode   bool
-	Models    []interface{}
 }
 
 type gormDB struct {
-	db *gorm.DB
+	db     *gorm.DB
+	config DBConfig
 }
 
 var _ Database = &gormDB{}
 
 // NewDB creates a new database
 func NewDB(config DBConfig) (Database, error) {
-
 	var db *gorm.DB
 	var err error
 
@@ -52,23 +52,39 @@ func NewDB(config DBConfig) (Database, error) {
 	case DBDialectSQLite:
 		db, err = gorm.Open(config.Dialect, config.CnxString)
 	default:
-		return nil, ErrUnsupportedDialect
+		err = ErrUnsupportedDialect
 	}
 
 	if err != nil {
 		return nil, err
 	}
 
-	if result := db.AutoMigrate(config.Models...); result.Error != nil {
-		return nil, err
-	}
-
 	db.LogMode(config.LogMode)
 
 	return &gormDB{
-		db: db,
+		db:     db,
+		config: config,
 	}, nil
+}
 
+func (gdb *gormDB) Migrate() error {
+
+	if gdb.config.Dialect == DBDialectSQLite {
+		// Enable foreign key support for sqlite3
+		gdb.Connection().Exec("PRAGMA foreign_keys = ON")
+	}
+
+	result := gdb.Connection().AutoMigrate(
+		Rule{},
+		Trigger{},
+		Target{},
+	)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
 }
 
 func (gdb *gormDB) Connection() *gorm.DB {
