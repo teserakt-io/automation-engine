@@ -21,7 +21,7 @@ func getTestDB(t *testing.T) (models.Database, func()) {
 	db, err := models.NewDB(models.DBConfig{
 		Dialect:   models.DBDialectSQLite,
 		CnxString: f.Name(),
-		LogMode:   true,
+		LogMode:   false,
 	})
 
 	if err != nil {
