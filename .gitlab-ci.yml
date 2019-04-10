@@ -1,0 +1,35 @@
+image: golang:1.12
+
+stages:
+  - test
+  - build
+
+lint:
+  image: golang:1.12
+  stage: test
+  before_script:
+    - go install golang.org/x/lint/golint
+  script:
+    - golint -set_exit_status ./...
+
+test:
+  stage: test
+  before_script:
+    - go get github.com/jstemmer/go-junit-report
+  script:
+    - go test -v -coverprofile=cover.out ./... | go-junit-report > report.xml 
+  artifacts:
+    reports:
+      junit: 
+        - report.xml
+    expire_in: 1 week
+
+build:
+  image: golang:1.12
+  stage: build
+  script:
+    - ./scripts/build.sh
+  # artifacts:
+  #   paths:
+  #     - bin/*
+  #   expire_in: 1 week  
