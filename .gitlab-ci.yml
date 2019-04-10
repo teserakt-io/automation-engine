@@ -4,6 +4,10 @@ stages:
   - test
   - build
 
+before_script:
+  - mkdir ~/.ssh && echo -n "${SSH_CI_KEY}" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+  - git config --global url."git@gitlab.com:".insteadOf "https://gitlab.com/"
+
 lint:
   image: golang:1.12
   stage: test
@@ -34,4 +38,4 @@ build:
   # artifacts:
   #   paths:
   #     - bin/*
-  #   expire_in: 1 week  
+  #   expire_in: 1 week

@@ -7,6 +7,8 @@ import (
 
 	"gitlab.com/teserakt/c2se/internal/cli"
 	"gitlab.com/teserakt/c2se/internal/pb"
+
+	e4 "gitlab.com/teserakt/e4common"
 )
 
 func main() {
@@ -19,4 +21,6 @@ func main() {
 
 	rootCmd := cli.NewRootCommand(client)
 	rootCmd.Execute()
+
+	_ = e4.C2Request{}
 }
