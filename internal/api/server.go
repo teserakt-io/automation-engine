@@ -63,6 +63,24 @@ func (s *apiServer) ListRules(ctx context.Context, req *pb.ListRulesRequest) (*p
 		Rules: pbRules,
 	}, nil
 }
+
+func (s *apiServer) GetRule(ctx context.Context, req *pb.GetRuleRequest) (*pb.RuleResponse, error) {
+
+	rule, err := s.ruleService.ByID(int(req.RuleId))
+	if err != nil {
+		return nil, err
+	}
+
+	pbRule, err := s.converter.RuleToPb(rule)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.RuleResponse{
+		Rule: pbRule,
+	}, nil
+}
+
 func (s *apiServer) AddRule(ctx context.Context, req *pb.AddRuleRequest) (*pb.RuleResponse, error) {
 	triggers, err := s.converter.PbToTriggers(req.Triggers)
 	if err != nil {

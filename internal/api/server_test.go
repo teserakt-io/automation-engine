@@ -166,4 +166,26 @@ func TestServer(t *testing.T) {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
 	})
+
+	t.Run("GetRule returns expected rule", func(t *testing.T) {
+
+		req := &pb.GetRuleRequest{
+			RuleId: 1,
+		}
+
+		rule := models.Rule{ID: 1}
+		pbRule := &pb.Rule{Id: 1}
+
+		mockRuleService.EXPECT().ByID(1).Times(1).Return(rule, nil)
+		mockConverter.EXPECT().RuleToPb(rule).Times(1).Return(pbRule, nil)
+
+		resp, err := server.GetRule(context.Background(), req)
+		if err != nil {
+			t.Errorf("Expected err to be nil, got %s", err)
+		}
+
+		if reflect.DeepEqual(resp.Rule, pbRule) == false {
+			t.Errorf("Expected rule to be %#v, got %#v", pbRule, resp.Rule)
+		}
+	})
 }

@@ -6,6 +6,7 @@ import "google/protobuf/timestamp.proto";
 
 service C2ScriptEngine {
     rpc ListRules (ListRulesRequest) returns (RulesResponse) {}
+    rpc GetRule(GetRuleRequest) returns (RuleResponse) {}
     rpc AddRule (AddRuleRequest) returns (RuleResponse) {}
     rpc UpdateRule (UpdateRuleRequest) returns (RuleResponse) {}
     rpc DeleteRule (DeleteRuleRequest) returns (DeleteRuleResponse) {}
@@ -61,6 +62,10 @@ message RuleResponse {
 
 message ListRulesRequest {
     // Empty for now, can add pagination or whatever filter here.
+}
+
+message GetRuleRequest {
+    int32 ruleId = 1;
 }
 
 message AddRuleRequest {
