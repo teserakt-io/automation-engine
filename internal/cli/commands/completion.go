@@ -12,6 +12,8 @@ import (
 const (
 	// CompletionFuncNameAction holds the name of the bash function used to autocomplete action flag
 	CompletionFuncNameAction = "__c2se_autocomplete_actions"
+	// CompletionFuncNameTriggerType holds the name of the bash function used to autocomplet trigger type flag
+	CompletionFuncNameTriggerType = "__c2se_autocomplete_trigger_types"
 )
 
 // CompletionCommand defines a custom Command to deal with auto completion
@@ -87,7 +89,14 @@ func (c *CompletionCommand) GenerateCustomCompletionFuncs() string {
 	for _, name := range pb.ActionType_name {
 		actionNames = append(actionNames, name)
 	}
+
+	var triggerTypes []string
+	for _, t := range pb.TriggerType_name {
+		triggerTypes = append(triggerTypes, t)
+	}
+
 	out += c.generateCompletionFunc(CompletionFuncNameAction, actionNames)
+	out += c.generateCompletionFunc(CompletionFuncNameTriggerType, triggerTypes)
 
 	return out
 }

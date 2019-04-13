@@ -7,12 +7,14 @@ require (
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
 	github.com/golang/mock v1.2.0
 	github.com/golang/protobuf v1.3.1
+	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jinzhu/gorm v1.9.2
 	github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a // indirect
 	github.com/jinzhu/now v1.0.0 // indirect
 	github.com/lib/pq v1.0.0 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
+	github.com/mitchellh/mapstructure v1.1.2
 	github.com/rvflash/elapsed v0.2.0
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3

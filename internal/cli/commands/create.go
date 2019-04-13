@@ -56,9 +56,14 @@ func (c *createCommand) run(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
+	action, ok := pb.ActionType_value[c.flags.Action]
+	if !ok {
+		return fmt.Errorf("unknown action %s", c.flags.Action)
+	}
+
 	req := &pb.AddRuleRequest{
 		Description: c.flags.Description,
-		Action:      pb.ActionType(pb.ActionType_value[c.flags.Action]),
+		Action:      pb.ActionType(action),
 	}
 
 	client, err := c.c2seClientFactory.NewClient(cmd)
