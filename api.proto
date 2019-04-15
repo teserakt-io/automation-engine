@@ -13,7 +13,8 @@ service C2ScriptEngine {
 }
 
 enum ActionType {
-    KEY_ROTATION = 0;
+    UNDEFINED_ACTION = 0;
+    KEY_ROTATION = 1;
     // Extended as more actions get added ...
 }
 
@@ -24,9 +25,10 @@ enum TargetType {
 }
 
 enum TriggerType {
-    TIME_INTERVAL = 0;
-    CLIENT_SUBSCRIBED = 1;
-    CLIENT_UNSUBSCRIBED = 2;
+    UNDEFINED_TRIGGER = 0;
+    TIME_INTERVAL = 1;
+    CLIENT_SUBSCRIBED = 2;
+    CLIENT_UNSUBSCRIBED = 3;
     // Extended as more triggers get added ...
 }
 
