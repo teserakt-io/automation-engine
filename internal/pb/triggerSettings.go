@@ -70,6 +70,10 @@ func (t *TriggerSettingsEvent) Validate() error {
 		return errors.New("EventType is required")
 	}
 
+	if t.MaxOccurence <= 0 {
+		return errors.New("MaxOccurence must be greater than 0")
+	}
+
 	return nil
 }
 
