@@ -161,9 +161,13 @@ func TestServer(t *testing.T) {
 		mockRuleService.EXPECT().ByID(1).Times(1).Return(rule, nil)
 		mockRuleService.EXPECT().Delete(rule).Times(1)
 
-		_, err := server.DeleteRule(context.Background(), req)
+		resp, err := server.DeleteRule(context.Background(), req)
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
+		}
+
+		if resp.RuleId != req.RuleId {
+			t.Errorf("Expected ruleId to be %d, got %d", req.RuleId, resp.RuleId)
 		}
 	})
 

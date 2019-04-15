@@ -87,5 +87,5 @@ message DeleteRuleRequest {
     int32 ruleId = 1;
 }
 message DeleteRuleResponse {
-    // Emtpy
+    int32 ruleId = 1;
 }

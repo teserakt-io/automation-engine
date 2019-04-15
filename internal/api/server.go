@@ -159,5 +159,5 @@ func (s *apiServer) DeleteRule(ctx context.Context, req *pb.DeleteRuleRequest) (
 		return nil, err
 	}
 
-	return &pb.DeleteRuleResponse{}, nil
+	return &pb.DeleteRuleResponse{RuleId: int32(rule.ID)}, nil
 }
