@@ -23,3 +23,12 @@ type Target struct {
 	Type   pb.TargetType
 	Expr   string
 }
+
+// Trigger holds database informations for a rule trigger
+type Trigger struct {
+	ID          int `gorm:"primary_key"`
+	RuleID      int `gorm:"type:int REFERENCES rules(id) ON DELETE CASCADE"`
+	TriggerType pb.TriggerType
+	Settings    []byte
+	State       []byte
+}

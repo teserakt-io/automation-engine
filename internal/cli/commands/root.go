@@ -31,6 +31,7 @@ func NewRootCommand(c2seClientFactory grpc.ClientFactory, version string) Comman
 	createCmd := NewCreateCommand(c2seClientFactory)
 	addTriggerCmd := NewAddTriggerCommand(c2seClientFactory)
 	addTargetCmd := NewAddTargetCommand(c2seClientFactory)
+	showCmd := NewShowCommand(c2seClientFactory)
 
 	completionCmd := NewCompletionCommand(rootCmd)
 
@@ -54,6 +55,7 @@ func NewRootCommand(c2seClientFactory grpc.ClientFactory, version string) Comman
 		createCmd.CobraCmd(),
 		addTriggerCmd.CobraCmd(),
 		addTargetCmd.CobraCmd(),
+		showCmd.CobraCmd(),
 
 		// Autocompletion script generation command
 		completionCmd.CobraCmd(),

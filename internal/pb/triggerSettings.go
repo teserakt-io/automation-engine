@@ -1,24 +1,13 @@
-package models
+package pb
 
 import (
 	"bytes"
 	"encoding/gob"
 	"errors"
-	"fmt"
-
-	"gitlab.com/teserakt/c2se/internal/pb"
+	fmt "fmt"
 
 	"github.com/gorhill/cronexpr"
 )
-
-// Trigger holds database informations for a rule trigger
-type Trigger struct {
-	ID          int `gorm:"primary_key"`
-	RuleID      int `gorm:"type:int REFERENCES rules(id) ON DELETE CASCADE"`
-	TriggerType pb.TriggerType
-	Settings    []byte
-	State       []byte
-}
 
 // EventType  is a custom type for all available Trigger Events
 type EventType string
@@ -39,20 +28,20 @@ type TriggerSettings interface {
 
 // TriggerSettingsTimeInterval holds settings for pb.TriggerType_TIME_INTERVAL trigger types
 type TriggerSettingsTimeInterval struct {
-	Expr string
+	Expr string `json:"expr,omitempty"`
 }
 
 // TriggerSettingsEvent holds settings for event driven trigger types
 type TriggerSettingsEvent struct {
-	EventType    EventType
-	MaxOccurence int
+	EventType    EventType `json:"eventType,omitempty"`
+	MaxOccurence int       `json:"maxOccurence,omitempty"`
 }
 
-var _ TriggerSettings = TriggerSettingsTimeInterval{}
-var _ TriggerSettings = TriggerSettingsEvent{}
+var _ TriggerSettings = &TriggerSettingsTimeInterval{}
+var _ TriggerSettings = &TriggerSettingsEvent{}
 
 // Validate implements TriggerSettings and returns an error when the settings are invalid
-func (t TriggerSettingsTimeInterval) Validate() error {
+func (t *TriggerSettingsTimeInterval) Validate() error {
 	if len(t.Expr) == 0 {
 		return errors.New("Expr field is required and must be a valid cron expression")
 	}
@@ -66,12 +55,31 @@ func (t TriggerSettingsTimeInterval) Validate() error {
 }
 
 // Encode gob encode settings to []byte
-func (t TriggerSettingsTimeInterval) Encode() ([]byte, error) {
+func (t *TriggerSettingsTimeInterval) Encode() ([]byte, error) {
 	return gobEncode(&t)
 }
 
 // Decode gob decode bytes to settings
-func (t TriggerSettingsTimeInterval) Decode(b []byte) error {
+func (t *TriggerSettingsTimeInterval) Decode(b []byte) error {
+	return gobDecode(&t, b)
+}
+
+// Validate implements TriggerSettings and returns an error when the settings are invalid
+func (t *TriggerSettingsEvent) Validate() error {
+	if len(t.EventType) == 0 {
+		return errors.New("EventType is required")
+	}
+
+	return nil
+}
+
+// Encode gob encode settings to []byte
+func (t *TriggerSettingsEvent) Encode() ([]byte, error) {
+	return gobEncode(&t)
+}
+
+// Decode gob decode bytes to settings
+func (t *TriggerSettingsEvent) Decode(b []byte) error {
 	return gobDecode(&t, b)
 }
 
@@ -90,28 +98,8 @@ func gobDecode(t interface{}, b []byte) error {
 	buf := bytes.NewBuffer(b)
 	decoder := gob.NewDecoder(buf)
 
-	if err := decoder.Decode(&t); err != nil {
+	if err := decoder.Decode(t); err != nil {
 		return err
 	}
-
 	return nil
-}
-
-// Validate implements TriggerSettings and returns an error when the settings are invalid
-func (t TriggerSettingsEvent) Validate() error {
-	if len(t.EventType) == 0 {
-		return errors.New("EventType is required")
-	}
-
-	return nil
-}
-
-// Encode gob encode settings to []byte
-func (t TriggerSettingsEvent) Encode() ([]byte, error) {
-	return gobEncode(&t)
-}
-
-// Decode gob decode bytes to settings
-func (t TriggerSettingsEvent) Decode(b []byte) error {
-	return gobDecode(&t, b)
 }

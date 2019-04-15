@@ -37,12 +37,11 @@ func NewAddTargetCommand(c2seClientFactory grpc.ClientFactory) Command {
 		RunE:  addTargetCmd.run,
 	}
 
-	cobraCmd.Flags().Int32VarP(&addTargetCmd.flags.RuleID, "rule", "", 0, "The ruleID to add the target on")
-	cobraCmd.Flags().StringVarP(&addTargetCmd.flags.Type, "type", "", "", "The target type")
-	cobraCmd.Flags().StringVarP(
+	cobraCmd.Flags().Int32Var(&addTargetCmd.flags.RuleID, "rule", 0, "The ruleID to add the target on")
+	cobraCmd.Flags().StringVar(&addTargetCmd.flags.Type, "type", "", "The target type")
+	cobraCmd.Flags().StringVar(
 		&addTargetCmd.flags.Expr,
 		"expr",
-		"",
 		"",
 		"A regular expression used to match clients or topics",
 	)

@@ -52,10 +52,9 @@ To configure your bash shell to load completions for each session add to your ba
 		RunE: completionCmd.run,
 	}
 
-	cobraCmd.Flags().BoolVarP(
+	cobraCmd.Flags().BoolVar(
 		&completionCmd.flags.IsZsh,
 		"zsh",
-		"",
 		false,
 		"Generate zsh completion script (default: bash)",
 	)

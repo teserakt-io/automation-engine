@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"gitlab.com/teserakt/c2se/internal/cli/grpc"
-	"gitlab.com/teserakt/c2se/internal/models"
 	"gitlab.com/teserakt/c2se/internal/pb"
 )
 
@@ -39,12 +38,11 @@ func NewAddTriggerCommand(c2seClientFactory grpc.ClientFactory) Command {
 		RunE:  addTriggerCmd.run,
 	}
 
-	cobraCmd.Flags().Int32VarP(&addTriggerCmd.flags.RuleID, "rule", "", 0, "The ruleID to add the trigger on")
-	cobraCmd.Flags().StringVarP(&addTriggerCmd.flags.Type, "type", "", "", "The trigger type")
-	cobraCmd.Flags().StringToStringVarP(
+	cobraCmd.Flags().Int32Var(&addTriggerCmd.flags.RuleID, "rule", 0, "The ruleID to add the trigger on")
+	cobraCmd.Flags().StringVar(&addTriggerCmd.flags.Type, "type", "", "The trigger type")
+	cobraCmd.Flags().StringToStringVar(
 		&addTriggerCmd.flags.Settings,
 		"setting",
-		"",
 		nil,
 		"Used to set trigger settings",
 	)
@@ -120,24 +118,24 @@ func (c *addTriggerCommand) run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func mapToTriggerSettings(userSettings map[string]string, triggerType pb.TriggerType) (models.TriggerSettings, error) {
+func mapToTriggerSettings(userSettings map[string]string, triggerType pb.TriggerType) (pb.TriggerSettings, error) {
 	var decoderConfig *mapstructure.DecoderConfig
 
 	switch triggerType {
 	case pb.TriggerType_TIME_INTERVAL:
 		decoderConfig = &mapstructure.DecoderConfig{
-			Result: &models.TriggerSettingsTimeInterval{},
+			Result: &pb.TriggerSettingsTimeInterval{},
 		}
 	case pb.TriggerType_CLIENT_SUBSCRIBED:
 		decoderConfig = &mapstructure.DecoderConfig{
-			Result: &models.TriggerSettingsEvent{
-				EventType: models.EventTypeClientSubscribed,
+			Result: &pb.TriggerSettingsEvent{
+				EventType: pb.EventTypeClientSubscribed,
 			},
 		}
 	case pb.TriggerType_CLIENT_UNSUBSCRIBED:
 		decoderConfig = &mapstructure.DecoderConfig{
-			Result: &models.TriggerSettingsEvent{
-				EventType: models.EventTypeClientUnsubscribed,
+			Result: &pb.TriggerSettingsEvent{
+				EventType: pb.EventTypeClientUnsubscribed,
 			},
 		}
 	}
@@ -158,5 +156,5 @@ func mapToTriggerSettings(userSettings map[string]string, triggerType pb.Trigger
 		fmt.Printf("WARN: setting %s is provided, but was ignored.\n", unused)
 	}
 
-	return decoderConfig.Result.(models.TriggerSettings), nil
+	return decoderConfig.Result.(pb.TriggerSettings), nil
 }

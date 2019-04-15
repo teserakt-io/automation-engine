@@ -35,8 +35,8 @@ func NewCreateCommand(c2seClientFactory grpc.ClientFactory) Command {
 		RunE:  createCmd.run,
 	}
 
-	cobraCmd.Flags().StringVarP(&createCmd.flags.Description, "description", "", "", "short description of the rule")
-	cobraCmd.Flags().StringVarP(&createCmd.flags.Action, "action", "", "", "action to be performed when the rule will trigger")
+	cobraCmd.Flags().StringVar(&createCmd.flags.Description, "description", "", "short description of the rule")
+	cobraCmd.Flags().StringVar(&createCmd.flags.Action, "action", "", "action to be performed when the rule will trigger")
 
 	cobraCmd.MarkFlagCustom("action", CompletionFuncNameAction)
 
