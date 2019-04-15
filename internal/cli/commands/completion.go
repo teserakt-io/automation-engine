@@ -12,8 +12,10 @@ import (
 const (
 	// CompletionFuncNameAction holds the name of the bash function used to autocomplete action flag
 	CompletionFuncNameAction = "__c2se_autocomplete_actions"
-	// CompletionFuncNameTriggerType holds the name of the bash function used to autocomplet trigger type flag
+	// CompletionFuncNameTriggerType holds the name of the bash function used to autocomplete trigger type flag
 	CompletionFuncNameTriggerType = "__c2se_autocomplete_trigger_types"
+	// CompletionFuncNameTargetType holds the name of the bash function used to autocomplete target type flag
+	CompletionFuncNameTargetType = "__c2se_autocomplete_target_types"
 )
 
 // CompletionCommand defines a custom Command to deal with auto completion
@@ -84,7 +86,6 @@ func (c *CompletionCommand) run(cmd *cobra.Command, args []string) error {
 func (c *CompletionCommand) GenerateCustomCompletionFuncs() string {
 	var out string
 
-	// Autocomplete for pb.ActionType
 	var actionNames []string
 	for _, name := range pb.ActionType_name {
 		actionNames = append(actionNames, name)
@@ -95,8 +96,14 @@ func (c *CompletionCommand) GenerateCustomCompletionFuncs() string {
 		triggerTypes = append(triggerTypes, t)
 	}
 
+	var targetTypes []string
+	for _, t := range pb.TargetType_name {
+		targetTypes = append(targetTypes, t)
+	}
+
 	out += c.generateCompletionFunc(CompletionFuncNameAction, actionNames)
 	out += c.generateCompletionFunc(CompletionFuncNameTriggerType, triggerTypes)
+	out += c.generateCompletionFunc(CompletionFuncNameTargetType, targetTypes)
 
 	return out
 }

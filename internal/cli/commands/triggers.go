@@ -39,12 +39,12 @@ func NewAddTriggerCommand(c2seClientFactory grpc.ClientFactory) Command {
 		RunE:  addTriggerCmd.run,
 	}
 
-	cobraCmd.Flags().Int32VarP(&addTriggerCmd.flags.RuleID, "rule", "r", 0, "The ruleID to add the trigger on")
-	cobraCmd.Flags().StringVarP(&addTriggerCmd.flags.Type, "type", "t", "", "The trigger type")
+	cobraCmd.Flags().Int32VarP(&addTriggerCmd.flags.RuleID, "rule", "", 0, "The ruleID to add the trigger on")
+	cobraCmd.Flags().StringVarP(&addTriggerCmd.flags.Type, "type", "", "", "The trigger type")
 	cobraCmd.Flags().StringToStringVarP(
 		&addTriggerCmd.flags.Settings,
 		"setting",
-		"s",
+		"",
 		nil,
 		"Used to set trigger settings",
 	)
@@ -53,6 +53,7 @@ func NewAddTriggerCommand(c2seClientFactory grpc.ClientFactory) Command {
 
 	cobraCmd.MarkFlagRequired("rule")
 	cobraCmd.MarkFlagRequired("type")
+	cobraCmd.MarkFlagRequired("setting")
 
 	addTriggerCmd.cobraCmd = cobraCmd
 
