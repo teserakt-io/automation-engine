@@ -89,6 +89,13 @@ func (s *ruleService) TriggerByID(triggerID int) (models.Trigger, error) {
 		return t, result.Error
 	}
 
+	// Fetch related rule
+	rule, err := s.ByID(t.RuleID)
+	if err != nil {
+		return t, err
+	}
+	t.Rule = &rule
+
 	return t, nil
 }
 
@@ -99,6 +106,13 @@ func (s *ruleService) TargetByID(targetID int) (models.Target, error) {
 	if result := s.gorm().First(&t, targetID); result.Error != nil {
 		return t, result.Error
 	}
+
+	// Fetch related rule
+	rule, err := s.ByID(t.RuleID)
+	if err != nil {
+		return t, err
+	}
+	t.Rule = &rule
 
 	return t, nil
 }

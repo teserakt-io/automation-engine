@@ -21,7 +21,7 @@ func getTestDB(t *testing.T) (models.Database, func()) {
 	db, err := models.NewDB(models.DBConfig{
 		Dialect:   models.DBDialectSQLite,
 		CnxString: f.Name(),
-		LogMode:   false,
+		LogMode:   true,
 	})
 
 	if err != nil {
@@ -50,6 +50,10 @@ func createRules(t *testing.T, srv RuleService) (rule1 models.Rule, rule2 models
 			models.Trigger{ID: 1},
 		},
 	}
+
+	rule1.Targets[0].Rule = &rule1
+	rule1.Triggers[0].Rule = &rule1
+
 	rule2 = models.Rule{
 		ActionType:  pb.ActionType_KEY_ROTATION,
 		Description: "rule2",
@@ -60,6 +64,9 @@ func createRules(t *testing.T, srv RuleService) (rule1 models.Rule, rule2 models
 			models.Trigger{ID: 2},
 		},
 	}
+
+	rule2.Targets[0].Rule = &rule2
+	rule2.Triggers[0].Rule = &rule2
 
 	err := srv.Save(&rule1)
 	if err != nil {
@@ -99,7 +106,7 @@ func TestRuleService(t *testing.T) {
 		}
 
 		if reflect.DeepEqual(rules, []models.Rule{rule1, rule2}) == false {
-			t.Errorf("Expected first rule to be %#v, got %#v", []models.Rule{rule1, rule2}, rules)
+			t.Errorf("Expected rules to be %#v, got %#v", []models.Rule{rule1, rule2}, rules)
 		}
 	})
 

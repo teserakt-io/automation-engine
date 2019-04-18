@@ -1,5 +1,7 @@
 package events
 
+//go:generate mockgen -destination=../mocks/events_dispatcher.go -package=mocks gitlab.com/teserakt/c2se/internal/events Dispatcher
+
 import (
 	"log"
 	"sync"

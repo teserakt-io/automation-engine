@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"testing"
 
+	"gitlab.com/teserakt/c2se/internal/events"
+
 	"gitlab.com/teserakt/c2se/internal/models"
 
 	"github.com/golang/mock/gomock"
@@ -18,8 +20,9 @@ func TestServer(t *testing.T) {
 
 	mockConverter := mocks.NewMockConverter(mockCtrl)
 	mockRuleService := mocks.NewMockRuleService(mockCtrl)
+	mockDispatcher := mocks.NewMockDispatcher(mockCtrl)
 
-	server := NewServer(":0", mockRuleService, mockConverter)
+	server := NewServer(":0", mockRuleService, mockConverter, mockDispatcher)
 
 	t.Run("ListRules returns all the rules", func(t *testing.T) {
 		rules := []models.Rule{
@@ -36,6 +39,8 @@ func TestServer(t *testing.T) {
 
 		mockRuleService.EXPECT().All().Times(1).Return(rules, nil)
 		mockConverter.EXPECT().RulesToPb(rules).Times(1).Return(pbRules, nil)
+
+		mockDispatcher.EXPECT().Dispatch(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
 
 		resp, err := server.ListRules(context.Background(), &pb.ListRulesRequest{})
 		if err != nil {
@@ -73,6 +78,8 @@ func TestServer(t *testing.T) {
 
 		pbRule := &pb.Rule{Id: 1}
 		mockConverter.EXPECT().RuleToPb(gomock.Any()).Times(1).Return(pbRule, nil)
+
+		mockDispatcher.EXPECT().Dispatch(events.RulesModifiedType, server, nil).Times(1)
 
 		resp, err := server.AddRule(context.Background(), req)
 		if err != nil {
@@ -140,6 +147,8 @@ func TestServer(t *testing.T) {
 
 		mockConverter.EXPECT().RuleToPb(updatedRule).Times(1).Return(updatedPbRule, nil)
 
+		mockDispatcher.EXPECT().Dispatch(events.RulesModifiedType, server, nil).Times(1)
+
 		resp, err := server.UpdateRule(context.Background(), req)
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
@@ -160,6 +169,8 @@ func TestServer(t *testing.T) {
 
 		mockRuleService.EXPECT().ByID(1).Times(1).Return(rule, nil)
 		mockRuleService.EXPECT().Delete(rule).Times(1)
+
+		mockDispatcher.EXPECT().Dispatch(events.RulesModifiedType, server, nil).Times(1)
 
 		resp, err := server.DeleteRule(context.Background(), req)
 		if err != nil {

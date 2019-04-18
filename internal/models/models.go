@@ -36,7 +36,7 @@ type Trigger struct {
 }
 
 // AfterFind update triggers and targets with current rule
-func (r *Rule) AfterFind() (err error) {
+func (r *Rule) AfterFind() error {
 	for i := range r.Triggers {
 		r.Triggers[i].Rule = r
 	}
@@ -45,5 +45,5 @@ func (r *Rule) AfterFind() (err error) {
 		r.Targets[i].Rule = r
 	}
 
-	return
+	return nil
 }
