@@ -5,6 +5,8 @@ import (
 	"log"
 	"net"
 
+	"gitlab.com/teserakt/c2se/internal/events"
+
 	"gitlab.com/teserakt/c2se/internal/models"
 	"gitlab.com/teserakt/c2se/internal/pb"
 	"gitlab.com/teserakt/c2se/internal/services"
@@ -22,16 +24,18 @@ type apiServer struct {
 	addr        string
 	ruleService services.RuleService
 	converter   models.Converter
+	dispatcher  events.Dispatcher
 }
 
 var _ pb.C2ScriptEngineServer = &apiServer{}
 
 // NewServer creates a new Server implementing the C2ScriptEngineServer interface
-func NewServer(addr string, ruleService services.RuleService, converter models.Converter) Server {
+func NewServer(addr string, ruleService services.RuleService, converter models.Converter, dispatcher events.Dispatcher) Server {
 	return &apiServer{
 		addr:        addr,
 		ruleService: ruleService,
 		converter:   converter,
+		dispatcher:  dispatcher,
 	}
 }
 
@@ -109,6 +113,8 @@ func (s *apiServer) AddRule(ctx context.Context, req *pb.AddRuleRequest) (*pb.Ru
 		return nil, err
 	}
 
+	s.dispatcher.Dispatch(events.RulesModifiedType, s, nil)
+
 	return &pb.RuleResponse{
 		Rule: pbRule,
 	}, nil
@@ -144,6 +150,8 @@ func (s *apiServer) UpdateRule(ctx context.Context, req *pb.UpdateRuleRequest) (
 		return nil, err
 	}
 
+	s.dispatcher.Dispatch(events.RulesModifiedType, s, nil)
+
 	return &pb.RuleResponse{
 		Rule: pbRule,
 	}, nil
@@ -158,6 +166,8 @@ func (s *apiServer) DeleteRule(ctx context.Context, req *pb.DeleteRuleRequest) (
 	if err := s.ruleService.Delete(rule); err != nil {
 		return nil, err
 	}
+
+	s.dispatcher.Dispatch(events.RulesModifiedType, s, nil)
 
 	return &pb.DeleteRuleResponse{RuleId: int32(rule.ID)}, nil
 }

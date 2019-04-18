@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
+
+	"gitlab.com/teserakt/c2se/internal/events"
 
 	"gitlab.com/teserakt/c2se/internal/api"
 	"gitlab.com/teserakt/c2se/internal/config"
+	"gitlab.com/teserakt/c2se/internal/engine"
 	"gitlab.com/teserakt/c2se/internal/models"
 	"gitlab.com/teserakt/c2se/internal/services"
 )
@@ -38,7 +42,7 @@ func main() {
 	dbConfig := models.DBConfig{
 		Dialect:   models.DBDialectSQLite,
 		CnxString: appConfig.DBFilepath,
-		LogMode:   true,
+		LogMode:   false,
 	}
 
 	db, err := models.NewDB(dbConfig)
@@ -54,14 +58,28 @@ func main() {
 
 		return
 	}
+	converter := models.NewConverter()
 
 	ruleService := services.NewRuleService(db)
-	converter := models.NewConverter()
+
+	dispatcher := events.NewDispatcher()
+	triggerListenerFactory := events.NewTriggerListenerFactory(ruleService)
+
+	ruleWatcher := engine.NewRuleWatcher(ruleService, dispatcher, triggerListenerFactory)
+	scheduler := engine.NewScheduler(time.Second, dispatcher)
+	scriptEngine := engine.NewScriptEngine(scheduler, dispatcher, ruleWatcher)
+
+	go func() {
+		if err := scriptEngine.Run(); err != nil {
+			log.Fatalf("FATAL: script engine failed: %s", err)
+		}
+	}()
 
 	server := api.NewServer(
 		appConfig.Addr,
 		ruleService,
 		converter,
+		dispatcher,
 	)
 
 	if err := server.ListenAndServe(); err != nil {
