@@ -6,6 +6,7 @@ package mocks
 
 import (
 	gomock "github.com/golang/mock/gomock"
+	events "gitlab.com/teserakt/c2se/internal/events"
 	reflect "reflect"
 )
 
@@ -30,6 +31,20 @@ func NewMockRuleWatcher(ctrl *gomock.Controller) *MockRuleWatcher {
 // EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockRuleWatcher) EXPECT() *MockRuleWatcherMockRecorder {
 	return m.recorder
+}
+
+// OnEvent mocks base method
+func (m *MockRuleWatcher) OnEvent(arg0 events.Event) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OnEvent", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// OnEvent indicates an expected call of OnEvent
+func (mr *MockRuleWatcherMockRecorder) OnEvent(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnEvent", reflect.TypeOf((*MockRuleWatcher)(nil).OnEvent), arg0)
 }
 
 // Reload mocks base method

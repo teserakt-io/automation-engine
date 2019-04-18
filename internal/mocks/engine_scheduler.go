@@ -7,7 +7,6 @@ package mocks
 import (
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
-	time "time"
 )
 
 // MockScheduler is a mock of Scheduler interface
@@ -57,16 +56,4 @@ func (m *MockScheduler) Stop() error {
 func (mr *MockSchedulerMockRecorder) Stop() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stop", reflect.TypeOf((*MockScheduler)(nil).Stop))
-}
-
-// Tick mocks base method
-func (m *MockScheduler) Tick(arg0 time.Time) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Tick", arg0)
-}
-
-// Tick indicates an expected call of Tick
-func (mr *MockSchedulerMockRecorder) Tick(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Tick", reflect.TypeOf((*MockScheduler)(nil).Tick), arg0)
 }

@@ -5,10 +5,9 @@
 package mocks
 
 import (
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	events "gitlab.com/teserakt/c2se/internal/events"
+	reflect "reflect"
 )
 
 // MockDispatcher is a mock of Dispatcher interface

@@ -12,6 +12,7 @@ import (
 
 // RuleWatcher defines methods to implement a rule storage
 type RuleWatcher interface {
+	events.Listener
 	Reload() error
 }
 
