@@ -14,7 +14,6 @@ import (
 type Scheduler interface {
 	Start()
 	Stop() error
-	Tick(time.Time)
 }
 
 type scheduler struct {
@@ -26,6 +25,11 @@ type scheduler struct {
 }
 
 var _ Scheduler = &scheduler{}
+
+var (
+	// ErrNotStarted is returned when trying to stop a scheduler that is not started
+	ErrNotStarted = errors.New("scheduler is not started")
+)
 
 // NewScheduler creates a new scheduler which will tick at given interval
 func NewScheduler(tickInterval time.Duration, dispatcher events.Dispatcher) Scheduler {
@@ -42,20 +46,16 @@ func (s *scheduler) Start() {
 	s.started = true
 
 	for t := range s.ticker.C {
-		s.Tick(t)
+		log.Println("tick")
+		s.dispatcher.Dispatch(events.SchedulerTickType, s, events.SchedulerEventValue{
+			Time: t,
+		})
 	}
-}
-
-// Tick holds the scheduler business logic
-func (s *scheduler) Tick(t time.Time) {
-	s.dispatcher.Dispatch(events.SchedulerTickType, s, events.SchedulerEventValue{
-		Time: t,
-	})
 }
 
 func (s *scheduler) Stop() error {
 	if !s.started {
-		return errors.New("scheduler is not started")
+		return ErrNotStarted
 	}
 
 	log.Printf("Scheduler stopped at %s\n", time.Now())
