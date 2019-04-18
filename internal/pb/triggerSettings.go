@@ -56,12 +56,12 @@ func (t *TriggerSettingsTimeInterval) Validate() error {
 
 // Encode gob encode settings to []byte
 func (t *TriggerSettingsTimeInterval) Encode() ([]byte, error) {
-	return gobEncode(&t)
+	return gobEncode(t)
 }
 
 // Decode gob decode bytes to settings
 func (t *TriggerSettingsTimeInterval) Decode(b []byte) error {
-	return gobDecode(&t, b)
+	return gobDecode(t, b)
 }
 
 // Validate implements TriggerSettings and returns an error when the settings are invalid
@@ -79,12 +79,12 @@ func (t *TriggerSettingsEvent) Validate() error {
 
 // Encode gob encode settings to []byte
 func (t *TriggerSettingsEvent) Encode() ([]byte, error) {
-	return gobEncode(&t)
+	return gobEncode(t)
 }
 
 // Decode gob decode bytes to settings
 func (t *TriggerSettingsEvent) Decode(b []byte) error {
-	return gobDecode(&t, b)
+	return gobDecode(t, b)
 }
 
 func gobEncode(t interface{}) ([]byte, error) {
@@ -101,7 +101,6 @@ func gobEncode(t interface{}) ([]byte, error) {
 func gobDecode(t interface{}, b []byte) error {
 	buf := bytes.NewBuffer(b)
 	decoder := gob.NewDecoder(buf)
-
 	if err := decoder.Decode(t); err != nil {
 		return err
 	}

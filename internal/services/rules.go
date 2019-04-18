@@ -7,15 +7,35 @@ import (
 	"gitlab.com/teserakt/c2se/internal/models"
 )
 
-// RuleService defines methods to interact with rules models and database
-type RuleService interface {
+// TriggerReader defines methods to read triggers
+type TriggerReader interface {
+	TriggerByID(triggerID int) (models.Trigger, error)
+}
+
+// TargetReader defines methods to read targets
+type TargetReader interface {
+	TargetByID(targetID int) (models.Target, error)
+}
+
+// RuleReader defines methods availble to read rules from database
+type RuleReader interface {
 	All() ([]models.Rule, error)
 	ByID(ruleID int) (models.Rule, error)
+}
+
+// RuleWriter defines methods available to write rules
+type RuleWriter interface {
 	Save(rule *models.Rule) error
 	Delete(rule models.Rule) error
+}
 
-	TriggerByID(triggerID int) (models.Trigger, error)
-	TargetByID(targetID int) (models.Target, error)
+// RuleService defines methods to interact with rules models and database
+type RuleService interface {
+	RuleReader
+	RuleWriter
+
+	TargetReader
+	TriggerReader
 }
 
 type ruleService struct {
