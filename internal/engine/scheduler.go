@@ -46,7 +46,6 @@ func (s *scheduler) Start() {
 	s.started = true
 
 	for t := range s.ticker.C {
-		log.Println("tick")
 		s.dispatcher.Dispatch(events.SchedulerTickType, s, events.SchedulerEventValue{
 			Time: t,
 		})

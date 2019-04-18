@@ -27,12 +27,12 @@ lint:
 test:
   stage: test
   script:
-    - go test -v -coverprofile=cover.out ./... | tee >(go-junit-report > report.xml)
+    - go test -v -coverprofile=cover.out -race ./... | tee >(go-junit-report > report.xml)
     - go tool cover -func cover.out
   coverage: '/^total:\t+\(statements\)\t+(\d+\.\d+)%/'
   artifacts:
     reports:
-      junit: 
+      junit:
         - report.xml
     expire_in: 1 week
 
