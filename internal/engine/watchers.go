@@ -1,5 +1,7 @@
 package engine
 
+//go:generate mockgen -destination=../mocks/engine_watchers.go -package=mocks gitlab.com/teserakt/c2se/internal/engine RuleWatcher
+
 import (
 	"fmt"
 	"log"

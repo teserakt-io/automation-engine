@@ -1,5 +1,7 @@
 package engine
 
+//go:generate mockgen -destination=../mocks/engine_scheduler.go -package=mocks gitlab.com/teserakt/c2se/internal/engine Scheduler
+
 import (
 	"errors"
 	"log"
