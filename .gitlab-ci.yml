@@ -4,6 +4,11 @@ stages:
   - test
   - build
 
+cache:
+  key: godeps
+  paths:
+    - /go
+
 before_script:
   # https://docs.gitlab.com/ee/ci/ssh_keys/
   - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
