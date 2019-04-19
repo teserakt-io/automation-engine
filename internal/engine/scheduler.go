@@ -5,6 +5,7 @@ package engine
 import (
 	"errors"
 	"log"
+	"sync"
 	"time"
 
 	"gitlab.com/teserakt/c2se/internal/events"
@@ -17,10 +18,13 @@ type Scheduler interface {
 }
 
 type scheduler struct {
+	sync.Mutex
+
 	tickInterval time.Duration
 	dispatcher   events.Dispatcher
 
-	ticker  *time.Ticker
+	ticker *time.Ticker
+
 	started bool
 }
 
@@ -41,9 +45,13 @@ func NewScheduler(tickInterval time.Duration, dispatcher events.Dispatcher) Sche
 
 // Start will make the scheduler call its Tick method for every configured time interval
 func (s *scheduler) Start() {
+	s.Lock()
+
 	s.ticker = time.NewTicker(s.tickInterval)
-	log.Printf("Scheduler started at %s\n", time.Now())
 	s.started = true
+	log.Printf("Scheduler started at %s\n", time.Now())
+
+	s.Unlock()
 
 	for t := range s.ticker.C {
 		s.dispatcher.Dispatch(events.SchedulerTickType, s, events.SchedulerEventValue{
@@ -53,15 +61,17 @@ func (s *scheduler) Start() {
 }
 
 func (s *scheduler) Stop() error {
+	s.Lock()
+	defer s.Unlock()
+
 	if !s.started {
 		return ErrNotStarted
 	}
 
-	log.Printf("Scheduler stopped at %s\n", time.Now())
-
 	s.ticker.Stop()
-
 	s.started = false
+
+	log.Printf("Scheduler stopped at %s\n", time.Now())
 
 	return nil
 }
