@@ -73,17 +73,22 @@ type dispatcher struct {
 
 	listeners        map[Type][]Listener
 	listenerChannels map[Listener]chan Event
+
+	listenerChannelBufferSize int
 }
 
 var _ Dispatcher = &dispatcher{}
 var _ Event = &event{}
 
 // NewDispatcher creates a new event dispatcher
-func NewDispatcher() Dispatcher {
+// sourceChannelBufferSize defines the size of the source channel before it start blocking the Dispatch
+// listenerChannelBufferSize defines the size of the listeners channels before it start discarding events
+func NewDispatcher(sourceChannelBufferSize, listenerChannelBufferSize int) Dispatcher {
 	return &dispatcher{
-		listeners:        make(map[Type][]Listener),
-		eventChannel:     make(chan Event, 100), // small buffer on event channel to avoid blocking
-		listenerChannels: make(map[Listener]chan Event),
+		listeners:                 make(map[Type][]Listener),
+		eventChannel:              make(chan Event, sourceChannelBufferSize),
+		listenerChannels:          make(map[Listener]chan Event),
+		listenerChannelBufferSize: listenerChannelBufferSize,
 	}
 }
 
@@ -105,7 +110,7 @@ func (d *dispatcher) Register(eventtType Type, listener Listener) {
 	defer d.Unlock()
 
 	d.listeners[eventtType] = append(d.listeners[eventtType], listener)
-	d.listenerChannels[listener] = make(chan Event)
+	d.listenerChannels[listener] = make(chan Event, d.listenerChannelBufferSize)
 	go func() {
 		log.Printf("Started listener %p event loop", listener)
 		for evt := range d.listenerChannels[listener] {

@@ -62,7 +62,7 @@ func main() {
 
 	ruleService := services.NewRuleService(db)
 
-	dispatcher := events.NewDispatcher()
+	dispatcher := events.NewDispatcher(100, 100)
 	triggerListenerFactory := events.NewTriggerListenerFactory(ruleService)
 
 	ruleWatcher := engine.NewRuleWatcher(ruleService, dispatcher, triggerListenerFactory)
