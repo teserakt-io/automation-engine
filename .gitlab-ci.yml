@@ -4,19 +4,7 @@ stages:
   - test
   - build
 
-cache:
-  untracked: true
-  key: ${CI_COMMIT_REF_SLUG}
-  paths:
-    - .cache/
-
-after_script:
-  - cp -R $GOPATH .cache
-
 before_script:
-  # Cache only work from project root so we move gopath there to allow caching
-  - cp -R .cache $GOPATH || true
-
   # https://docs.gitlab.com/ee/ci/ssh_keys/
   - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
   - eval $(ssh-agent -s)
@@ -31,14 +19,10 @@ before_script:
   - go install golang.org/x/lint/golint
   - go get github.com/jstemmer/go-junit-report
 
-lint:
-  stage: test
-  script:
-    - golint -set_exit_status ./...
-
 test:
   stage: test
   script:
+    - golint -set_exit_status ./...
     - go test -v -coverprofile=cover.out -race ./... | tee >(go-junit-report > report.xml)
     - go tool cover -func cover.out
   coverage: '/^total:\t+\(statements\)\t+(\d+\.\d+)%/'
