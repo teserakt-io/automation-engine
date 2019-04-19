@@ -17,10 +17,10 @@ help: ## This help.
 build: test build-cli build-api ## Build the binaries
 
 build-cli:
-	GOOS=${GOOS} GOARCH=${GOARCH} go build -o ./bin/${PROJECT}-cli -ldflags "-X main.gitTag=${GIT_TAG} -X main.gitCommit=${GIT_COMMIT} -X main.buildDate=${NOW}" ./cmd/cli
+	GOOS=${GOOS} GOARCH=${GOARCH} go build -race -o ./bin/${PROJECT}-cli -ldflags "-X main.gitTag=${GIT_TAG} -X main.gitCommit=${GIT_COMMIT} -X main.buildDate=${NOW}" ./cmd/cli
 
 build-api:
-	GOOS=${GOOS} GOARCH=${GOARCH} go build -o ./bin/${PROJECT}-api -ldflags "-X main.gitTag=${GIT_TAG} -X main.gitCommit=${GIT_COMMIT} -X main.buildDate=${NOW}" ./cmd/api
+	GOOS=${GOOS} GOARCH=${GOARCH} go build -race -o ./bin/${PROJECT}-api -ldflags "-X main.gitTag=${GIT_TAG} -X main.gitCommit=${GIT_COMMIT} -X main.buildDate=${NOW}" ./cmd/api
 
 .PHONY: test
 test: ## Run tests
