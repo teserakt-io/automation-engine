@@ -5,11 +5,15 @@ stages:
   - build
 
 cache:
-  key: godeps
+  key: ${CI_COMMIT_REF_SLUG}
   paths:
-    - /go
+    - .cache
 
 before_script:
+  # Cache only work from project root so we move gopath there to allow caching
+  - mkdir -p .cache
+  - export GOPATH="$CI_PROJECT_DIR/.cache"
+
   # https://docs.gitlab.com/ee/ci/ssh_keys/
   - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
   - eval $(ssh-agent -s)
