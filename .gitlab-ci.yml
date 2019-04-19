@@ -15,7 +15,7 @@ after_script:
 
 before_script:
   # Cache only work from project root so we move gopath there to allow caching
-  - cp -R .cache $GOPATH
+  - cp -R .cache $GOPATH || true
 
   # https://docs.gitlab.com/ee/ci/ssh_keys/
   - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
