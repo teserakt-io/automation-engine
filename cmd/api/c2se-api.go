@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 
-	"gitlab.com/teserakt/c2se/internal/events"
+	"gitlab.com/teserakt/c2se/internal/engine/watchers"
 
 	"gitlab.com/teserakt/c2se/internal/api"
 	"gitlab.com/teserakt/c2se/internal/config"
@@ -62,28 +61,42 @@ func main() {
 
 	ruleService := services.NewRuleService(db)
 
-	dispatcher := events.NewDispatcher(100, 100)
-	triggerListenerFactory := events.NewTriggerListenerFactory(ruleService)
+	errorChan := make(chan error)
 
-	ruleWatcher := engine.NewRuleWatcher(ruleService, dispatcher, triggerListenerFactory)
-	scheduler := engine.NewScheduler(time.Second, dispatcher)
-	scriptEngine := engine.NewScriptEngine(scheduler, dispatcher, ruleWatcher)
-
-	go func() {
-		if err := scriptEngine.Run(); err != nil {
-			log.Fatalf("FATAL: script engine failed: %s", err)
-		}
-	}()
+	triggerWatcherFactory := watchers.NewTriggerWatcherFactory()
+	scriptEngine := engine.NewScriptEngine(ruleService, triggerWatcherFactory, errorChan)
 
 	server := api.NewServer(
 		appConfig.Addr,
 		ruleService,
 		converter,
-		dispatcher,
 	)
 
-	if err := server.ListenAndServe(); err != nil {
-		log.Fatalf("FATAL: server failed: %s", err)
+	err = scriptEngine.Start()
+	if err != nil {
+		log.Printf("Error when starting script engine: %s", err)
+
+		return
+	}
+
+	go func() {
+		errorChan <- server.ListenAndServe()
+	}()
+
+	for {
+		select {
+		case <-server.RulesModifiedChan():
+			log.Println("Rules modified, restarting script engine!")
+			scriptEngine.Stop()
+			err = scriptEngine.Start()
+			if err != nil {
+				log.Printf("Error while restarting script engine: %s", err)
+
+				return
+			}
+		case err := <-errorChan:
+			log.Printf("ERROR: %s", err)
+		}
 	}
 }
 

@@ -5,8 +5,6 @@ import (
 	"log"
 	"net"
 
-	"gitlab.com/teserakt/c2se/internal/events"
-
 	"gitlab.com/teserakt/c2se/internal/models"
 	"gitlab.com/teserakt/c2se/internal/pb"
 	"gitlab.com/teserakt/c2se/internal/services"
@@ -18,25 +16,36 @@ import (
 type Server interface {
 	pb.C2ScriptEngineServer
 	ListenAndServe() error
+	RulesModifiedChan() <-chan bool
 }
 
 type apiServer struct {
 	addr        string
 	ruleService services.RuleService
 	converter   models.Converter
-	dispatcher  events.Dispatcher
+
+	rulesModified chan bool
 }
 
 var _ pb.C2ScriptEngineServer = &apiServer{}
 
 // NewServer creates a new Server implementing the C2ScriptEngineServer interface
-func NewServer(addr string, ruleService services.RuleService, converter models.Converter, dispatcher events.Dispatcher) Server {
+func NewServer(
+	addr string,
+	ruleService services.RuleService,
+	converter models.Converter,
+) Server {
 	return &apiServer{
 		addr:        addr,
 		ruleService: ruleService,
 		converter:   converter,
-		dispatcher:  dispatcher,
+
+		rulesModified: make(chan bool, 100),
 	}
+}
+
+func (s *apiServer) RulesModifiedChan() <-chan bool {
+	return s.rulesModified
 }
 
 func (s *apiServer) ListenAndServe() error {
@@ -113,7 +122,7 @@ func (s *apiServer) AddRule(ctx context.Context, req *pb.AddRuleRequest) (*pb.Ru
 		return nil, err
 	}
 
-	s.dispatcher.Dispatch(events.RulesModifiedType, s, nil)
+	s.notifyRulesModified()
 
 	return &pb.RuleResponse{
 		Rule: pbRule,
@@ -150,7 +159,7 @@ func (s *apiServer) UpdateRule(ctx context.Context, req *pb.UpdateRuleRequest) (
 		return nil, err
 	}
 
-	s.dispatcher.Dispatch(events.RulesModifiedType, s, nil)
+	s.notifyRulesModified()
 
 	return &pb.RuleResponse{
 		Rule: pbRule,
@@ -167,7 +176,15 @@ func (s *apiServer) DeleteRule(ctx context.Context, req *pb.DeleteRuleRequest) (
 		return nil, err
 	}
 
-	s.dispatcher.Dispatch(events.RulesModifiedType, s, nil)
+	s.notifyRulesModified()
 
 	return &pb.DeleteRuleResponse{RuleId: int32(rule.ID)}, nil
+}
+
+func (s *apiServer) notifyRulesModified() {
+	select {
+	case s.rulesModified <- true:
+	default:
+		log.Println("Skipped writting ruleModified event, channel is busy")
+	}
 }

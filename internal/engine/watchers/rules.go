@@ -1,0 +1,86 @@
+package watchers
+
+import (
+	"log"
+
+	"gitlab.com/teserakt/c2se/internal/events"
+	"gitlab.com/teserakt/c2se/internal/models"
+	"gitlab.com/teserakt/c2se/internal/services"
+)
+
+// RuleWatcher defines methods to implement a rule storage
+type RuleWatcher interface {
+	Start()
+	Stop()
+}
+
+type ruleWatcher struct {
+	rule                  models.Rule
+	triggerWatcherFactory TriggerWatcherFactory
+	ruleWriter            services.RuleWriter
+	errorChan             chan<- error
+
+	stopChan chan bool
+}
+
+// NewRuleWatcher creates a watcher for changes on rules, and registering them on the dispatcher
+func NewRuleWatcher(
+	rule models.Rule,
+	ruleWriter services.RuleWriter,
+	triggerWatcherFactory TriggerWatcherFactory,
+	errorChan chan<- error,
+) RuleWatcher {
+	return &ruleWatcher{
+		rule:                  rule,
+		ruleWriter:            ruleWriter,
+		triggerWatcherFactory: triggerWatcherFactory,
+		errorChan:             errorChan,
+		stopChan:              make(chan bool),
+	}
+}
+
+func (w *ruleWatcher) Start() {
+	log.Printf("Started rule watcher for rule %d", w.rule.ID)
+
+	triggeredChan := make(chan events.TriggerEvent)
+	var triggerWatchers []TriggerWatcher
+
+	for _, trigger := range w.rule.Triggers {
+		triggerWatcher, err := w.triggerWatcherFactory.Create(trigger, w.rule.LastExecuted, triggeredChan, w.errorChan)
+		triggerWatchers = append(triggerWatchers, triggerWatcher)
+
+		if err != nil {
+			w.errorChan <- err
+			return
+		}
+
+		go triggerWatcher.Start()
+
+	}
+
+	for {
+		select {
+		case triggerEvt := <-triggeredChan:
+			log.Printf("Rule %d triggered from trigger %d", w.rule.ID, triggerEvt.Trigger.ID)
+			w.rule.LastExecuted = triggerEvt.Time
+			w.ruleWriter.Save(&w.rule)
+
+			for _, triggerWatcher := range triggerWatchers {
+				triggerWatcher.UpdateLastExecuted(triggerEvt.Time)
+			}
+
+			// TODO perform the rule.Action !
+		case <-w.stopChan:
+			for _, triggerWatcher := range triggerWatchers {
+				triggerWatcher.Stop()
+			}
+
+			return
+		}
+	}
+}
+
+func (w *ruleWatcher) Stop() {
+	w.stopChan <- true
+	log.Printf("Stopped ruleWatcher for rule %d", w.rule.ID)
+}

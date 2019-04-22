@@ -1,38 +1,61 @@
 package engine
 
 import (
-	"gitlab.com/teserakt/c2se/internal/events"
+	"log"
+
+	"gitlab.com/teserakt/c2se/internal/engine/watchers"
+	"gitlab.com/teserakt/c2se/internal/services"
 )
 
 // ScriptEngine interface describe the public methods available on the script engine
 type ScriptEngine interface {
-	Run() error
+	Start() error
+	Stop()
 }
 
 type scriptEngine struct {
-	scheduler   Scheduler
-	dispatcher  events.Dispatcher
-	ruleWatcher RuleWatcher
+	ruleService           services.RuleService
+	triggerWatcherFactory watchers.TriggerWatcherFactory
+	errorChan             chan<- error
+
+	ruleWatchers []watchers.RuleWatcher
 }
 
 var _ ScriptEngine = &scriptEngine{}
 
 // NewScriptEngine creates a new script engine
-func NewScriptEngine(scheduler Scheduler, dispatcher events.Dispatcher, ruleWatcher RuleWatcher) ScriptEngine {
+func NewScriptEngine(
+	ruleService services.RuleService,
+	triggerWatcherFactory watchers.TriggerWatcherFactory,
+	errorChan chan<- error,
+) ScriptEngine {
 	return &scriptEngine{
-		scheduler:   scheduler,
-		dispatcher:  dispatcher,
-		ruleWatcher: ruleWatcher,
+		ruleService:           ruleService,
+		triggerWatcherFactory: triggerWatcherFactory,
+		errorChan:             errorChan,
 	}
 }
 
-func (e *scriptEngine) Run() error {
-	go e.scheduler.Start()
-	go e.dispatcher.Start()
-
-	if err := e.ruleWatcher.Reload(); err != nil {
+func (e *scriptEngine) Start() error {
+	rules, err := e.ruleService.All()
+	if err != nil {
 		return err
 	}
 
+	for _, rule := range rules {
+		ruleWatcher := watchers.NewRuleWatcher(rule, e.ruleService, e.triggerWatcherFactory, e.errorChan)
+		e.ruleWatchers = append(e.ruleWatchers, ruleWatcher)
+		go ruleWatcher.Start()
+	}
+
 	return nil
+}
+
+func (e *scriptEngine) Stop() {
+	for _, w := range e.ruleWatchers {
+		w.Stop()
+	}
+
+	e.ruleWatchers = []watchers.RuleWatcher{}
+	log.Println("Stopped script engine")
 }
