@@ -182,7 +182,7 @@ func TestRuleWatcher(t *testing.T) {
 			if err != expectedErr {
 				t.Errorf("Expected error to be %s, got %s", expectedErr, err)
 			}
-		case <-time.After(10 * time.Millisecond):
+		case <-time.After(100 * time.Millisecond):
 			t.Errorf("Expected an error")
 		}
 	})
