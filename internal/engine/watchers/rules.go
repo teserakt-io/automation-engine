@@ -74,7 +74,7 @@ func (w *ruleWatcher) Start() {
 			w.ruleWriter.Save(&w.rule)
 
 			for _, triggerWatcher := range triggerWatchers {
-				triggerWatcher.UpdateLastExecuted(triggerEvt.Time)
+				go triggerWatcher.UpdateLastExecuted(triggerEvt.Time)
 			}
 
 			// TODO perform the rule.Action !

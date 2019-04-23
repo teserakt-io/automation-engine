@@ -55,43 +55,44 @@ func (l *triggerWatcherFactory) Create(
 	errorChan chan<- error,
 ) (TriggerWatcher, error) {
 
+	var watcher TriggerWatcher
+
 	switch trigger.TriggerType {
 	case pb.TriggerType_TIME_INTERVAL:
-		watcher := &schedulerWatcher{
+		watcher = &schedulerWatcher{
 			trigger:       trigger,
 			triggeredChan: triggeredChan,
 			errorChan:     errorChan,
 			stopChan:      make(chan bool),
-			updateChan:    make(chan time.Time, 1),
+			updateChan:    make(chan time.Time),
 			lastExecuted:  lastExecuted,
 		}
 
-		return watcher, nil
 	case pb.TriggerType_CLIENT_SUBSCRIBED:
-		watcher := &clientSubscribedWatcher{
+		watcher = &clientSubscribedWatcher{
 			trigger:       trigger,
 			triggeredChan: triggeredChan,
 			errorChan:     errorChan,
 			stopChan:      make(chan bool),
-			updateChan:    make(chan time.Time, 1),
+			updateChan:    make(chan time.Time),
 			lastExecuted:  lastExecuted,
 		}
 
-		return watcher, nil
 	case pb.TriggerType_CLIENT_UNSUBSCRIBED:
-		watcher := &clientUnsubscribedWatcher{
+		watcher = &clientUnsubscribedWatcher{
 			trigger:       trigger,
 			triggeredChan: triggeredChan,
 			errorChan:     errorChan,
 			stopChan:      make(chan bool),
-			updateChan:    make(chan time.Time, 1),
+			updateChan:    make(chan time.Time),
 			lastExecuted:  lastExecuted,
 		}
 
-		return watcher, nil
 	default:
 		return nil, fmt.Errorf("TriggerWatcherFactory don't know how to handle trigger type %s", trigger.TriggerType)
 	}
+
+	return watcher, nil
 }
 
 type schedulerWatcher struct {

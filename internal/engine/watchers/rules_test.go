@@ -67,6 +67,7 @@ func TestRuleWatcher(t *testing.T) {
 
 		go func() {
 			ruleWatcher.Stop()
+			time.Sleep(10 * time.Millisecond)
 			wg.Done()
 		}()
 
@@ -76,6 +77,7 @@ func TestRuleWatcher(t *testing.T) {
 		case <-time.After(10 * time.Millisecond):
 		}
 
+		wg.Wait()
 	})
 
 	t.Run("Error when creating trigger watchers are forwarded to error chan", func(t *testing.T) {
@@ -112,8 +114,11 @@ func TestRuleWatcher(t *testing.T) {
 
 		go func() {
 			ruleWatcher.Stop()
+			time.Sleep(10 * time.Millisecond)
 			wg.Done()
 		}()
+
+		wg.Wait()
 	})
 
 	t.Run("TriggerWatchers get updated when one trigger", func(t *testing.T) {
@@ -158,6 +163,7 @@ func TestRuleWatcher(t *testing.T) {
 
 		go func() {
 			ruleWatcher.Stop()
+			time.Sleep(10 * time.Millisecond)
 			wg.Done()
 		}()
 
