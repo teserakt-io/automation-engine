@@ -23,7 +23,7 @@ test:
   stage: test
   script:
     - golint -set_exit_status ./...
-    - go test -v -coverprofile=cover.out -race ./... | tee >(go-junit-report > report.xml)
+    - go test -v -coverprofile=cover.out -timeout 10s -race ./... | tee >(go-junit-report > report.xml)
     - go tool cover -func cover.out
   coverage: '/^total:\t+\(statements\)\t+(\d+\.\d+)%/'
   artifacts:
