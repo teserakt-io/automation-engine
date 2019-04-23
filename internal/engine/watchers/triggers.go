@@ -17,8 +17,8 @@ import (
 // TriggerWatcher defines an interface for types watching on a trigger
 type TriggerWatcher interface {
 	Start()
-	Stop()
-	UpdateLastExecuted(time.Time)
+	Stop() error
+	UpdateLastExecuted(time.Time) error
 }
 
 // TriggerWatcherFactory allows to create trigger watchers from a given trigger
@@ -63,7 +63,7 @@ func (l *triggerWatcherFactory) Create(
 			trigger:       trigger,
 			triggeredChan: triggeredChan,
 			errorChan:     errorChan,
-			stopChan:      make(chan bool),
+			stopChan:      make(chan bool, 1),
 			updateChan:    make(chan time.Time),
 			lastExecuted:  lastExecuted,
 		}
@@ -73,7 +73,7 @@ func (l *triggerWatcherFactory) Create(
 			trigger:       trigger,
 			triggeredChan: triggeredChan,
 			errorChan:     errorChan,
-			stopChan:      make(chan bool),
+			stopChan:      make(chan bool, 1),
 			updateChan:    make(chan time.Time),
 			lastExecuted:  lastExecuted,
 		}
@@ -83,7 +83,7 @@ func (l *triggerWatcherFactory) Create(
 			trigger:       trigger,
 			triggeredChan: triggeredChan,
 			errorChan:     errorChan,
-			stopChan:      make(chan bool),
+			stopChan:      make(chan bool, 1),
 			updateChan:    make(chan time.Time),
 			lastExecuted:  lastExecuted,
 		}
@@ -93,6 +93,24 @@ func (l *triggerWatcherFactory) Create(
 	}
 
 	return watcher, nil
+}
+
+// InvalidTriggerSettings describe an error returned when the trigger settings are invalid
+type InvalidTriggerSettings struct {
+	Err error
+}
+
+func (e InvalidTriggerSettings) Error() string {
+	return e.Err.Error()
+}
+
+// InvalidCronExpr describe an error returned when the trigger have an invalid cron expression set
+type InvalidCronExpr struct {
+	Err error
+}
+
+func (e InvalidCronExpr) Error() string {
+	return e.Err.Error()
 }
 
 type schedulerWatcher struct {
@@ -110,21 +128,26 @@ func (w *schedulerWatcher) Start() {
 
 	settings := &pb.TriggerSettingsTimeInterval{}
 	if err := settings.Decode(w.trigger.Settings); err != nil {
-		w.errorChan <- err
+		w.errorChan <- InvalidTriggerSettings{fmt.Errorf("failed to decode trigger settings: %s", err)}
 
 		return
 	}
 
 	for {
 		var delay time.Duration
-		nextTime := cronexpr.MustParse(settings.Expr).Next(w.lastExecuted)
+		expr, err := cronexpr.Parse(settings.Expr)
+		if err != nil {
+			w.errorChan <- InvalidCronExpr{fmt.Errorf("failed to parse cron expression: %s", err)}
+
+			return
+		}
+		nextTime := expr.Next(w.lastExecuted)
 
 		if now := time.Now(); nextTime.After(now) {
 			delay = nextTime.Sub(now)
 		}
 
 		trigger := time.After(delay)
-
 		select {
 		case <-trigger:
 			now := time.Now()
@@ -133,24 +156,33 @@ func (w *schedulerWatcher) Start() {
 				Trigger: w.trigger,
 				Time:    now,
 			}
-
 			w.lastExecuted = now
-
 		case w.lastExecuted = <-w.updateChan:
 		case <-w.stopChan:
 			return
 		}
 	}
-
 }
 
-func (w *schedulerWatcher) Stop() {
-	w.stopChan <- true
-	log.Printf("Stopped schedulerWatcher for trigger %d (rule %d)", w.trigger.ID, w.trigger.RuleID)
+func (w *schedulerWatcher) Stop() error {
+	select {
+	case w.stopChan <- true:
+		log.Printf("Stopped schedulerWatcher for trigger %d (rule %d)", w.trigger.ID, w.trigger.RuleID)
+	case <-time.After(100 * time.Millisecond):
+		return fmt.Errorf("Couldn't stop schedulerWatcher for trigger %d (rule %d), maybe it's already stopped ?", w.trigger.ID, w.trigger.RuleID)
+	}
+
+	return nil
 }
 
-func (w *schedulerWatcher) UpdateLastExecuted(lastExecuted time.Time) {
-	w.updateChan <- lastExecuted
+func (w *schedulerWatcher) UpdateLastExecuted(lastExecuted time.Time) error {
+	select {
+	case w.updateChan <- lastExecuted:
+	case <-time.After(100 * time.Millisecond):
+		return fmt.Errorf("Couldn't update lastExecuted on schedulerWatcher for trigger %d (rule %d), maybe it's already stopped ?", w.trigger.ID, w.trigger.RuleID)
+	}
+
+	return nil
 }
 
 type clientSubscribedWatcher struct {
@@ -166,12 +198,14 @@ func (w *clientSubscribedWatcher) Start() {
 	// TODO
 }
 
-func (w *clientSubscribedWatcher) Stop() {
+func (w *clientSubscribedWatcher) Stop() error {
 	// TODO
+	return nil
 }
 
-func (w *clientSubscribedWatcher) UpdateLastExecuted(time.Time) {
+func (w *clientSubscribedWatcher) UpdateLastExecuted(time.Time) error {
 	// TODO
+	return nil
 }
 
 type clientUnsubscribedWatcher struct {
@@ -187,10 +221,12 @@ func (w *clientUnsubscribedWatcher) Start() {
 	// TODO
 }
 
-func (w *clientUnsubscribedWatcher) Stop() {
+func (w *clientUnsubscribedWatcher) Stop() error {
 	// TODO
+	return nil
 }
 
-func (w *clientUnsubscribedWatcher) UpdateLastExecuted(time.Time) {
+func (w *clientUnsubscribedWatcher) UpdateLastExecuted(time.Time) error {
 	// TODO
+	return nil
 }

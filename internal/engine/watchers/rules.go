@@ -1,7 +1,9 @@
 package watchers
 
 import (
+	"fmt"
 	"log"
+	"time"
 
 	"gitlab.com/teserakt/c2se/internal/events"
 	"gitlab.com/teserakt/c2se/internal/models"
@@ -11,7 +13,7 @@ import (
 // RuleWatcher defines methods to implement a rule storage
 type RuleWatcher interface {
 	Start()
-	Stop()
+	Stop() error
 }
 
 type ruleWatcher struct {
@@ -80,7 +82,9 @@ func (w *ruleWatcher) Start() {
 			// TODO perform the rule.Action !
 		case <-w.stopChan:
 			for _, triggerWatcher := range triggerWatchers {
-				triggerWatcher.Stop()
+				if err := triggerWatcher.Stop(); err != nil {
+					w.errorChan <- err
+				}
 			}
 
 			return
@@ -88,7 +92,13 @@ func (w *ruleWatcher) Start() {
 	}
 }
 
-func (w *ruleWatcher) Stop() {
-	w.stopChan <- true
-	log.Printf("Stopped ruleWatcher for rule %d", w.rule.ID)
+func (w *ruleWatcher) Stop() error {
+	select {
+	case w.stopChan <- true:
+		log.Printf("Stopped ruleWatcher for rule %d", w.rule.ID)
+	case <-time.After(100 * time.Millisecond):
+		return fmt.Errorf("Couldn't stop ruleWatcher for rule %d, maybe it's already stopped ?", w.rule.ID)
+	}
+
+	return nil
 }

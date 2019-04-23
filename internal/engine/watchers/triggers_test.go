@@ -162,3 +162,175 @@ func TestTriggerWatcherFactory(t *testing.T) {
 		}
 	})
 }
+
+func TestSchedulerTriggerWatcher(t *testing.T) {
+
+	triggerSettings := pb.TriggerSettingsTimeInterval{
+		Expr: "* * * * *",
+	}
+	encodedSettings, err := triggerSettings.Encode()
+	if err != nil {
+		t.Fatalf("Failed to encode settings: %s", err)
+	}
+
+	trigger := models.Trigger{Settings: encodedSettings}
+
+	triggeredChan := make(chan events.TriggerEvent)
+	updateChan := make(chan time.Time)
+	errorChan := make(chan error)
+	stopChan := make(chan bool)
+
+	watcher := &schedulerWatcher{
+		trigger:       trigger,
+		triggeredChan: triggeredChan,
+
+		updateChan: updateChan,
+		errorChan:  errorChan,
+		stopChan:   stopChan,
+	}
+
+	t.Run("Start launch the schedulerWatcher and properly trigger", func(t *testing.T) {
+
+		initialLastExecuted := time.Now().Add(-2 * time.Minute)
+		go watcher.Start()
+
+		var triggerEvt events.TriggerEvent
+
+		select {
+		case triggerEvt = <-triggeredChan:
+		case err := <-errorChan:
+			t.Errorf("Expected no errors, got %s", err)
+		case <-time.After(10 * time.Millisecond):
+			t.Errorf("Expected to receive a triggerEvent")
+		}
+
+		watcher.Stop()
+
+		if reflect.DeepEqual(triggerEvt.Trigger, trigger) == false {
+			t.Errorf("Expected triggerEvent to contains trigger %#v, got %#v", trigger, triggerEvt.Trigger)
+		}
+
+		if !triggerEvt.Time.After(initialLastExecuted) {
+			t.Errorf("Expected event time to be after initial lastExecuted")
+		}
+
+		if watcher.lastExecuted != triggerEvt.Time {
+			t.Errorf("Expected watcher lastExecuted to be %#v, got %#v", triggerEvt.Time, watcher.lastExecuted)
+		}
+	})
+
+	t.Run("Start handles triggers with invalid settings", func(t *testing.T) {
+		invalidTrigger := models.Trigger{
+			Settings: nil,
+		}
+
+		invalidWatcher := &schedulerWatcher{
+			trigger:       invalidTrigger,
+			triggeredChan: triggeredChan,
+
+			updateChan: updateChan,
+			errorChan:  errorChan,
+			stopChan:   stopChan,
+		}
+
+		go invalidWatcher.Start()
+
+		select {
+		case err := <-errorChan:
+			if _, ok := err.(InvalidTriggerSettings); !ok {
+				t.Errorf("Expected error to be of type InvalidTriggerSettings, got %T", err)
+			}
+		case <-time.After(10 * time.Millisecond):
+			t.Errorf("Expected to get an error")
+		}
+
+		invalidWatcher.Stop()
+	})
+
+	t.Run("Start handles triggers with invalid cron expressions", func(t *testing.T) {
+
+		invalidExprSettings := pb.TriggerSettingsTimeInterval{
+			Expr: "invalid",
+		}
+
+		encodedSettings, err := invalidExprSettings.Encode()
+		if err != nil {
+			t.Fatalf("Expected no error while encoding settings, got %s", err)
+		}
+
+		invalidTrigger := models.Trigger{
+			Settings: encodedSettings,
+		}
+
+		invalidWatcher := &schedulerWatcher{
+			trigger:       invalidTrigger,
+			triggeredChan: triggeredChan,
+
+			updateChan: updateChan,
+			errorChan:  errorChan,
+			stopChan:   stopChan,
+		}
+
+		go invalidWatcher.Start()
+
+		select {
+		case err := <-errorChan:
+			if _, ok := err.(InvalidCronExpr); !ok {
+				t.Errorf("Expected error to be of type InvalidCronExpr, got %T", err)
+			}
+		case <-time.After(100 * time.Millisecond):
+			t.Errorf("Expected to get an error")
+		}
+
+		invalidWatcher.Stop()
+	})
+
+	t.Run("UpdateLastExecuted properly update the watcher lastExecuted", func(t *testing.T) {
+		watcher.lastExecuted = time.Now()
+		updatedTime := time.Now().Add(1 * time.Second)
+
+		go watcher.Start()
+
+		err := watcher.UpdateLastExecuted(updatedTime)
+		if err != nil {
+			t.Errorf("Expected err to be nil, got %s", err)
+		}
+
+		select {
+		case err := <-errorChan:
+			t.Errorf("Expected no error while waiting for lastExecuted to be updated, got %s", err)
+		case <-time.After(10 * time.Millisecond):
+		}
+
+		watcher.Stop()
+
+		if watcher.lastExecuted != updatedTime {
+			t.Errorf("Expected lastExecuted to be %s, got %s", updatedTime, watcher.lastExecuted)
+		}
+	})
+
+	t.Run("UpdateLastExecuted when watcher is not running returns an error", func(t *testing.T) {
+		err := watcher.UpdateLastExecuted(time.Now())
+		if err == nil {
+			t.Errorf("Expected an error")
+		}
+	})
+
+	t.Run("Watcher doesn't trigger if lastExecuted is too recent", func(t *testing.T) {
+		// TODO
+	})
+
+	t.Run("Stopping a non running triggerWatcher doesn't block", func(t *testing.T) {
+		testChan := make(chan bool)
+		go func() {
+			watcher.Stop()
+			testChan <- true
+		}()
+
+		select {
+		case <-testChan:
+		case <-time.After(500 * time.Millisecond):
+			t.Errorf("Expected stop to not block.")
+		}
+	})
+}

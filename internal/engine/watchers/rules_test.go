@@ -2,7 +2,6 @@ package watchers
 
 import (
 	"errors"
-	"sync"
 	"testing"
 	"time"
 
@@ -14,8 +13,6 @@ import (
 )
 
 func TestRuleWatcher(t *testing.T) {
-	var wg sync.WaitGroup
-
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
@@ -60,16 +57,9 @@ func TestRuleWatcher(t *testing.T) {
 		mockTriggerWatcher1.EXPECT().Stop().Times(1)
 		mockTriggerWatcher2.EXPECT().Stop().Times(1)
 
-		go func() {
-			ruleWatcher.Start()
-		}()
-		wg.Add(1)
+		go ruleWatcher.Start()
 
-		go func() {
-			ruleWatcher.Stop()
-			time.Sleep(10 * time.Millisecond)
-			wg.Done()
-		}()
+		ruleWatcher.Stop()
 
 		select {
 		case err := <-errorChan:
@@ -77,7 +67,6 @@ func TestRuleWatcher(t *testing.T) {
 		case <-time.After(10 * time.Millisecond):
 		}
 
-		wg.Wait()
 	})
 
 	t.Run("Error when creating trigger watchers are forwarded to error chan", func(t *testing.T) {
@@ -98,10 +87,7 @@ func TestRuleWatcher(t *testing.T) {
 
 		mockTriggerWatcher2.EXPECT().Stop().Times(1)
 
-		go func() {
-			ruleWatcher.Start()
-		}()
-		wg.Add(1)
+		go ruleWatcher.Start()
 
 		select {
 		case err := <-errorChan:
@@ -112,19 +98,64 @@ func TestRuleWatcher(t *testing.T) {
 			t.Errorf("Expected an error on errorChan")
 		}
 
-		go func() {
-			ruleWatcher.Stop()
-			time.Sleep(10 * time.Millisecond)
-			wg.Done()
-		}()
-
-		wg.Wait()
+		ruleWatcher.Stop()
 	})
 
-	t.Run("TriggerWatchers get updated when one trigger", func(t *testing.T) {
-
+	t.Run("All triggerWatchers get updated when one of them trigger", func(t *testing.T) {
 		expectedTime := time.Now()
+		modifiedRule := rule
+		modifiedRule.LastExecuted = expectedTime
 
+		mockTriggerWatcherFactory.EXPECT().
+			Create(trigger1, modifiedRule.LastExecuted, gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(mockTriggerWatcher1, nil)
+
+		mockTriggerWatcherFactory.EXPECT().
+			Create(trigger2, modifiedRule.LastExecuted, gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(mockTriggerWatcher2, nil)
+
+		mockTriggerWatcher1.EXPECT().Start().Times(1)
+		mockTriggerWatcher2.EXPECT().Start().Times(1)
+
+		mockRuleWriter.EXPECT().Save(&modifiedRule).Times(1)
+
+		mockTriggerWatcher1.EXPECT().UpdateLastExecuted(expectedTime).Times(1)
+		mockTriggerWatcher2.EXPECT().UpdateLastExecuted(expectedTime).Times(1)
+
+		mockTriggerWatcher1.EXPECT().Stop().Times(1)
+		mockTriggerWatcher2.EXPECT().Stop().Times(1)
+
+		newRuleWatcher := NewRuleWatcher(
+			modifiedRule,
+			mockRuleWriter,
+			mockTriggerWatcherFactory,
+			triggeredChan,
+			errorChan,
+		)
+
+		go newRuleWatcher.Start()
+
+		triggeredChan <- events.TriggerEvent{Trigger: rule.Triggers[1], Time: expectedTime}
+
+		select {
+		case err := <-errorChan:
+			t.Errorf("Expected no error on errorChan, got %s", err)
+		case <-time.After(10 * time.Millisecond):
+		}
+
+		newRuleWatcher.Stop()
+	})
+
+	t.Run("Stopping a non running RuleWatcher returns an error", func(t *testing.T) {
+		err := ruleWatcher.Stop()
+		if err == nil {
+			t.Errorf("Expected an error")
+		}
+	})
+
+	t.Run("Stop forward errors when a triggerwatcher fail to stop", func(t *testing.T) {
 		mockTriggerWatcherFactory.EXPECT().
 			Create(trigger1, rule.LastExecuted, gomock.Any(), gomock.Any()).
 			Times(1).
@@ -138,35 +169,21 @@ func TestRuleWatcher(t *testing.T) {
 		mockTriggerWatcher1.EXPECT().Start().Times(1)
 		mockTriggerWatcher2.EXPECT().Start().Times(1)
 
-		modifiedRule := rule
-		modifiedRule.LastExecuted = expectedTime
-		mockRuleWriter.EXPECT().Save(&modifiedRule).Times(1)
-
-		mockTriggerWatcher1.EXPECT().UpdateLastExecuted(expectedTime).Times(1)
-		mockTriggerWatcher2.EXPECT().UpdateLastExecuted(expectedTime).Times(1)
-
-		mockTriggerWatcher1.EXPECT().Stop().Times(1)
+		expectedErr := errors.New("triggerWatcher stop failure")
+		mockTriggerWatcher1.EXPECT().Stop().Times(1).Return(expectedErr)
 		mockTriggerWatcher2.EXPECT().Stop().Times(1)
 
-		go func() {
-			ruleWatcher.Start()
-		}()
-		wg.Add(1)
+		go ruleWatcher.Start()
 
-		triggeredChan <- events.TriggerEvent{Trigger: rule.Triggers[1], Time: expectedTime}
+		ruleWatcher.Stop()
 
 		select {
 		case err := <-errorChan:
-			t.Errorf("Expected no error on errorChan, got %s", err)
+			if err != expectedErr {
+				t.Errorf("Expected error to be %s, got %s", expectedErr, err)
+			}
 		case <-time.After(10 * time.Millisecond):
+			t.Errorf("Expected an error")
 		}
-
-		go func() {
-			ruleWatcher.Stop()
-			time.Sleep(10 * time.Millisecond)
-			wg.Done()
-		}()
-
-		wg.Wait()
 	})
 }

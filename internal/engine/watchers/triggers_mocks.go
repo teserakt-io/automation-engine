@@ -86,9 +86,11 @@ func (mr *MockTriggerWatcherMockRecorder) Start() *gomock.Call {
 }
 
 // Stop mocks base method
-func (m *MockTriggerWatcher) Stop() {
+func (m *MockTriggerWatcher) Stop() error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Stop")
+	ret := m.ctrl.Call(m, "Stop")
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Stop indicates an expected call of Stop
@@ -98,9 +100,11 @@ func (mr *MockTriggerWatcherMockRecorder) Stop() *gomock.Call {
 }
 
 // UpdateLastExecuted mocks base method
-func (m *MockTriggerWatcher) UpdateLastExecuted(arg0 time.Time) {
+func (m *MockTriggerWatcher) UpdateLastExecuted(arg0 time.Time) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "UpdateLastExecuted", arg0)
+	ret := m.ctrl.Call(m, "UpdateLastExecuted", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // UpdateLastExecuted indicates an expected call of UpdateLastExecuted

@@ -66,7 +66,9 @@ func (e *scriptEngine) Start() error {
 
 func (e *scriptEngine) Stop() {
 	for _, w := range e.ruleWatchers {
-		w.Stop()
+		if err := w.Stop(); err != nil {
+			e.errorChan <- err
+		}
 	}
 
 	e.ruleWatchers = []watchers.RuleWatcher{}
