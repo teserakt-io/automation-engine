@@ -24,7 +24,7 @@ build-api:
 
 .PHONY: test
 test: ## Run tests
-	go test -coverprofile=/tmp/go-code-cover -race -timeout 30s  ./...
+	go test -coverprofile=/tmp/go-code-cover -race -timeout 10s  ./...
 
 .PHONY: generate
 generate: ## Generate mocks and proto files
