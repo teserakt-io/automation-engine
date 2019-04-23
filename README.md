@@ -16,22 +16,8 @@ It also start the c2se engine, which will monitor existing rule triggers and pro
 
 ### c2se engine
 
-The c2se engine is responsible of monitoring existing triggers on every rules, and trigger their actions when their condition is met.
-Its core component is an event dispatcher, where every trigger get registered and wait for system events.
-
-An internal scheduler is also started, dispatching _tick_ events every seconds.
-
-Each defined triggers get registered on the dispatcher from their type, which will make them receive every system events. In case the trigger isn't able to process the event, it will be discarded to not lock the whole system.
-
-Also, the dispatcher get notified on every rules modification through the API. It will then stop and reload every triggers from the database and restart their routines.
-
-#### Handling new events
-
-Here are the steps required to support new events in the c2se engine:
-
-- Create a new events.Type (and update events.EventStrings)
-- Register some listeners on the dispatcher for this new events.Type
-- Finally, call dispatcher.Dispatch with this new events.Type, and all registered listeners will get notified.
+The c2se engine is responsible of monitoring every existing rules, and trigger their actions when one of their trigger's condition is met.
+Its started on the background of the c2se-api and spawns a goroutine for each rules, and another one for each rule's trigger.
 
 ## c2se-cli
 
