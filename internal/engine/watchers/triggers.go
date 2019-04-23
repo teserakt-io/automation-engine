@@ -12,6 +12,8 @@ import (
 	"gitlab.com/teserakt/c2se/internal/pb"
 )
 
+//go:generate mockgen -destination=triggers_mocks.go -package watchers -self_package gitlab.com/teserakt/c2se/internal/engine/watchers gitlab.com/teserakt/c2se/internal/engine/watchers TriggerWatcherFactory,TriggerWatcher
+
 // TriggerWatcher defines an interface for types watching on a trigger
 type TriggerWatcher interface {
 	Start()

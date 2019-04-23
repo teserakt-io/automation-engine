@@ -19,6 +19,7 @@ type ruleWatcher struct {
 	triggerWatcherFactory TriggerWatcherFactory
 	ruleWriter            services.RuleWriter
 	errorChan             chan<- error
+	triggeredChan         chan events.TriggerEvent
 
 	stopChan chan bool
 }
@@ -28,12 +29,14 @@ func NewRuleWatcher(
 	rule models.Rule,
 	ruleWriter services.RuleWriter,
 	triggerWatcherFactory TriggerWatcherFactory,
+	triggeredChan chan events.TriggerEvent,
 	errorChan chan<- error,
 ) RuleWatcher {
 	return &ruleWatcher{
 		rule:                  rule,
 		ruleWriter:            ruleWriter,
 		triggerWatcherFactory: triggerWatcherFactory,
+		triggeredChan:         triggeredChan,
 		errorChan:             errorChan,
 		stopChan:              make(chan bool),
 	}
@@ -42,25 +45,30 @@ func NewRuleWatcher(
 func (w *ruleWatcher) Start() {
 	log.Printf("Started rule watcher for rule %d", w.rule.ID)
 
-	triggeredChan := make(chan events.TriggerEvent)
 	var triggerWatchers []TriggerWatcher
 
 	for _, trigger := range w.rule.Triggers {
-		triggerWatcher, err := w.triggerWatcherFactory.Create(trigger, w.rule.LastExecuted, triggeredChan, w.errorChan)
-		triggerWatchers = append(triggerWatchers, triggerWatcher)
+		triggerWatcher, err := w.triggerWatcherFactory.Create(
+			trigger,
+			w.rule.LastExecuted,
+			w.triggeredChan,
+			w.errorChan,
+		)
 
 		if err != nil {
 			w.errorChan <- err
-			return
+
+			continue
 		}
 
-		go triggerWatcher.Start()
+		triggerWatchers = append(triggerWatchers, triggerWatcher)
 
+		go triggerWatcher.Start()
 	}
 
 	for {
 		select {
-		case triggerEvt := <-triggeredChan:
+		case triggerEvt := <-w.triggeredChan:
 			log.Printf("Rule %d triggered from trigger %d", w.rule.ID, triggerEvt.Trigger.ID)
 			w.rule.LastExecuted = triggerEvt.Time
 			w.ruleWriter.Save(&w.rule)

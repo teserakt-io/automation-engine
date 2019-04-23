@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 
+	"gitlab.com/teserakt/c2se/internal/events"
+
 	"gitlab.com/teserakt/c2se/internal/engine/watchers"
 
 	"gitlab.com/teserakt/c2se/internal/api"
@@ -61,10 +63,15 @@ func main() {
 
 	ruleService := services.NewRuleService(db)
 
-	errorChan := make(chan error)
+	globalErrorChan := make(chan error)
 
 	triggerWatcherFactory := watchers.NewTriggerWatcherFactory()
-	scriptEngine := engine.NewScriptEngine(ruleService, triggerWatcherFactory, errorChan)
+	scriptEngine := engine.NewScriptEngine(
+		ruleService,
+		triggerWatcherFactory,
+		make(chan events.TriggerEvent),
+		globalErrorChan,
+	)
 
 	server := api.NewServer(
 		appConfig.Addr,
@@ -79,9 +86,7 @@ func main() {
 		return
 	}
 
-	go func() {
-		errorChan <- server.ListenAndServe()
-	}()
+	go server.ListenAndServe(globalErrorChan)
 
 	for {
 		select {
@@ -90,11 +95,9 @@ func main() {
 			scriptEngine.Stop()
 			err = scriptEngine.Start()
 			if err != nil {
-				log.Printf("Error while restarting script engine: %s", err)
-
-				return
+				log.Printf("ERROR: failed to restart script engine: %s", err)
 			}
-		case err := <-errorChan:
+		case err := <-globalErrorChan:
 			log.Printf("ERROR: %s", err)
 		}
 	}

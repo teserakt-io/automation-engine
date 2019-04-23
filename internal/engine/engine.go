@@ -3,6 +3,8 @@ package engine
 import (
 	"log"
 
+	"gitlab.com/teserakt/c2se/internal/events"
+
 	"gitlab.com/teserakt/c2se/internal/engine/watchers"
 	"gitlab.com/teserakt/c2se/internal/services"
 )
@@ -16,6 +18,7 @@ type ScriptEngine interface {
 type scriptEngine struct {
 	ruleService           services.RuleService
 	triggerWatcherFactory watchers.TriggerWatcherFactory
+	triggeredChan         chan events.TriggerEvent
 	errorChan             chan<- error
 
 	ruleWatchers []watchers.RuleWatcher
@@ -27,11 +30,13 @@ var _ ScriptEngine = &scriptEngine{}
 func NewScriptEngine(
 	ruleService services.RuleService,
 	triggerWatcherFactory watchers.TriggerWatcherFactory,
+	triggeredChan chan events.TriggerEvent,
 	errorChan chan<- error,
 ) ScriptEngine {
 	return &scriptEngine{
 		ruleService:           ruleService,
 		triggerWatcherFactory: triggerWatcherFactory,
+		triggeredChan:         triggeredChan,
 		errorChan:             errorChan,
 	}
 }
@@ -43,8 +48,16 @@ func (e *scriptEngine) Start() error {
 	}
 
 	for _, rule := range rules {
-		ruleWatcher := watchers.NewRuleWatcher(rule, e.ruleService, e.triggerWatcherFactory, e.errorChan)
+		ruleWatcher := watchers.NewRuleWatcher(
+			rule,
+			e.ruleService,
+			e.triggerWatcherFactory,
+			e.triggeredChan,
+			e.errorChan,
+		)
+
 		e.ruleWatchers = append(e.ruleWatchers, ruleWatcher)
+
 		go ruleWatcher.Start()
 	}
 

@@ -15,7 +15,7 @@ import (
 // Server interface
 type Server interface {
 	pb.C2ScriptEngineServer
-	ListenAndServe() error
+	ListenAndServe(errorChan chan<- error)
 	RulesModifiedChan() <-chan bool
 }
 
@@ -40,7 +40,7 @@ func NewServer(
 		ruleService: ruleService,
 		converter:   converter,
 
-		rulesModified: make(chan bool, 100),
+		rulesModified: make(chan bool),
 	}
 }
 
@@ -48,7 +48,7 @@ func (s *apiServer) RulesModifiedChan() <-chan bool {
 	return s.rulesModified
 }
 
-func (s *apiServer) ListenAndServe() error {
+func (s *apiServer) ListenAndServe(errorChan chan<- error) {
 	lis, err := net.Listen("tcp", s.addr)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -58,7 +58,7 @@ func (s *apiServer) ListenAndServe() error {
 	pb.RegisterC2ScriptEngineServer(grpcServer, s)
 
 	log.Printf("Starting api grpc server listening on %s\n", s.addr)
-	return grpcServer.Serve(lis)
+	errorChan <- grpcServer.Serve(lis)
 }
 
 func (s *apiServer) ListRules(ctx context.Context, req *pb.ListRulesRequest) (*pb.RulesResponse, error) {

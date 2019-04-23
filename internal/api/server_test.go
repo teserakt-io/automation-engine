@@ -4,22 +4,42 @@ import (
 	context "context"
 	"reflect"
 	"testing"
+	"time"
 
 	"gitlab.com/teserakt/c2se/internal/models"
+	"gitlab.com/teserakt/c2se/internal/services"
 
 	"github.com/golang/mock/gomock"
-	"gitlab.com/teserakt/c2se/internal/mocks"
 	"gitlab.com/teserakt/c2se/internal/pb"
 )
+
+func assertRulesModified(t *testing.T, rulesModifiedChan <-chan bool, expectedModified bool) {
+	rulesModified := <-rulesModifiedChan
+	if rulesModified != expectedModified {
+		t.Errorf("Expected rulesModified to be %t, got %t", expectedModified, rulesModified)
+	}
+}
 
 func TestServer(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mockConverter := mocks.NewMockConverter(mockCtrl)
-	mockRuleService := mocks.NewMockRuleService(mockCtrl)
+	mockConverter := models.NewMockConverter(mockCtrl)
+	mockRuleService := services.NewMockRuleService(mockCtrl)
 
 	server := NewServer(":0", mockRuleService, mockConverter)
+
+	rulesModifiedChan := make(chan bool)
+	go func() {
+		for {
+			select {
+			case modified := <-server.RulesModifiedChan():
+				rulesModifiedChan <- modified
+			case <-time.After(100 * time.Millisecond):
+				rulesModifiedChan <- false
+			}
+		}
+	}()
 
 	t.Run("ListRules returns all the rules", func(t *testing.T) {
 		rules := []models.Rule{
@@ -41,6 +61,8 @@ func TestServer(t *testing.T) {
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
+
+		assertRulesModified(t, rulesModifiedChan, false)
 
 		if reflect.DeepEqual(resp.Rules, pbRules) == false {
 			t.Errorf("Expected rules to be %#v, got %#v", pbRules, resp.Rules)
@@ -79,13 +101,14 @@ func TestServer(t *testing.T) {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
 
+		assertRulesModified(t, rulesModifiedChan, true)
+
 		if reflect.DeepEqual(resp.Rule, pbRule) == false {
 			t.Errorf("Expected rule to be %#v, got %#v", pbRule, resp.Rule)
 		}
 	})
 
 	t.Run("UpdateRule properly updates rule", func(t *testing.T) {
-
 		targets := []models.Target{
 			models.Target{ID: 1},
 			models.Target{ID: 2},
@@ -145,6 +168,8 @@ func TestServer(t *testing.T) {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
 
+		assertRulesModified(t, rulesModifiedChan, true)
+
 		if reflect.DeepEqual(updatedPbRule, resp.Rule) == false {
 			t.Errorf("Expected rule to be %#v, got %#v", updatedPbRule, resp.Rule)
 		}
@@ -165,6 +190,8 @@ func TestServer(t *testing.T) {
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
+
+		assertRulesModified(t, rulesModifiedChan, true)
 
 		if resp.RuleId != req.RuleId {
 			t.Errorf("Expected ruleId to be %d, got %d", req.RuleId, resp.RuleId)
@@ -187,6 +214,8 @@ func TestServer(t *testing.T) {
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
+
+		assertRulesModified(t, rulesModifiedChan, false)
 
 		if reflect.DeepEqual(resp.Rule, pbRule) == false {
 			t.Errorf("Expected rule to be %#v, got %#v", pbRule, resp.Rule)
