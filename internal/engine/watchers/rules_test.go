@@ -2,6 +2,7 @@ package watchers
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 	"time"
 
@@ -32,13 +33,14 @@ func TestRuleWatcher(t *testing.T) {
 	triggeredChan := make(chan events.TriggerEvent, 10)
 	errorChan := make(chan error)
 
-	ruleWatcher := NewRuleWatcher(
-		rule,
-		mockRuleWriter,
-		mockTriggerWatcherFactory,
-		triggeredChan,
-		errorChan,
-	)
+	watcher := &ruleWatcher{
+		rule:                  rule,
+		ruleWriter:            mockRuleWriter,
+		triggerWatcherFactory: mockTriggerWatcherFactory,
+		triggeredChan:         triggeredChan,
+		errorChan:             errorChan,
+		stopChan:              make(chan bool),
+	}
 
 	t.Run("Start start a triggerWatcher for each triggers", func(t *testing.T) {
 		mockTriggerWatcherFactory.EXPECT().
@@ -57,16 +59,15 @@ func TestRuleWatcher(t *testing.T) {
 		mockTriggerWatcher1.EXPECT().Stop().Times(1)
 		mockTriggerWatcher2.EXPECT().Stop().Times(1)
 
-		go ruleWatcher.Start()
+		go watcher.Start()
 
-		ruleWatcher.Stop()
+		watcher.Stop()
 
 		select {
 		case err := <-errorChan:
 			t.Errorf("Expected no error on errorChan, got %s", err)
 		case <-time.After(10 * time.Millisecond):
 		}
-
 	})
 
 	t.Run("Error when creating trigger watchers are forwarded to error chan", func(t *testing.T) {
@@ -87,7 +88,7 @@ func TestRuleWatcher(t *testing.T) {
 
 		mockTriggerWatcher2.EXPECT().Stop().Times(1)
 
-		go ruleWatcher.Start()
+		go watcher.Start()
 
 		select {
 		case err := <-errorChan:
@@ -98,7 +99,7 @@ func TestRuleWatcher(t *testing.T) {
 			t.Errorf("Expected an error on errorChan")
 		}
 
-		ruleWatcher.Stop()
+		watcher.Stop()
 	})
 
 	t.Run("All triggerWatchers get updated when one of them trigger", func(t *testing.T) {
@@ -127,13 +128,14 @@ func TestRuleWatcher(t *testing.T) {
 		mockTriggerWatcher1.EXPECT().Stop().Times(1)
 		mockTriggerWatcher2.EXPECT().Stop().Times(1)
 
-		newRuleWatcher := NewRuleWatcher(
-			modifiedRule,
-			mockRuleWriter,
-			mockTriggerWatcherFactory,
-			triggeredChan,
-			errorChan,
-		)
+		newRuleWatcher := &ruleWatcher{
+			rule:                  modifiedRule,
+			ruleWriter:            mockRuleWriter,
+			triggerWatcherFactory: mockTriggerWatcherFactory,
+			triggeredChan:         triggeredChan,
+			errorChan:             errorChan,
+			stopChan:              make(chan bool),
+		}
 
 		go newRuleWatcher.Start()
 
@@ -149,7 +151,7 @@ func TestRuleWatcher(t *testing.T) {
 	})
 
 	t.Run("Stopping a non running RuleWatcher returns an error", func(t *testing.T) {
-		err := ruleWatcher.Stop()
+		err := watcher.Stop()
 		if err == nil {
 			t.Errorf("Expected an error")
 		}
@@ -173,9 +175,9 @@ func TestRuleWatcher(t *testing.T) {
 		mockTriggerWatcher1.EXPECT().Stop().Times(1).Return(expectedErr)
 		mockTriggerWatcher2.EXPECT().Stop().Times(1)
 
-		go ruleWatcher.Start()
+		go watcher.Start()
 
-		ruleWatcher.Stop()
+		watcher.Stop()
 
 		select {
 		case err := <-errorChan:
@@ -185,5 +187,63 @@ func TestRuleWatcher(t *testing.T) {
 		case <-time.After(100 * time.Millisecond):
 			t.Errorf("Expected an error")
 		}
+	})
+}
+
+func TestRuleWatcherFactory(t *testing.T) {
+
+	mockCtrl := gomock.NewController(t)
+
+	mockRuleWriter := services.NewMockRuleService(mockCtrl)
+	mockTriggerWatcherFactory := NewMockTriggerWatcherFactory(mockCtrl)
+
+	triggeredChan := make(chan events.TriggerEvent)
+	errorChan := make(chan<- error)
+
+	factory := NewRuleWatcherFactory(
+		mockRuleWriter,
+		mockTriggerWatcherFactory,
+		triggeredChan,
+		errorChan,
+	)
+
+	t.Run("Creates returns a properly initialized RuleWatcher", func(t *testing.T) {
+		rule := models.Rule{ID: 1}
+
+		watcher := factory.Create(rule)
+
+		typedWatcher, ok := watcher.(*ruleWatcher)
+		if !ok {
+			t.Errorf("Expected watcher type to be *ruleWatcher, got %T", watcher)
+		}
+
+		if reflect.DeepEqual(typedWatcher.rule, rule) == false {
+			t.Errorf("Expected rule to be %#v, got %#v", rule, typedWatcher.rule)
+		}
+
+		if reflect.DeepEqual(typedWatcher.ruleWriter, mockRuleWriter) == false {
+			t.Errorf("Expected ruleWriter to be %p, got %p", mockRuleWriter, typedWatcher.ruleWriter)
+		}
+
+		if reflect.DeepEqual(typedWatcher.triggerWatcherFactory, mockTriggerWatcherFactory) == false {
+			t.Errorf(
+				"Expected triggerWatcherFactory to be %p, got %p",
+				mockTriggerWatcherFactory,
+				typedWatcher.triggerWatcherFactory,
+			)
+		}
+
+		if reflect.DeepEqual(typedWatcher.triggeredChan, triggeredChan) == false {
+			t.Errorf("Expected errorChan to be %p, got %p", triggeredChan, typedWatcher.triggeredChan)
+		}
+
+		if reflect.DeepEqual(typedWatcher.errorChan, errorChan) == false {
+			t.Errorf("Expected errorChan to be %p, got %p", errorChan, typedWatcher.errorChan)
+		}
+
+		if typedWatcher.stopChan == nil {
+			t.Error("Expected stopChan to be not nil")
+		}
+
 	})
 }
