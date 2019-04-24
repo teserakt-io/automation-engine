@@ -191,8 +191,8 @@ func TestRuleWatcher(t *testing.T) {
 }
 
 func TestRuleWatcherFactory(t *testing.T) {
-
 	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
 
 	mockRuleWriter := services.NewMockRuleService(mockCtrl)
 	mockTriggerWatcherFactory := NewMockTriggerWatcherFactory(mockCtrl)

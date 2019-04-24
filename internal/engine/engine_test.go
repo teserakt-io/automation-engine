@@ -13,6 +13,7 @@ import (
 
 func TestScriptEngine(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
 
 	mockRuleService := services.NewMockRuleService(mockCtrl)
 	mockRuleWatcherFactory := watchers.NewMockRuleWatcherFactory(mockCtrl)
