@@ -55,6 +55,7 @@ func (c *deleteCommand) run(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("cannot create api client: %s", err)
 	}
+	defer client.Close()
 
 	req := &pb.DeleteRuleRequest{
 		RuleId: c.flags.RuleID,

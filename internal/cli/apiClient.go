@@ -18,9 +18,16 @@ var (
 	ErrFlagUndefined = errors.New("cannot retrieve endpoint flag on given cobra command")
 )
 
+// C2ScriptEngineClient override the protobuf client definition to offer a Close method
+// for the grpc connection
+type C2ScriptEngineClient interface {
+	pb.C2ScriptEngineClient
+	Close() error
+}
+
 // APIClientFactory allows to create pb.C2ScriptEngineClient instances
 type APIClientFactory interface {
-	NewClient(cmd *cobra.Command) (pb.C2ScriptEngineClient, error)
+	NewClient(cmd *cobra.Command) (C2ScriptEngineClient, error)
 }
 
 type apiClientFactory struct {
@@ -33,8 +40,16 @@ func NewAPIClientFactory() APIClientFactory {
 	return &apiClientFactory{}
 }
 
+type c2scriptEngineClient struct {
+	pb.C2ScriptEngineClient
+	cnx *grpc.ClientConn
+}
+
+var _ C2ScriptEngineClient = &c2scriptEngineClient{}
+var _ pb.C2ScriptEngineClient = &c2scriptEngineClient{}
+
 // NewClient creates a new ob.C2ScriptEngineClient instance connecting to given api endpoint
-func (c *apiClientFactory) NewClient(cmd *cobra.Command) (pb.C2ScriptEngineClient, error) {
+func (c *apiClientFactory) NewClient(cmd *cobra.Command) (C2ScriptEngineClient, error) {
 	flag := cmd.Flag(EndpointFlag)
 	if flag == nil {
 		return nil, ErrFlagUndefined
@@ -46,5 +61,12 @@ func (c *apiClientFactory) NewClient(cmd *cobra.Command) (pb.C2ScriptEngineClien
 		return nil, err
 	}
 
-	return pb.NewC2ScriptEngineClient(cnx), nil
+	return &c2scriptEngineClient{
+		C2ScriptEngineClient: pb.NewC2ScriptEngineClient(cnx),
+		cnx:                  cnx,
+	}, nil
+}
+
+func (c *c2scriptEngineClient) Close() error {
+	return c.cnx.Close()
 }

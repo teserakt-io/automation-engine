@@ -75,6 +75,7 @@ func (c *addTriggerCommand) run(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("cannot create api client: %s", err)
 	}
+	defer client.Close()
 
 	resp, err := client.GetRule(ctx, &pb.GetRuleRequest{RuleId: c.flags.RuleID})
 	if err != nil {

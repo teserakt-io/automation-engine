@@ -53,6 +53,7 @@ func (c *listCommand) run(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("cannot create api client: %s", err)
 	}
+	defer client.Close()
 
 	resp, err := client.ListRules(ctx, &pb.ListRulesRequest{})
 	if err != nil {
