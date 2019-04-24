@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"gitlab.com/teserakt/c2se/internal/cli/grpc"
+	"gitlab.com/teserakt/c2se/internal/cli"
 	"gitlab.com/teserakt/c2se/internal/pb"
 )
 
 type addTargetCommand struct {
 	cobraCmd          *cobra.Command
-	c2seClientFactory grpc.ClientFactory
+	c2seClientFactory cli.APIClientFactory
 	flags             addTargetCommandFlags
 }
 
@@ -26,7 +26,7 @@ type addTargetCommandFlags struct {
 var _ Command = &addTargetCommand{}
 
 // NewAddTargetCommand creates a new command to create a target on a rule
-func NewAddTargetCommand(c2seClientFactory grpc.ClientFactory) Command {
+func NewAddTargetCommand(c2seClientFactory cli.APIClientFactory) Command {
 	addTargetCmd := &addTargetCommand{
 		c2seClientFactory: c2seClientFactory,
 	}

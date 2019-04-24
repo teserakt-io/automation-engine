@@ -6,13 +6,13 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"gitlab.com/teserakt/c2se/internal/cli/grpc"
+	"gitlab.com/teserakt/c2se/internal/cli"
 	"gitlab.com/teserakt/c2se/internal/pb"
 )
 
 type deleteCommand struct {
 	cobraCmd          *cobra.Command
-	c2seClientFactory grpc.ClientFactory
+	c2seClientFactory cli.APIClientFactory
 	flags             deleteCommandFlags
 }
 
@@ -23,7 +23,7 @@ type deleteCommandFlags struct {
 var _ Command = &deleteCommand{}
 
 // NewDeleteCommand creates a new command to delete rules
-func NewDeleteCommand(c2seClientFactory grpc.ClientFactory) Command {
+func NewDeleteCommand(c2seClientFactory cli.APIClientFactory) Command {
 	deleteCmd := &deleteCommand{
 		c2seClientFactory: c2seClientFactory,
 	}

@@ -8,13 +8,13 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
 
-	"gitlab.com/teserakt/c2se/internal/cli/grpc"
+	"gitlab.com/teserakt/c2se/internal/cli"
 	"gitlab.com/teserakt/c2se/internal/pb"
 )
 
 type addTriggerCommand struct {
 	cobraCmd          *cobra.Command
-	c2seClientFactory grpc.ClientFactory
+	c2seClientFactory cli.APIClientFactory
 	flags             addTriggerCommandFlags
 }
 
@@ -27,7 +27,7 @@ type addTriggerCommandFlags struct {
 var _ Command = &addTriggerCommand{}
 
 // NewAddTriggerCommand creates a new command to create a trigger on a rule
-func NewAddTriggerCommand(c2seClientFactory grpc.ClientFactory) Command {
+func NewAddTriggerCommand(c2seClientFactory cli.APIClientFactory) Command {
 	addTriggerCmd := &addTriggerCommand{
 		c2seClientFactory: c2seClientFactory,
 	}

@@ -12,19 +12,19 @@ import (
 	"github.com/rvflash/elapsed"
 	"github.com/spf13/cobra"
 
-	"gitlab.com/teserakt/c2se/internal/cli/grpc"
+	"gitlab.com/teserakt/c2se/internal/cli"
 	"gitlab.com/teserakt/c2se/internal/pb"
 )
 
 type listCommand struct {
 	cobraCmd          *cobra.Command
-	c2seClientFactory grpc.ClientFactory
+	c2seClientFactory cli.APIClientFactory
 }
 
 var _ Command = &listCommand{}
 
 // NewListCommand creates a new command to list all the rules
-func NewListCommand(c2seClientFactory grpc.ClientFactory) Command {
+func NewListCommand(c2seClientFactory cli.APIClientFactory) Command {
 
 	listCmd := &listCommand{
 		c2seClientFactory: c2seClientFactory,

@@ -3,7 +3,7 @@ package commands
 import (
 	"github.com/spf13/cobra"
 
-	"gitlab.com/teserakt/c2se/internal/cli/grpc"
+	"gitlab.com/teserakt/c2se/internal/cli"
 )
 
 // Command defines a cli Command
@@ -23,7 +23,7 @@ type rootCommand struct {
 var _ Command = &rootCommand{}
 
 // NewRootCommand creates and configure a new cli root command
-func NewRootCommand(c2seClientFactory grpc.ClientFactory, version string) Command {
+func NewRootCommand(c2seClientFactory cli.APIClientFactory, version string) Command {
 
 	rootCmd := &rootCommand{}
 
@@ -46,7 +46,7 @@ func NewRootCommand(c2seClientFactory grpc.ClientFactory, version string) Comman
 
 	cobraCmd.PersistentFlags().StringVarP(
 		&rootCmd.flags.Endpoint,
-		grpc.EndpointFlag,
+		cli.EndpointFlag,
 		"e",
 		"127.0.0.1:5556", "url to the c2se grpc api",
 	)

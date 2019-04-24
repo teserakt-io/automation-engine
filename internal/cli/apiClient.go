@@ -1,4 +1,4 @@
-package grpc
+package cli
 
 import (
 	"errors"
@@ -18,28 +18,29 @@ var (
 	ErrFlagUndefined = errors.New("cannot retrieve endpoint flag on given cobra command")
 )
 
-// ClientFactory allows to create pb.C2ScriptEngineClient instances
-type ClientFactory interface {
+// APIClientFactory allows to create pb.C2ScriptEngineClient instances
+type APIClientFactory interface {
 	NewClient(cmd *cobra.Command) (pb.C2ScriptEngineClient, error)
 }
 
-type clientFactory struct {
+type apiClientFactory struct {
 }
 
-var _ ClientFactory = &clientFactory{}
+var _ APIClientFactory = &apiClientFactory{}
 
-// NewClientFactory creates a new C2ScriptEngineClient factory
-func NewClientFactory() ClientFactory {
-	return &clientFactory{}
+// NewAPIClientFactory creates a new C2ScriptEngineClient factory
+func NewAPIClientFactory() APIClientFactory {
+	return &apiClientFactory{}
 }
 
 // NewClient creates a new ob.C2ScriptEngineClient instance connecting to given api endpoint
-func (c *clientFactory) NewClient(cmd *cobra.Command) (pb.C2ScriptEngineClient, error) {
+func (c *apiClientFactory) NewClient(cmd *cobra.Command) (pb.C2ScriptEngineClient, error) {
 	flag := cmd.Flag(EndpointFlag)
 	if flag == nil {
 		return nil, ErrFlagUndefined
 	}
 
+	// TODO check https://godoc.org/google.golang.org/grpc#DialOption for available DialOptions
 	cnx, err := grpc.Dial(flag.Value.String(), grpc.WithInsecure())
 	if err != nil {
 		return nil, err

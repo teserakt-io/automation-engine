@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"gitlab.com/teserakt/c2se/internal/cli"
 	"gitlab.com/teserakt/c2se/internal/cli/commands"
-	"gitlab.com/teserakt/c2se/internal/cli/grpc"
 )
 
 // Provided by build script
@@ -17,7 +17,7 @@ func main() {
 
 	log.SetFlags(0)
 
-	clientFactory := grpc.NewClientFactory()
+	clientFactory := cli.NewAPIClientFactory()
 
 	rootCmd := commands.NewRootCommand(clientFactory, getVersion())
 	if err := rootCmd.CobraCmd().Execute(); err != nil {

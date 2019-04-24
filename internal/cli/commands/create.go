@@ -6,13 +6,13 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"gitlab.com/teserakt/c2se/internal/cli/grpc"
+	"gitlab.com/teserakt/c2se/internal/cli"
 	"gitlab.com/teserakt/c2se/internal/pb"
 )
 
 type createCommand struct {
 	cobraCmd          *cobra.Command
-	c2seClientFactory grpc.ClientFactory
+	c2seClientFactory cli.APIClientFactory
 	flags             createCommandFlags
 }
 
@@ -24,7 +24,7 @@ type createCommandFlags struct {
 var _ Command = &createCommand{}
 
 // NewCreateCommand creates a new command to create a new rule
-func NewCreateCommand(c2seClientFactory grpc.ClientFactory) Command {
+func NewCreateCommand(c2seClientFactory cli.APIClientFactory) Command {
 	createCmd := &createCommand{
 		c2seClientFactory: c2seClientFactory,
 	}
