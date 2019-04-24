@@ -3,8 +3,6 @@ package engine
 import (
 	"log"
 
-	"gitlab.com/teserakt/c2se/internal/events"
-
 	"gitlab.com/teserakt/c2se/internal/engine/watchers"
 	"gitlab.com/teserakt/c2se/internal/services"
 )
@@ -16,10 +14,8 @@ type ScriptEngine interface {
 }
 
 type scriptEngine struct {
-	ruleService           services.RuleService
-	triggerWatcherFactory watchers.TriggerWatcherFactory
-	triggeredChan         chan events.TriggerEvent
-	errorChan             chan<- error
+	ruleService        services.RuleService
+	ruleWatcherFactory watchers.RuleWatcherFactory
 
 	ruleWatchers []watchers.RuleWatcher
 }
@@ -27,17 +23,10 @@ type scriptEngine struct {
 var _ ScriptEngine = &scriptEngine{}
 
 // NewScriptEngine creates a new script engine
-func NewScriptEngine(
-	ruleService services.RuleService,
-	triggerWatcherFactory watchers.TriggerWatcherFactory,
-	triggeredChan chan events.TriggerEvent,
-	errorChan chan<- error,
-) ScriptEngine {
+func NewScriptEngine(ruleService services.RuleService, ruleWatcherFactory watchers.RuleWatcherFactory) ScriptEngine {
 	return &scriptEngine{
-		ruleService:           ruleService,
-		triggerWatcherFactory: triggerWatcherFactory,
-		triggeredChan:         triggeredChan,
-		errorChan:             errorChan,
+		ruleService:        ruleService,
+		ruleWatcherFactory: ruleWatcherFactory,
 	}
 }
 
@@ -48,14 +37,7 @@ func (e *scriptEngine) Start() error {
 	}
 
 	for _, rule := range rules {
-		ruleWatcher := watchers.NewRuleWatcher(
-			rule,
-			e.ruleService,
-			e.triggerWatcherFactory,
-			e.triggeredChan,
-			e.errorChan,
-		)
-
+		ruleWatcher := e.ruleWatcherFactory.Create(rule)
 		e.ruleWatchers = append(e.ruleWatchers, ruleWatcher)
 
 		go ruleWatcher.Start()
@@ -67,10 +49,11 @@ func (e *scriptEngine) Start() error {
 func (e *scriptEngine) Stop() {
 	for _, w := range e.ruleWatchers {
 		if err := w.Stop(); err != nil {
-			e.errorChan <- err
+			log.Printf("error while stopping ruleWatcher: %s", err)
 		}
 	}
 
 	e.ruleWatchers = []watchers.RuleWatcher{}
+
 	log.Println("Stopped script engine")
 }

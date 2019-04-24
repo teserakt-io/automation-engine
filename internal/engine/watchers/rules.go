@@ -10,6 +10,48 @@ import (
 	"gitlab.com/teserakt/c2se/internal/services"
 )
 
+//go:generate mockgen -destination=rules_mocks.go -package watchers -self_package gitlab.com/teserakt/c2se/internal/engine/watchers gitlab.com/teserakt/c2se/internal/engine/watchers RuleWatcherFactory,RuleWatcher
+
+// RuleWatcherFactory allows to create RuleWatchers
+type RuleWatcherFactory interface {
+	Create(models.Rule) RuleWatcher
+}
+
+type ruleWatcherFactory struct {
+	ruleWriter            services.RuleWriter
+	triggerWatcherFactory TriggerWatcherFactory
+	triggeredChan         chan events.TriggerEvent
+	errorChan             chan<- error
+}
+
+var _ RuleWatcherFactory = &ruleWatcherFactory{}
+
+// NewRuleWatcherFactory creates a new RuleWatcherFactory
+func NewRuleWatcherFactory(
+	ruleWriter services.RuleWriter,
+	triggerWatcherFactory TriggerWatcherFactory,
+	triggeredChan chan events.TriggerEvent,
+	errorChan chan<- error,
+) RuleWatcherFactory {
+	return &ruleWatcherFactory{
+		ruleWriter:            ruleWriter,
+		triggerWatcherFactory: triggerWatcherFactory,
+		triggeredChan:         triggeredChan,
+		errorChan:             errorChan,
+	}
+}
+
+func (f *ruleWatcherFactory) Create(rule models.Rule) RuleWatcher {
+	return &ruleWatcher{
+		rule:                  rule,
+		ruleWriter:            f.ruleWriter,
+		triggerWatcherFactory: f.triggerWatcherFactory,
+		triggeredChan:         f.triggeredChan,
+		errorChan:             f.errorChan,
+		stopChan:              make(chan bool),
+	}
+}
+
 // RuleWatcher defines methods to implement a rule storage
 type RuleWatcher interface {
 	Start()
@@ -24,24 +66,6 @@ type ruleWatcher struct {
 	triggeredChan         chan events.TriggerEvent
 
 	stopChan chan bool
-}
-
-// NewRuleWatcher creates a watcher for changes on rules, and registering them on the dispatcher
-func NewRuleWatcher(
-	rule models.Rule,
-	ruleWriter services.RuleWriter,
-	triggerWatcherFactory TriggerWatcherFactory,
-	triggeredChan chan events.TriggerEvent,
-	errorChan chan<- error,
-) RuleWatcher {
-	return &ruleWatcher{
-		rule:                  rule,
-		ruleWriter:            ruleWriter,
-		triggerWatcherFactory: triggerWatcherFactory,
-		triggeredChan:         triggeredChan,
-		errorChan:             errorChan,
-		stopChan:              make(chan bool),
-	}
 }
 
 func (w *ruleWatcher) Start() {

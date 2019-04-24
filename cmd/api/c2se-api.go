@@ -66,12 +66,14 @@ func main() {
 	globalErrorChan := make(chan error)
 
 	triggerWatcherFactory := watchers.NewTriggerWatcherFactory()
-	scriptEngine := engine.NewScriptEngine(
+	ruleWatcherFactory := watchers.NewRuleWatcherFactory(
 		ruleService,
 		triggerWatcherFactory,
 		make(chan events.TriggerEvent),
 		globalErrorChan,
 	)
+
+	scriptEngine := engine.NewScriptEngine(ruleService, ruleWatcherFactory)
 
 	server := api.NewServer(
 		appConfig.Addr,
