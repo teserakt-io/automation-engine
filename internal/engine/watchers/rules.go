@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"gitlab.com/teserakt/c2se/internal/engine/actions"
 	"gitlab.com/teserakt/c2se/internal/events"
 	"gitlab.com/teserakt/c2se/internal/models"
 	"gitlab.com/teserakt/c2se/internal/services"
@@ -20,6 +21,7 @@ type RuleWatcherFactory interface {
 type ruleWatcherFactory struct {
 	ruleWriter            services.RuleWriter
 	triggerWatcherFactory TriggerWatcherFactory
+	actionFactory         actions.ActionFactory
 	triggeredChan         chan events.TriggerEvent
 	errorChan             chan<- error
 }
@@ -30,12 +32,14 @@ var _ RuleWatcherFactory = &ruleWatcherFactory{}
 func NewRuleWatcherFactory(
 	ruleWriter services.RuleWriter,
 	triggerWatcherFactory TriggerWatcherFactory,
+	actionFactory actions.ActionFactory,
 	triggeredChan chan events.TriggerEvent,
 	errorChan chan<- error,
 ) RuleWatcherFactory {
 	return &ruleWatcherFactory{
 		ruleWriter:            ruleWriter,
 		triggerWatcherFactory: triggerWatcherFactory,
+		actionFactory:         actionFactory,
 		triggeredChan:         triggeredChan,
 		errorChan:             errorChan,
 	}
@@ -46,6 +50,7 @@ func (f *ruleWatcherFactory) Create(rule models.Rule) RuleWatcher {
 		rule:                  rule,
 		ruleWriter:            f.ruleWriter,
 		triggerWatcherFactory: f.triggerWatcherFactory,
+		actionFactory:         f.actionFactory,
 		triggeredChan:         f.triggeredChan,
 		errorChan:             f.errorChan,
 		stopChan:              make(chan bool),
@@ -61,6 +66,7 @@ type RuleWatcher interface {
 type ruleWatcher struct {
 	rule                  models.Rule
 	triggerWatcherFactory TriggerWatcherFactory
+	actionFactory         actions.ActionFactory
 	ruleWriter            services.RuleWriter
 	errorChan             chan<- error
 	triggeredChan         chan events.TriggerEvent
@@ -103,7 +109,15 @@ func (w *ruleWatcher) Start() {
 				go triggerWatcher.UpdateLastExecuted(triggerEvt.Time)
 			}
 
-			// TODO perform the rule.Action !
+			action, err := w.actionFactory.Create(w.rule)
+			if err != nil {
+				w.errorChan <- err
+
+				continue
+			}
+
+			action.Execute()
+
 		case <-w.stopChan:
 			for _, triggerWatcher := range triggerWatchers {
 				if err := triggerWatcher.Stop(); err != nil {

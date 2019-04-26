@@ -17,7 +17,7 @@ require (
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/rvflash/elapsed v0.2.0
 	github.com/spf13/cobra v0.0.3
-	github.com/spf13/pflag v1.0.3
-	gitlab.com/teserakt/e4common v0.0.0-20190110144444-ec3c2ff40a1e
+	github.com/spf13/pflag v1.0.3 // indirect
+	gitlab.com/teserakt/e4common v0.0.0-20190411074353-09816aec1227
 	google.golang.org/grpc v1.19.0
 )

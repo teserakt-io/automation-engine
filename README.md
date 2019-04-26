@@ -11,7 +11,7 @@ It also start the c2se engine, which will monitor existing rule triggers and pro
 ### Usage
 
 ```bash
-./bin/c2se-api -db /tmp/c2se.db -addr 127.0.0.1:5556
+./bin/c2se-api -db /tmp/c2se.db -addr 127.0.0.1:5556 -c2cert /path/to/c2/cert.pem
 ```
 
 ### c2se engine
@@ -39,3 +39,41 @@ Auto completion helper script can be sourced in current session or added to .bas
 . <(./bin/c2se-cli completion --zsh)
 ```
 It will provide auto completion for the various enums available
+
+### Examples
+
+#### Setting up key rotation every 2 minutes for some clients
+
+```
+### First create a new rule:
+c2se-cli create --action=KEY_ROTATION --description "Rotate client1 & client2 keys every 2 minutes"
+# Rule #1 created!
+
+### Now add targets:
+c2se-cli add-target --rule=1 --type=CLIENT --expr="client1"
+# New target successfully added on rule #1
+c2se-cli add-target --rule=1 --type=CLIENT --expr="client2"
+# New target successfully added on rule #1
+
+### And finally set the trigger:
+c2se-cli add-trigger --rule=1 --type=TIME_INTERVAL --setting expr="*/2 * * * *"
+# New trigger successfully added on rule #1
+
+# And done ! Now the API will have auto loaded the newly created trigger and
+# started a goroutine to make it execute at specified time interval.
+```
+
+## Development
+
+Start api with:
+```
+go run cmd/api/c2se-api.go -db /tmp/c2se.db -c2cert /path/to/c2/cert.pem
+```
+
+Run cli with:
+```
+go run cmd/cli/c2se-cli.go --help
+```
+
+A Makefile is also provided with various targets, like build, running tests, getting coverage, generating the mocks / protobuf...
+Run ```make``` for the full list of targets and descriptions.
