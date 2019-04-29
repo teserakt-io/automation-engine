@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package pb;
+
+import "google/protobuf/timestamp.proto";
+
+service C2ScriptEngine {
+    rpc ListRules (ListRulesRequest) returns (RulesResponse) {}
+    rpc GetRule(GetRuleRequest) returns (RuleResponse) {}
+    rpc AddRule (AddRuleRequest) returns (RuleResponse) {}
+    rpc UpdateRule (UpdateRuleRequest) returns (RuleResponse) {}
+    rpc DeleteRule (DeleteRuleRequest) returns (DeleteRuleResponse) {}
+}
+
+enum ActionType {
+    UNDEFINED_ACTION = 0;
+    KEY_ROTATION = 1;
+    // Extended as more actions get added ...
+}
+
+enum TargetType {
+    ANY = 0;
+    TOPIC = 1;
+    CLIENT = 2;
+}
+
+enum TriggerType {
+    UNDEFINED_TRIGGER = 0;
+    TIME_INTERVAL = 1;
+    CLIENT_SUBSCRIBED = 2;
+    CLIENT_UNSUBSCRIBED = 3;
+    // Extended as more triggers get added ...
+}
+
+message Target {
+    int32 id = 1;
+    TargetType type = 2;
+    string expr = 3;
+}
+
+message Trigger {
+    int32 id = 1;
+    TriggerType type = 2;
+    bytes settings = 3;
+    bytes state = 4;
+}
+
+message Rule {
+    int32 id = 1;
+    string description = 2;
+    ActionType action = 3;
+    google.protobuf.Timestamp lastExectued = 4;
+    repeated Trigger triggers = 5;
+    repeated Target targets = 6;
+}
+
+message RulesResponse {
+    repeated Rule rules = 1;
+}
+
+message RuleResponse {
+    Rule rule = 1;
+}
+
+message ListRulesRequest {
+    // Empty for now, can add pagination or whatever filter here.
+}
+
+message GetRuleRequest {
+    int32 ruleId = 1;
+}
+
+message AddRuleRequest {
+    string description = 1;
+    ActionType action = 2;
+    repeated Trigger triggers = 3;
+    repeated Target targets = 4;
+}
+
+message UpdateRuleRequest {
+    int32 ruleId = 1;
+    string description = 2;
+    ActionType action = 3;
+    repeated Trigger triggers = 4;
+    repeated Target targets = 5;
+}
+
+message DeleteRuleRequest {
+    int32 ruleId = 1;
+}
+message DeleteRuleResponse {
+    int32 ruleId = 1;
+}
