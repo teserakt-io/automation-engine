@@ -4,11 +4,12 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/go-kit/kit/log"
+	"github.com/golang/mock/gomock"
+
 	"gitlab.com/teserakt/c2se/internal/engine/watchers"
 	"gitlab.com/teserakt/c2se/internal/models"
 	"gitlab.com/teserakt/c2se/internal/services"
-
-	"github.com/golang/mock/gomock"
 )
 
 func TestScriptEngine(t *testing.T) {
@@ -18,7 +19,7 @@ func TestScriptEngine(t *testing.T) {
 	mockRuleService := services.NewMockRuleService(mockCtrl)
 	mockRuleWatcherFactory := watchers.NewMockRuleWatcherFactory(mockCtrl)
 
-	engine := NewScriptEngine(mockRuleService, mockRuleWatcherFactory)
+	engine := NewScriptEngine(mockRuleService, mockRuleWatcherFactory, log.NewNopLogger())
 
 	rules := []models.Rule{
 		models.Rule{ID: 1},

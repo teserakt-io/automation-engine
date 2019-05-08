@@ -4,7 +4,8 @@ package actions
 
 import (
 	"fmt"
-	"log"
+
+	"github.com/go-kit/kit/log"
 
 	"gitlab.com/teserakt/c2se/internal/models"
 	"gitlab.com/teserakt/c2se/internal/pb"
@@ -25,15 +26,17 @@ type Action interface {
 type actionFactory struct {
 	c2Client  services.C2
 	errorChan chan<- error
+	logger    log.Logger
 }
 
 var _ ActionFactory = &actionFactory{}
 
 // NewActionFactory creates a new ActionFactory
-func NewActionFactory(c2Client services.C2, errorChan chan<- error) ActionFactory {
+func NewActionFactory(c2Client services.C2, errorChan chan<- error, logger log.Logger) ActionFactory {
 	return &actionFactory{
 		c2Client:  c2Client,
 		errorChan: errorChan,
+		logger:    logger,
 	}
 }
 
@@ -46,6 +49,7 @@ func (f *actionFactory) Create(rule models.Rule) (Action, error) {
 			targets:   rule.Targets,
 			c2Client:  f.c2Client,
 			errorChan: f.errorChan,
+			logger:    f.logger,
 		}
 	default:
 		return nil, fmt.Errorf("unknow action type %d", rule.ActionType)
@@ -72,6 +76,7 @@ func (e UnsupportedTargetType) Error() string {
 type keyRotationAction struct {
 	targets  []models.Target
 	c2Client services.C2
+	logger   log.Logger
 
 	errorChan chan<- error
 }
@@ -80,7 +85,7 @@ var _ Action = &keyRotationAction{}
 
 func (a *keyRotationAction) Execute() {
 	for _, target := range a.targets {
-		log.Printf("Executing %T for target: %s", a, target.Expr)
+		a.logger.Log("msg", "executing action", "action", "keyRotation", "target", target.Expr)
 		switch target.Type {
 		case pb.TargetType_CLIENT:
 			hashedID := e4.HashIDAlias(target.Expr)

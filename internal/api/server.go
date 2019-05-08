@@ -2,14 +2,14 @@ package api
 
 import (
 	context "context"
-	"log"
 	"net"
+
+	"github.com/go-kit/kit/log"
+	grpc "google.golang.org/grpc"
 
 	"gitlab.com/teserakt/c2se/internal/models"
 	"gitlab.com/teserakt/c2se/internal/pb"
 	"gitlab.com/teserakt/c2se/internal/services"
-
-	grpc "google.golang.org/grpc"
 )
 
 // Server interface
@@ -23,6 +23,7 @@ type apiServer struct {
 	addr        string
 	ruleService services.RuleService
 	converter   models.Converter
+	logger      log.Logger
 
 	rulesModified chan bool
 }
@@ -34,11 +35,13 @@ func NewServer(
 	addr string,
 	ruleService services.RuleService,
 	converter models.Converter,
+	logger log.Logger,
 ) Server {
 	return &apiServer{
 		addr:        addr,
 		ruleService: ruleService,
 		converter:   converter,
+		logger:      logger,
 
 		rulesModified: make(chan bool),
 	}
@@ -51,13 +54,13 @@ func (s *apiServer) RulesModifiedChan() <-chan bool {
 func (s *apiServer) ListenAndServe(errorChan chan<- error) {
 	lis, err := net.Listen("tcp", s.addr)
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		s.logger.Log("msg", "failed to listen", "error", err)
 	}
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterC2ScriptEngineServer(grpcServer, s)
 
-	log.Printf("Starting api grpc server listening on %s\n", s.addr)
+	s.logger.Log("msg", "starting api grpc server", "addr", s.addr)
 	errorChan <- grpcServer.Serve(lis)
 }
 
@@ -185,6 +188,6 @@ func (s *apiServer) notifyRulesModified() {
 	select {
 	case s.rulesModified <- true:
 	default:
-		log.Println("Skipped writting ruleModified event, channel is busy")
+		s.logger.Log("msg", "skipped writting ruleModified event, channel is busy")
 	}
 }
