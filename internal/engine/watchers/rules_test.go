@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 
 	"gitlab.com/teserakt/c2se/internal/engine/actions"
@@ -44,6 +45,7 @@ func TestRuleWatcher(t *testing.T) {
 		triggeredChan:         triggeredChan,
 		errorChan:             errorChan,
 		stopChan:              make(chan bool),
+		logger:                log.NewNopLogger(),
 	}
 
 	t.Run("Start start a triggerWatcher for each triggers", func(t *testing.T) {
@@ -143,6 +145,7 @@ func TestRuleWatcher(t *testing.T) {
 			triggeredChan:         triggeredChan,
 			errorChan:             errorChan,
 			stopChan:              make(chan bool),
+			logger:                log.NewNopLogger(),
 		}
 
 		go newRuleWatcher.Start()
@@ -189,6 +192,7 @@ func TestRuleWatcher(t *testing.T) {
 			triggeredChan:         triggeredChan,
 			errorChan:             errorChan,
 			stopChan:              make(chan bool),
+			logger:                log.NewNopLogger(),
 		}
 
 		go newRuleWatcher.Start()
@@ -234,6 +238,8 @@ func TestRuleWatcher(t *testing.T) {
 
 		go watcher.Start()
 
+		time.Sleep(100 * time.Millisecond)
+
 		watcher.Stop()
 
 		select {
@@ -264,6 +270,7 @@ func TestRuleWatcherFactory(t *testing.T) {
 		mockActionFactory,
 		triggeredChan,
 		errorChan,
+		log.NewNopLogger(),
 	)
 
 	t.Run("Creates returns a properly initialized RuleWatcher", func(t *testing.T) {

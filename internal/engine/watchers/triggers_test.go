@@ -5,14 +5,15 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/teserakt/c2se/internal/events"
+	"github.com/go-kit/kit/log"
 
+	"gitlab.com/teserakt/c2se/internal/events"
 	"gitlab.com/teserakt/c2se/internal/models"
 	"gitlab.com/teserakt/c2se/internal/pb"
 )
 
 func TestTriggerWatcherFactory(t *testing.T) {
-	factory := NewTriggerWatcherFactory()
+	factory := NewTriggerWatcherFactory(log.NewNopLogger())
 
 	expectedLastExecuted := time.Now()
 
@@ -183,6 +184,7 @@ func TestSchedulerTriggerWatcher(t *testing.T) {
 	watcher := &schedulerWatcher{
 		trigger:       trigger,
 		triggeredChan: triggeredChan,
+		logger:        log.NewNopLogger(),
 
 		updateChan: updateChan,
 		errorChan:  errorChan,
@@ -227,6 +229,7 @@ func TestSchedulerTriggerWatcher(t *testing.T) {
 		invalidWatcher := &schedulerWatcher{
 			trigger:       invalidTrigger,
 			triggeredChan: triggeredChan,
+			logger:        log.NewNopLogger(),
 
 			updateChan: updateChan,
 			errorChan:  errorChan,
@@ -265,6 +268,7 @@ func TestSchedulerTriggerWatcher(t *testing.T) {
 		invalidWatcher := &schedulerWatcher{
 			trigger:       invalidTrigger,
 			triggeredChan: triggeredChan,
+			logger:        log.NewNopLogger(),
 
 			updateChan: updateChan,
 			errorChan:  errorChan,

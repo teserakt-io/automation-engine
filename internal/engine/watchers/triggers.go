@@ -2,13 +2,13 @@ package watchers
 
 import (
 	"fmt"
-	"log"
 	"time"
 
+	"github.com/go-kit/kit/log"
 	"github.com/gorhill/cronexpr"
+
 	"gitlab.com/teserakt/c2se/internal/events"
 	"gitlab.com/teserakt/c2se/internal/models"
-
 	"gitlab.com/teserakt/c2se/internal/pb"
 )
 
@@ -33,6 +33,7 @@ type TriggerWatcherFactory interface {
 }
 
 type triggerWatcherFactory struct {
+	logger        log.Logger
 	triggeredChan chan<- events.TriggerEvent
 	errorChan     chan<- error
 	stopChan      chan bool
@@ -44,11 +45,13 @@ var _ TriggerWatcher = &clientSubscribedWatcher{}
 var _TriggerWatcher = &clientUnsubscribedWatcher{}
 
 // NewTriggerWatcherFactory creates a new watcher factory for given trigger
-func NewTriggerWatcherFactory() TriggerWatcherFactory {
-	return &triggerWatcherFactory{}
+func NewTriggerWatcherFactory(logger log.Logger) TriggerWatcherFactory {
+	return &triggerWatcherFactory{
+		logger: logger,
+	}
 }
 
-func (l *triggerWatcherFactory) Create(
+func (f *triggerWatcherFactory) Create(
 	trigger models.Trigger,
 	lastExecuted time.Time,
 	triggeredChan chan<- events.TriggerEvent,
@@ -66,6 +69,7 @@ func (l *triggerWatcherFactory) Create(
 			stopChan:      make(chan bool, 1),
 			updateChan:    make(chan time.Time),
 			lastExecuted:  lastExecuted,
+			logger:        f.logger,
 		}
 
 	case pb.TriggerType_CLIENT_SUBSCRIBED:
@@ -76,6 +80,7 @@ func (l *triggerWatcherFactory) Create(
 			stopChan:      make(chan bool, 1),
 			updateChan:    make(chan time.Time),
 			lastExecuted:  lastExecuted,
+			logger:        f.logger,
 		}
 
 	case pb.TriggerType_CLIENT_UNSUBSCRIBED:
@@ -86,6 +91,7 @@ func (l *triggerWatcherFactory) Create(
 			stopChan:      make(chan bool, 1),
 			updateChan:    make(chan time.Time),
 			lastExecuted:  lastExecuted,
+			logger:        f.logger,
 		}
 
 	default:
@@ -117,6 +123,7 @@ type schedulerWatcher struct {
 	trigger       models.Trigger
 	triggeredChan chan<- events.TriggerEvent
 	errorChan     chan<- error
+	logger        log.Logger
 
 	stopChan     chan bool
 	updateChan   chan time.Time
@@ -124,7 +131,7 @@ type schedulerWatcher struct {
 }
 
 func (w *schedulerWatcher) Start() {
-	log.Printf("Started trigger watcher for trigger %d (Rule %d)", w.trigger.ID, w.trigger.RuleID)
+	w.logger.Log("msg", "started trigger watcher", "trigger", w.trigger.ID, "rule", w.trigger.RuleID)
 
 	settings := &pb.TriggerSettingsTimeInterval{}
 	if err := settings.Decode(w.trigger.Settings); err != nil {
@@ -167,7 +174,7 @@ func (w *schedulerWatcher) Start() {
 func (w *schedulerWatcher) Stop() error {
 	select {
 	case w.stopChan <- true:
-		log.Printf("Stopped schedulerWatcher for trigger %d (rule %d)", w.trigger.ID, w.trigger.RuleID)
+		w.logger.Log("msg", "stopped schedulerWatcher", "trigger", w.trigger.ID, "rule", w.trigger.RuleID)
 	case <-time.After(100 * time.Millisecond):
 		return fmt.Errorf("Couldn't stop schedulerWatcher for trigger %d (rule %d), maybe it's already stopped ?", w.trigger.ID, w.trigger.RuleID)
 	}
@@ -192,6 +199,7 @@ type clientSubscribedWatcher struct {
 	stopChan      chan bool
 	updateChan    chan time.Time
 	lastExecuted  time.Time
+	logger        log.Logger
 }
 
 func (w *clientSubscribedWatcher) Start() {
@@ -215,6 +223,7 @@ type clientUnsubscribedWatcher struct {
 	stopChan      chan bool
 	updateChan    chan time.Time
 	lastExecuted  time.Time
+	logger        log.Logger
 }
 
 func (w *clientUnsubscribedWatcher) Start() {

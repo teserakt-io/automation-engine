@@ -6,12 +6,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-kit/kit/log"
+	"github.com/golang/mock/gomock"
+
 	"gitlab.com/teserakt/c2se/internal/models"
 	"gitlab.com/teserakt/c2se/internal/pb"
 	"gitlab.com/teserakt/c2se/internal/services"
 	e4 "gitlab.com/teserakt/e4common"
-
-	"github.com/golang/mock/gomock"
 )
 
 func TestKeyRotationAction(t *testing.T) {
@@ -42,6 +43,7 @@ func TestKeyRotationAction(t *testing.T) {
 			targets:   targets,
 			c2Client:  mockC2Client,
 			errorChan: errorChan,
+			logger:    log.NewNopLogger(),
 		}
 
 		go action.Execute()
@@ -85,6 +87,7 @@ func TestKeyRotationAction(t *testing.T) {
 			targets:   targets,
 			c2Client:  mockC2Client,
 			errorChan: errorChan,
+			logger:    log.NewNopLogger(),
 		}
 
 		client1Err := errors.New("client1 error")
@@ -131,7 +134,7 @@ func TestActionFactory(t *testing.T) {
 
 	errorChan := make(chan error)
 
-	factory := NewActionFactory(mockC2Client, errorChan)
+	factory := NewActionFactory(mockC2Client, errorChan, log.NewNopLogger())
 	t.Run("Create keyRotationAction returns expected struct", func(t *testing.T) {
 		rule := models.Rule{
 			ActionType: pb.ActionType_KEY_ROTATION,

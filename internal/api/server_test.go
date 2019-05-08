@@ -7,10 +7,11 @@ import (
 	"time"
 
 	"gitlab.com/teserakt/c2se/internal/models"
+	"gitlab.com/teserakt/c2se/internal/pb"
 	"gitlab.com/teserakt/c2se/internal/services"
 
+	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
-	"gitlab.com/teserakt/c2se/internal/pb"
 )
 
 func assertRulesModified(t *testing.T, rulesModifiedChan <-chan bool, expectedModified bool) {
@@ -27,7 +28,7 @@ func TestServer(t *testing.T) {
 	mockConverter := models.NewMockConverter(mockCtrl)
 	mockRuleService := services.NewMockRuleService(mockCtrl)
 
-	server := NewServer(":0", mockRuleService, mockConverter)
+	server := NewServer(":0", mockRuleService, mockConverter, log.NewNopLogger())
 
 	rulesModifiedChan := make(chan bool)
 	go func() {

@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"log"
+	"github.com/go-kit/kit/log"
 
 	"gitlab.com/teserakt/c2se/internal/engine/watchers"
 	"gitlab.com/teserakt/c2se/internal/services"
@@ -16,6 +16,7 @@ type ScriptEngine interface {
 type scriptEngine struct {
 	ruleService        services.RuleService
 	ruleWatcherFactory watchers.RuleWatcherFactory
+	logger             log.Logger
 
 	ruleWatchers []watchers.RuleWatcher
 }
@@ -23,10 +24,15 @@ type scriptEngine struct {
 var _ ScriptEngine = &scriptEngine{}
 
 // NewScriptEngine creates a new script engine
-func NewScriptEngine(ruleService services.RuleService, ruleWatcherFactory watchers.RuleWatcherFactory) ScriptEngine {
+func NewScriptEngine(
+	ruleService services.RuleService,
+	ruleWatcherFactory watchers.RuleWatcherFactory,
+	logger log.Logger,
+) ScriptEngine {
 	return &scriptEngine{
 		ruleService:        ruleService,
 		ruleWatcherFactory: ruleWatcherFactory,
+		logger:             logger,
 	}
 }
 
@@ -49,11 +55,11 @@ func (e *scriptEngine) Start() error {
 func (e *scriptEngine) Stop() {
 	for _, w := range e.ruleWatchers {
 		if err := w.Stop(); err != nil {
-			log.Printf("error while stopping ruleWatcher: %s", err)
+			e.logger.Log("msg", "error while stopping ruleWatcher", "error", err)
 		}
 	}
 
 	e.ruleWatchers = []watchers.RuleWatcher{}
 
-	log.Println("Stopped script engine")
+	e.logger.Log("msg", "stopped script engine")
 }

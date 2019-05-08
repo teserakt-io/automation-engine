@@ -2,8 +2,9 @@ package watchers
 
 import (
 	"fmt"
-	"log"
 	"time"
+
+	"github.com/go-kit/kit/log"
 
 	"gitlab.com/teserakt/c2se/internal/engine/actions"
 	"gitlab.com/teserakt/c2se/internal/events"
@@ -24,6 +25,7 @@ type ruleWatcherFactory struct {
 	actionFactory         actions.ActionFactory
 	triggeredChan         chan events.TriggerEvent
 	errorChan             chan<- error
+	logger                log.Logger
 }
 
 var _ RuleWatcherFactory = &ruleWatcherFactory{}
@@ -35,6 +37,7 @@ func NewRuleWatcherFactory(
 	actionFactory actions.ActionFactory,
 	triggeredChan chan events.TriggerEvent,
 	errorChan chan<- error,
+	logger log.Logger,
 ) RuleWatcherFactory {
 	return &ruleWatcherFactory{
 		ruleWriter:            ruleWriter,
@@ -42,6 +45,7 @@ func NewRuleWatcherFactory(
 		actionFactory:         actionFactory,
 		triggeredChan:         triggeredChan,
 		errorChan:             errorChan,
+		logger:                logger,
 	}
 }
 
@@ -53,6 +57,7 @@ func (f *ruleWatcherFactory) Create(rule models.Rule) RuleWatcher {
 		actionFactory:         f.actionFactory,
 		triggeredChan:         f.triggeredChan,
 		errorChan:             f.errorChan,
+		logger:                f.logger,
 		stopChan:              make(chan bool),
 	}
 }
@@ -70,12 +75,13 @@ type ruleWatcher struct {
 	ruleWriter            services.RuleWriter
 	errorChan             chan<- error
 	triggeredChan         chan events.TriggerEvent
+	logger                log.Logger
 
 	stopChan chan bool
 }
 
 func (w *ruleWatcher) Start() {
-	log.Printf("Started rule watcher for rule %d", w.rule.ID)
+	w.logger.Log("msg", "started rule watcher", "rule", w.rule.ID)
 
 	var triggerWatchers []TriggerWatcher
 
@@ -101,7 +107,7 @@ func (w *ruleWatcher) Start() {
 	for {
 		select {
 		case triggerEvt := <-w.triggeredChan:
-			log.Printf("Rule %d triggered from trigger %d", w.rule.ID, triggerEvt.Trigger.ID)
+			w.logger.Log("msg", "rule triggered", "rule", w.rule.ID, "trigger", triggerEvt.Trigger.ID)
 			w.rule.LastExecuted = triggerEvt.Time
 			w.ruleWriter.Save(&w.rule)
 
@@ -133,7 +139,7 @@ func (w *ruleWatcher) Start() {
 func (w *ruleWatcher) Stop() error {
 	select {
 	case w.stopChan <- true:
-		log.Printf("Stopped ruleWatcher for rule %d", w.rule.ID)
+		w.logger.Log("msg", "stopped ruleWatcher", "rule", w.rule.ID)
 	case <-time.After(100 * time.Millisecond):
 		return fmt.Errorf("Couldn't stop ruleWatcher for rule %d, maybe it's already stopped ?", w.rule.ID)
 	}
