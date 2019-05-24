@@ -9,10 +9,10 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 
-	"gitlab.com/teserakt/c2se/internal/engine/actions"
-	"gitlab.com/teserakt/c2se/internal/events"
-	"gitlab.com/teserakt/c2se/internal/models"
-	"gitlab.com/teserakt/c2se/internal/services"
+	"gitlab.com/teserakt/c2ae/internal/engine/actions"
+	"gitlab.com/teserakt/c2ae/internal/events"
+	"gitlab.com/teserakt/c2ae/internal/models"
+	"gitlab.com/teserakt/c2ae/internal/services"
 )
 
 func TestRuleWatcher(t *testing.T) {

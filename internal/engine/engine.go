@@ -3,17 +3,17 @@ package engine
 import (
 	"github.com/go-kit/kit/log"
 
-	"gitlab.com/teserakt/c2se/internal/engine/watchers"
-	"gitlab.com/teserakt/c2se/internal/services"
+	"gitlab.com/teserakt/c2ae/internal/engine/watchers"
+	"gitlab.com/teserakt/c2ae/internal/services"
 )
 
-// ScriptEngine interface describe the public methods available on the script engine
-type ScriptEngine interface {
+// AutomationEngine interface describe the public methods available on the automation engine
+type AutomationEngine interface {
 	Start() error
 	Stop()
 }
 
-type scriptEngine struct {
+type automationEngine struct {
 	ruleService        services.RuleService
 	ruleWatcherFactory watchers.RuleWatcherFactory
 	logger             log.Logger
@@ -21,22 +21,22 @@ type scriptEngine struct {
 	ruleWatchers []watchers.RuleWatcher
 }
 
-var _ ScriptEngine = &scriptEngine{}
+var _ AutomationEngine = &automationEngine{}
 
-// NewScriptEngine creates a new script engine
-func NewScriptEngine(
+// NewAutomationEngine creates a new automation engine
+func NewAutomationEngine(
 	ruleService services.RuleService,
 	ruleWatcherFactory watchers.RuleWatcherFactory,
 	logger log.Logger,
-) ScriptEngine {
-	return &scriptEngine{
+) AutomationEngine {
+	return &automationEngine{
 		ruleService:        ruleService,
 		ruleWatcherFactory: ruleWatcherFactory,
 		logger:             logger,
 	}
 }
 
-func (e *scriptEngine) Start() error {
+func (e *automationEngine) Start() error {
 	rules, err := e.ruleService.All()
 	if err != nil {
 		return err
@@ -52,7 +52,7 @@ func (e *scriptEngine) Start() error {
 	return nil
 }
 
-func (e *scriptEngine) Stop() {
+func (e *automationEngine) Stop() {
 	for _, w := range e.ruleWatchers {
 		if err := w.Stop(); err != nil {
 			e.logger.Log("msg", "error while stopping ruleWatcher", "error", err)
@@ -61,5 +61,5 @@ func (e *scriptEngine) Stop() {
 
 	e.ruleWatchers = []watchers.RuleWatcher{}
 
-	e.logger.Log("msg", "stopped script engine")
+	e.logger.Log("msg", "stopped automation engine")
 }

@@ -2,7 +2,7 @@
 
 set -ex
 
-PROJECT=c2se
+PROJECT=c2ae
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 

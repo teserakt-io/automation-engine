@@ -7,14 +7,14 @@ import (
 	"github.com/go-kit/kit/log"
 	grpc "google.golang.org/grpc"
 
-	"gitlab.com/teserakt/c2se/internal/models"
-	"gitlab.com/teserakt/c2se/internal/pb"
-	"gitlab.com/teserakt/c2se/internal/services"
+	"gitlab.com/teserakt/c2ae/internal/models"
+	"gitlab.com/teserakt/c2ae/internal/pb"
+	"gitlab.com/teserakt/c2ae/internal/services"
 )
 
 // Server interface
 type Server interface {
-	pb.C2ScriptEngineServer
+	pb.C2AutomationEngineServer
 	ListenAndServe(errorChan chan<- error)
 	RulesModifiedChan() <-chan bool
 }
@@ -28,9 +28,9 @@ type apiServer struct {
 	rulesModified chan bool
 }
 
-var _ pb.C2ScriptEngineServer = &apiServer{}
+var _ pb.C2AutomationEngineServer = &apiServer{}
 
-// NewServer creates a new Server implementing the C2ScriptEngineServer interface
+// NewServer creates a new Server implementing the C2AutomationEngineServer interface
 func NewServer(
 	addr string,
 	ruleService services.RuleService,
@@ -58,7 +58,7 @@ func (s *apiServer) ListenAndServe(errorChan chan<- error) {
 	}
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterC2ScriptEngineServer(grpcServer, s)
+	pb.RegisterC2AutomationEngineServer(grpcServer, s)
 
 	s.logger.Log("msg", "starting api grpc server", "addr", s.addr)
 	errorChan <- grpcServer.Serve(lis)

@@ -7,19 +7,19 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 
-	"gitlab.com/teserakt/c2se/internal/engine/watchers"
-	"gitlab.com/teserakt/c2se/internal/models"
-	"gitlab.com/teserakt/c2se/internal/services"
+	"gitlab.com/teserakt/c2ae/internal/engine/watchers"
+	"gitlab.com/teserakt/c2ae/internal/models"
+	"gitlab.com/teserakt/c2ae/internal/services"
 )
 
-func TestScriptEngine(t *testing.T) {
+func TestAutomationEngine(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
 	mockRuleService := services.NewMockRuleService(mockCtrl)
 	mockRuleWatcherFactory := watchers.NewMockRuleWatcherFactory(mockCtrl)
 
-	engine := NewScriptEngine(mockRuleService, mockRuleWatcherFactory, log.NewNopLogger())
+	engine := NewAutomationEngine(mockRuleService, mockRuleWatcherFactory, log.NewNopLogger())
 
 	rules := []models.Rule{
 		models.Rule{ID: 1},

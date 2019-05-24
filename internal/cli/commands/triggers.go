@@ -8,13 +8,13 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
 
-	"gitlab.com/teserakt/c2se/internal/cli"
-	"gitlab.com/teserakt/c2se/internal/pb"
+	"gitlab.com/teserakt/c2ae/internal/cli"
+	"gitlab.com/teserakt/c2ae/internal/pb"
 )
 
 type addTriggerCommand struct {
 	cobraCmd          *cobra.Command
-	c2seClientFactory cli.APIClientFactory
+	c2aeClientFactory cli.APIClientFactory
 	flags             addTriggerCommandFlags
 }
 
@@ -27,9 +27,9 @@ type addTriggerCommandFlags struct {
 var _ Command = &addTriggerCommand{}
 
 // NewAddTriggerCommand creates a new command to create a trigger on a rule
-func NewAddTriggerCommand(c2seClientFactory cli.APIClientFactory) Command {
+func NewAddTriggerCommand(c2aeClientFactory cli.APIClientFactory) Command {
 	addTriggerCmd := &addTriggerCommand{
-		c2seClientFactory: c2seClientFactory,
+		c2aeClientFactory: c2aeClientFactory,
 	}
 
 	cobraCmd := &cobra.Command{
@@ -71,7 +71,7 @@ func (c *addTriggerCommand) run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unknown trigger type %s", c.flags.Type)
 	}
 
-	client, err := c.c2seClientFactory.NewClient(cmd)
+	client, err := c.c2aeClientFactory.NewClient(cmd)
 	if err != nil {
 		return fmt.Errorf("cannot create api client: %s", err)
 	}

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"gitlab.com/teserakt/c2se/internal/cli"
-	"gitlab.com/teserakt/c2se/internal/cli/commands"
+	"gitlab.com/teserakt/c2ae/internal/cli"
+	"gitlab.com/teserakt/c2ae/internal/cli/commands"
 )
 
 // Provided by build script
@@ -29,9 +29,9 @@ func getVersion() string {
 	var out string
 
 	if len(gitTag) == 0 {
-		out = fmt.Sprintf("E4: C2 script reader cli - version %s-%s\n", buildDate, gitCommit)
+		out = fmt.Sprintf("E4: C2 automation engine cli - version %s-%s\n", buildDate, gitCommit)
 	} else {
-		out = fmt.Sprintf("E4: C2 script reader cli - version %s (%s-%s)\n", gitTag, buildDate, gitCommit)
+		out = fmt.Sprintf("E4: C2 automation engine cli - version %s (%s-%s)\n", gitTag, buildDate, gitCommit)
 	}
 	out += fmt.Sprintln("Copyright (c) Teserakt AG, 2018-2019")
 

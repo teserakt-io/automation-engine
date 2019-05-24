@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"gitlab.com/teserakt/c2se/internal/cli"
-	"gitlab.com/teserakt/c2se/internal/pb"
+	"gitlab.com/teserakt/c2ae/internal/cli"
+	"gitlab.com/teserakt/c2ae/internal/pb"
 )
 
 type addTargetCommand struct {
 	cobraCmd          *cobra.Command
-	c2seClientFactory cli.APIClientFactory
+	c2aeClientFactory cli.APIClientFactory
 	flags             addTargetCommandFlags
 }
 
@@ -26,9 +26,9 @@ type addTargetCommandFlags struct {
 var _ Command = &addTargetCommand{}
 
 // NewAddTargetCommand creates a new command to create a target on a rule
-func NewAddTargetCommand(c2seClientFactory cli.APIClientFactory) Command {
+func NewAddTargetCommand(c2aeClientFactory cli.APIClientFactory) Command {
 	addTargetCmd := &addTargetCommand{
-		c2seClientFactory: c2seClientFactory,
+		c2aeClientFactory: c2aeClientFactory,
 	}
 
 	cobraCmd := &cobra.Command{
@@ -75,7 +75,7 @@ func (c *addTargetCommand) run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("Invalid expr: %s", err)
 	}
 
-	client, err := c.c2seClientFactory.NewClient(cmd)
+	client, err := c.c2aeClientFactory.NewClient(cmd)
 	if err != nil {
 		return fmt.Errorf("cannot create api client: %s", err)
 	}

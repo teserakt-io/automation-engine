@@ -1,6 +1,6 @@
 package pb
 
-//go:generate mockgen -destination=c2client_mocks.go -package=pb -self_package gitlab.com/teserakt/c2se/internal/pb gitlab.com/teserakt/c2se/internal/pb C2PbClient,C2PbClientFactory
+//go:generate mockgen -destination=c2client_mocks.go -package=pb -self_package gitlab.com/teserakt/c2ae/internal/pb gitlab.com/teserakt/c2ae/internal/pb C2PbClient,C2PbClientFactory
 
 import (
 	e4 "gitlab.com/teserakt/e4common"

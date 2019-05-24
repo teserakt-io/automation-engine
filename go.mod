@@ -1,4 +1,4 @@
-module gitlab.com/teserakt/c2se
+module gitlab.com/teserakt/c2ae
 
 require (
 	github.com/denisenkom/go-mssqldb v0.0.0-20190401154936-ce35bd87d4b3 // indirect

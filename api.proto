@@ -4,7 +4,7 @@ package pb;
 
 import "google/protobuf/timestamp.proto";
 
-service C2ScriptEngine {
+service C2AutomationEngine {
     rpc ListRules (ListRulesRequest) returns (RulesResponse) {}
     rpc GetRule(GetRuleRequest) returns (RuleResponse) {}
     rpc AddRule (AddRuleRequest) returns (RuleResponse) {}

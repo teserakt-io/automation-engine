@@ -3,7 +3,7 @@ package events
 import (
 	"time"
 
-	"gitlab.com/teserakt/c2se/internal/models"
+	"gitlab.com/teserakt/c2ae/internal/models"
 )
 
 // SchedulerEventValue holds values transmitted on SchedulerTickType events

@@ -7,9 +7,9 @@ import (
 
 	"github.com/go-kit/kit/log"
 
-	"gitlab.com/teserakt/c2se/internal/events"
-	"gitlab.com/teserakt/c2se/internal/models"
-	"gitlab.com/teserakt/c2se/internal/pb"
+	"gitlab.com/teserakt/c2ae/internal/events"
+	"gitlab.com/teserakt/c2ae/internal/models"
+	"gitlab.com/teserakt/c2ae/internal/pb"
 )
 
 func TestTriggerWatcherFactory(t *testing.T) {

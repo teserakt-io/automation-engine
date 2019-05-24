@@ -6,13 +6,13 @@ import (
 
 	"github.com/go-kit/kit/log"
 
-	"gitlab.com/teserakt/c2se/internal/engine/actions"
-	"gitlab.com/teserakt/c2se/internal/events"
-	"gitlab.com/teserakt/c2se/internal/models"
-	"gitlab.com/teserakt/c2se/internal/services"
+	"gitlab.com/teserakt/c2ae/internal/engine/actions"
+	"gitlab.com/teserakt/c2ae/internal/events"
+	"gitlab.com/teserakt/c2ae/internal/models"
+	"gitlab.com/teserakt/c2ae/internal/services"
 )
 
-//go:generate mockgen -destination=rules_mocks.go -package watchers -self_package gitlab.com/teserakt/c2se/internal/engine/watchers gitlab.com/teserakt/c2se/internal/engine/watchers RuleWatcherFactory,RuleWatcher
+//go:generate mockgen -destination=rules_mocks.go -package watchers -self_package gitlab.com/teserakt/c2ae/internal/engine/watchers gitlab.com/teserakt/c2ae/internal/engine/watchers RuleWatcherFactory,RuleWatcher
 
 // RuleWatcherFactory allows to create RuleWatchers
 type RuleWatcherFactory interface {
@@ -62,7 +62,9 @@ func (f *ruleWatcherFactory) Create(rule models.Rule) RuleWatcher {
 	}
 }
 
-// RuleWatcher defines methods to implement a rule storage
+// RuleWatcher defines methods to implement a rule watcher.
+// It is responsible of monitoring the rule trigger(s), and execute the rule action
+// when the trigger conditions are met.
 type RuleWatcher interface {
 	Start()
 	Stop() error

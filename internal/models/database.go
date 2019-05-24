@@ -7,7 +7,7 @@ import (
 
 	// Load available database drivers
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	//import _ "github.com/jinzhu/gorm/dialects/mysql"
+	// import _ "github.com/jinzhu/gorm/dialects/mysql"
 	// import _ "github.com/jinzhu/gorm/dialects/postgres"
 	// import _ "github.com/jinzhu/gorm/dialects/mssql"
 )
