@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	gomock "github.com/golang/mock/gomock"
-	"gitlab.com/teserakt/c2se/internal/pb"
+	"gitlab.com/teserakt/c2ae/internal/pb"
 	e4 "gitlab.com/teserakt/e4common"
 )
 

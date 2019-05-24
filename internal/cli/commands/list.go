@@ -12,22 +12,22 @@ import (
 	"github.com/rvflash/elapsed"
 	"github.com/spf13/cobra"
 
-	"gitlab.com/teserakt/c2se/internal/cli"
-	"gitlab.com/teserakt/c2se/internal/pb"
+	"gitlab.com/teserakt/c2ae/internal/cli"
+	"gitlab.com/teserakt/c2ae/internal/pb"
 )
 
 type listCommand struct {
 	cobraCmd          *cobra.Command
-	c2seClientFactory cli.APIClientFactory
+	c2aeClientFactory cli.APIClientFactory
 }
 
 var _ Command = &listCommand{}
 
 // NewListCommand creates a new command to list all the rules
-func NewListCommand(c2seClientFactory cli.APIClientFactory) Command {
+func NewListCommand(c2aeClientFactory cli.APIClientFactory) Command {
 
 	listCmd := &listCommand{
-		c2seClientFactory: c2seClientFactory,
+		c2aeClientFactory: c2aeClientFactory,
 	}
 
 	cobraCmd := &cobra.Command{
@@ -49,7 +49,7 @@ func (c *listCommand) run(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	client, err := c.c2seClientFactory.NewClient(cmd)
+	client, err := c.c2aeClientFactory.NewClient(cmd)
 	if err != nil {
 		return fmt.Errorf("cannot create api client: %s", err)
 	}

@@ -3,7 +3,7 @@ package commands
 import (
 	"github.com/spf13/cobra"
 
-	"gitlab.com/teserakt/c2se/internal/cli"
+	"gitlab.com/teserakt/c2ae/internal/cli"
 )
 
 // Command defines a cli Command
@@ -23,21 +23,21 @@ type rootCommand struct {
 var _ Command = &rootCommand{}
 
 // NewRootCommand creates and configure a new cli root command
-func NewRootCommand(c2seClientFactory cli.APIClientFactory, version string) Command {
+func NewRootCommand(c2aeClientFactory cli.APIClientFactory, version string) Command {
 
 	rootCmd := &rootCommand{}
 
-	listCmd := NewListCommand(c2seClientFactory)
-	createCmd := NewCreateCommand(c2seClientFactory)
-	addTriggerCmd := NewAddTriggerCommand(c2seClientFactory)
-	addTargetCmd := NewAddTargetCommand(c2seClientFactory)
-	showCmd := NewShowCommand(c2seClientFactory)
-	deleteCmd := NewDeleteCommand(c2seClientFactory)
+	listCmd := NewListCommand(c2aeClientFactory)
+	createCmd := NewCreateCommand(c2aeClientFactory)
+	addTriggerCmd := NewAddTriggerCommand(c2aeClientFactory)
+	addTargetCmd := NewAddTargetCommand(c2aeClientFactory)
+	showCmd := NewShowCommand(c2aeClientFactory)
+	deleteCmd := NewDeleteCommand(c2aeClientFactory)
 
 	completionCmd := NewCompletionCommand(rootCmd)
 
 	cobraCmd := &cobra.Command{
-		Use:                    "c2se-cli",
+		Use:                    "c2ae-cli",
 		BashCompletionFunction: completionCmd.GenerateCustomCompletionFuncs(),
 		Version:                version,
 		SilenceUsage:           true,
@@ -48,7 +48,7 @@ func NewRootCommand(c2seClientFactory cli.APIClientFactory, version string) Comm
 		&rootCmd.flags.Endpoint,
 		cli.EndpointFlag,
 		"e",
-		"127.0.0.1:5556", "url to the c2se grpc api",
+		"127.0.0.1:5556", "url to the c2ae grpc api",
 	)
 
 	cobraCmd.AddCommand(

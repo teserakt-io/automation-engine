@@ -6,16 +6,16 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"gitlab.com/teserakt/c2se/internal/pb"
+	"gitlab.com/teserakt/c2ae/internal/pb"
 )
 
 const (
 	// CompletionFuncNameAction holds the name of the bash function used to autocomplete action flag
-	CompletionFuncNameAction = "__c2se_autocomplete_actions"
+	CompletionFuncNameAction = "__c2ae_autocomplete_actions"
 	// CompletionFuncNameTriggerType holds the name of the bash function used to autocomplete trigger type flag
-	CompletionFuncNameTriggerType = "__c2se_autocomplete_trigger_types"
+	CompletionFuncNameTriggerType = "__c2ae_autocomplete_trigger_types"
 	// CompletionFuncNameTargetType holds the name of the bash function used to autocomplete target type flag
-	CompletionFuncNameTargetType = "__c2se_autocomplete_target_types"
+	CompletionFuncNameTargetType = "__c2ae_autocomplete_target_types"
 )
 
 // CompletionCommand defines a custom Command to deal with auto completion
@@ -43,12 +43,12 @@ func NewCompletionCommand(rootCommand Command) *CompletionCommand {
 		Short: "Generates bash completion scripts",
 		Long: `To load completion run
 
-. <(c2se-cli completion)
+. <(c2ae-cli completion)
 
 To configure your bash shell to load completions for each session add to your bashrc
 
 # ~/.bashrc or ~/.profile
-. <(c2se-cli completion)`,
+. <(c2ae-cli completion)`,
 		RunE: completionCmd.run,
 	}
 

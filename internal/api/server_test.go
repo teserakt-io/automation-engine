@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/teserakt/c2se/internal/models"
-	"gitlab.com/teserakt/c2se/internal/pb"
-	"gitlab.com/teserakt/c2se/internal/services"
+	"gitlab.com/teserakt/c2ae/internal/models"
+	"gitlab.com/teserakt/c2ae/internal/pb"
+	"gitlab.com/teserakt/c2ae/internal/services"
 
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"

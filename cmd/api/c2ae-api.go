@@ -7,15 +7,15 @@ import (
 
 	"github.com/go-kit/kit/log"
 
-	"gitlab.com/teserakt/c2se/internal/api"
-	"gitlab.com/teserakt/c2se/internal/config"
-	"gitlab.com/teserakt/c2se/internal/engine"
-	"gitlab.com/teserakt/c2se/internal/engine/actions"
-	"gitlab.com/teserakt/c2se/internal/engine/watchers"
-	"gitlab.com/teserakt/c2se/internal/events"
-	"gitlab.com/teserakt/c2se/internal/models"
-	"gitlab.com/teserakt/c2se/internal/pb"
-	"gitlab.com/teserakt/c2se/internal/services"
+	"gitlab.com/teserakt/c2ae/internal/api"
+	"gitlab.com/teserakt/c2ae/internal/config"
+	"gitlab.com/teserakt/c2ae/internal/engine"
+	"gitlab.com/teserakt/c2ae/internal/engine/actions"
+	"gitlab.com/teserakt/c2ae/internal/engine/watchers"
+	"gitlab.com/teserakt/c2ae/internal/events"
+	"gitlab.com/teserakt/c2ae/internal/models"
+	"gitlab.com/teserakt/c2ae/internal/pb"
+	"gitlab.com/teserakt/c2ae/internal/services"
 )
 
 // Provided by build script
@@ -30,7 +30,7 @@ func main() {
 	printVersion()
 
 	// init logger
-	logFileName := fmt.Sprintf("/var/log/e4_c2se.log")
+	logFileName := fmt.Sprintf("/var/log/e4_c2ae.log")
 	logFile, err := os.OpenFile(logFileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0660)
 	if err != nil {
 		fmt.Printf("[ERROR] logs: unable to open file '%v' to write logs: %v\n", logFileName, err)
@@ -106,7 +106,11 @@ func main() {
 		log.With(logger, "type", "ruleWatcher"),
 	)
 
-	scriptEngine := engine.NewScriptEngine(ruleService, ruleWatcherFactory, log.With(logger, "type", "scriptEngine"))
+	automationEngine := engine.NewAutomationEngine(
+		ruleService,
+		ruleWatcherFactory,
+		log.With(logger, "type", "automationEngine"),
+	)
 
 	server := api.NewServer(
 		appConfig.Addr,
@@ -115,9 +119,9 @@ func main() {
 		log.With(logger, "type", "apiServer"),
 	)
 
-	err = scriptEngine.Start()
+	err = automationEngine.Start()
 	if err != nil {
-		logger.Log("msg", "error when starting script engine", "error", err)
+		logger.Log("msg", "error when starting automation engine", "error", err)
 		exitCode = 1
 		return
 	}
@@ -127,11 +131,11 @@ func main() {
 	for {
 		select {
 		case <-server.RulesModifiedChan():
-			logger.Log("msg", "rules modified, restarting script engine!")
-			scriptEngine.Stop()
-			err = scriptEngine.Start()
+			logger.Log("msg", "rules modified, restarting automation engine!")
+			automationEngine.Stop()
+			err = automationEngine.Start()
 			if err != nil {
-				logger.Log("msg", "failed to restart script engine", "error", err)
+				logger.Log("msg", "failed to restart automation engine", "error", err)
 			}
 		case err := <-globalErrorChan:
 			logger.Log("msg", "a goroutine emitted an error", "error", err)
@@ -141,9 +145,9 @@ func main() {
 
 func printVersion() {
 	if len(gitTag) == 0 {
-		fmt.Printf("E4: C2 script reader api - version %s-%s\n", buildDate, gitCommit)
+		fmt.Printf("E4: C2 automation engine api - version %s-%s\n", buildDate, gitCommit)
 	} else {
-		fmt.Printf("E4: C2 script reader api - version %s (%s-%s)\n", gitTag, buildDate, gitCommit)
+		fmt.Printf("E4: C2 automation engine api - version %s (%s-%s)\n", gitTag, buildDate, gitCommit)
 	}
 	fmt.Println("Copyright (c) Teserakt AG, 2018-2019")
 }

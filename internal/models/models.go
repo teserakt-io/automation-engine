@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"gitlab.com/teserakt/c2se/internal/pb"
+	"gitlab.com/teserakt/c2ae/internal/pb"
 )
 
 // Rule holds database information of a rule.

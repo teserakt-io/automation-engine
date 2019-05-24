@@ -8,8 +8,8 @@ import (
 
 	"github.com/jinzhu/gorm"
 
-	"gitlab.com/teserakt/c2se/internal/models"
-	"gitlab.com/teserakt/c2se/internal/pb"
+	"gitlab.com/teserakt/c2ae/internal/models"
+	"gitlab.com/teserakt/c2ae/internal/pb"
 )
 
 func getTestDB(t *testing.T) (models.Database, func()) {

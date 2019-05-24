@@ -7,12 +7,12 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/gorhill/cronexpr"
 
-	"gitlab.com/teserakt/c2se/internal/events"
-	"gitlab.com/teserakt/c2se/internal/models"
-	"gitlab.com/teserakt/c2se/internal/pb"
+	"gitlab.com/teserakt/c2ae/internal/events"
+	"gitlab.com/teserakt/c2ae/internal/models"
+	"gitlab.com/teserakt/c2ae/internal/pb"
 )
 
-//go:generate mockgen -destination=triggers_mocks.go -package watchers -self_package gitlab.com/teserakt/c2se/internal/engine/watchers gitlab.com/teserakt/c2se/internal/engine/watchers TriggerWatcherFactory,TriggerWatcher
+//go:generate mockgen -destination=triggers_mocks.go -package watchers -self_package gitlab.com/teserakt/c2ae/internal/engine/watchers gitlab.com/teserakt/c2ae/internal/engine/watchers TriggerWatcherFactory,TriggerWatcher
 
 // TriggerWatcher defines an interface for types watching on a trigger
 type TriggerWatcher interface {

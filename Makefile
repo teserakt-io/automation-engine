@@ -1,6 +1,6 @@
 SHELL=/bin/bash
 
-PROJECT=c2se
+PROJECT=c2ae
 
 GIT_COMMIT=$(shell git rev-list -1 HEAD)
 GIT_TAG=$(shell git describe --exact-match HEAD 2>/dev/null || true)

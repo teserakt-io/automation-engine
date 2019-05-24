@@ -1,13 +1,13 @@
 package services
 
-//go:generate mockgen -destination=c2client_mocks.go -package=services -self_package gitlab.com/teserakt/c2se/internal/services gitlab.com/teserakt/c2se/internal/services C2,C2Requester
+//go:generate mockgen -destination=c2client_mocks.go -package=services -self_package gitlab.com/teserakt/c2ae/internal/services gitlab.com/teserakt/c2ae/internal/services C2,C2Requester
 
 import (
 	"context"
 	"errors"
 	"time"
 
-	"gitlab.com/teserakt/c2se/internal/pb"
+	"gitlab.com/teserakt/c2ae/internal/pb"
 	e4 "gitlab.com/teserakt/e4common"
 )
 
@@ -64,7 +64,6 @@ type c2 struct {
 var _ C2 = &c2{}
 
 // NewC2 creates a new C2 client service
-// an error is returned when the credentials cannot be created from the certificate
 func NewC2(c2Requester C2Requester) C2 {
 	return &c2{
 		c2Requester: c2Requester,

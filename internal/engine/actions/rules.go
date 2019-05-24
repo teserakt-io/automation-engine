@@ -1,15 +1,15 @@
 package actions
 
-//go:generate mockgen -destination=rules_mocks.go -package actions -self_package gitlab.com/teserakt/c2se/internal/engine/actions gitlab.com/teserakt/c2se/internal/engine/actions ActionFactory,Action
+//go:generate mockgen -destination=rules_mocks.go -package actions -self_package gitlab.com/teserakt/c2ae/internal/engine/actions gitlab.com/teserakt/c2ae/internal/engine/actions ActionFactory,Action
 
 import (
 	"fmt"
 
 	"github.com/go-kit/kit/log"
 
-	"gitlab.com/teserakt/c2se/internal/models"
-	"gitlab.com/teserakt/c2se/internal/pb"
-	"gitlab.com/teserakt/c2se/internal/services"
+	"gitlab.com/teserakt/c2ae/internal/models"
+	"gitlab.com/teserakt/c2ae/internal/pb"
+	"gitlab.com/teserakt/c2ae/internal/services"
 	e4 "gitlab.com/teserakt/e4common"
 )
 

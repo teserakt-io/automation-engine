@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/spf13/cobra"
-	"gitlab.com/teserakt/c2se/internal/pb"
+	"gitlab.com/teserakt/c2ae/internal/pb"
 	"google.golang.org/grpc"
 )
 
@@ -18,16 +18,16 @@ var (
 	ErrFlagUndefined = errors.New("cannot retrieve endpoint flag on given cobra command")
 )
 
-// C2ScriptEngineClient override the protobuf client definition to offer a Close method
+// C2AutomationEngineClient override the protobuf client definition to offer a Close method
 // for the grpc connection
-type C2ScriptEngineClient interface {
-	pb.C2ScriptEngineClient
+type C2AutomationEngineClient interface {
+	pb.C2AutomationEngineClient
 	Close() error
 }
 
-// APIClientFactory allows to create pb.C2ScriptEngineClient instances
+// APIClientFactory allows to create pb.C2AutomationEngineClient instances
 type APIClientFactory interface {
-	NewClient(cmd *cobra.Command) (C2ScriptEngineClient, error)
+	NewClient(cmd *cobra.Command) (C2AutomationEngineClient, error)
 }
 
 type apiClientFactory struct {
@@ -35,21 +35,21 @@ type apiClientFactory struct {
 
 var _ APIClientFactory = &apiClientFactory{}
 
-// NewAPIClientFactory creates a new C2ScriptEngineClient factory
+// NewAPIClientFactory creates a new C2AutomationEngineClient factory
 func NewAPIClientFactory() APIClientFactory {
 	return &apiClientFactory{}
 }
 
-type c2scriptEngineClient struct {
-	pb.C2ScriptEngineClient
+type c2AutomationEngineClient struct {
+	pb.C2AutomationEngineClient
 	cnx *grpc.ClientConn
 }
 
-var _ C2ScriptEngineClient = &c2scriptEngineClient{}
-var _ pb.C2ScriptEngineClient = &c2scriptEngineClient{}
+var _ C2AutomationEngineClient = &c2AutomationEngineClient{}
+var _ pb.C2AutomationEngineClient = &c2AutomationEngineClient{}
 
-// NewClient creates a new ob.C2ScriptEngineClient instance connecting to given api endpoint
-func (c *apiClientFactory) NewClient(cmd *cobra.Command) (C2ScriptEngineClient, error) {
+// NewClient creates a new ob.C2AutomationEngineClient instance connecting to given api endpoint
+func (c *apiClientFactory) NewClient(cmd *cobra.Command) (C2AutomationEngineClient, error) {
 	flag := cmd.Flag(EndpointFlag)
 	if flag == nil {
 		return nil, ErrFlagUndefined
@@ -61,12 +61,12 @@ func (c *apiClientFactory) NewClient(cmd *cobra.Command) (C2ScriptEngineClient, 
 		return nil, err
 	}
 
-	return &c2scriptEngineClient{
-		C2ScriptEngineClient: pb.NewC2ScriptEngineClient(cnx),
-		cnx:                  cnx,
+	return &c2AutomationEngineClient{
+		C2AutomationEngineClient: pb.NewC2AutomationEngineClient(cnx),
+		cnx:                      cnx,
 	}, nil
 }
 
-func (c *c2scriptEngineClient) Close() error {
+func (c *c2AutomationEngineClient) Close() error {
 	return c.cnx.Close()
 }

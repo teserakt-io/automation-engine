@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
-	"gitlab.com/teserakt/c2se/internal/pb"
+	"gitlab.com/teserakt/c2ae/internal/pb"
 )
 
 func TestConverter(t *testing.T) {
