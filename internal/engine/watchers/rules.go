@@ -22,7 +22,6 @@ type ruleWatcherFactory struct {
 	ruleWriter            services.RuleWriter
 	triggerWatcherFactory TriggerWatcherFactory
 	actionFactory         actions.ActionFactory
-	triggeredChan         chan events.TriggerEvent
 	errorChan             chan<- error
 	logger                log.Logger
 }
@@ -34,7 +33,6 @@ func NewRuleWatcherFactory(
 	ruleWriter services.RuleWriter,
 	triggerWatcherFactory TriggerWatcherFactory,
 	actionFactory actions.ActionFactory,
-	triggeredChan chan events.TriggerEvent,
 	errorChan chan<- error,
 	logger log.Logger,
 ) RuleWatcherFactory {
@@ -42,7 +40,6 @@ func NewRuleWatcherFactory(
 		ruleWriter:            ruleWriter,
 		triggerWatcherFactory: triggerWatcherFactory,
 		actionFactory:         actionFactory,
-		triggeredChan:         triggeredChan,
 		errorChan:             errorChan,
 		logger:                logger,
 	}
@@ -54,7 +51,7 @@ func (f *ruleWatcherFactory) Create(rule models.Rule) RuleWatcher {
 		ruleWriter:            f.ruleWriter,
 		triggerWatcherFactory: f.triggerWatcherFactory,
 		actionFactory:         f.actionFactory,
-		triggeredChan:         f.triggeredChan,
+		triggeredChan:         make(chan events.TriggerEvent),
 		errorChan:             f.errorChan,
 		logger:                f.logger,
 	}
@@ -80,6 +77,11 @@ type ruleWatcher struct {
 func (w *ruleWatcher) Start(ctx context.Context) {
 	var triggerWatchers []TriggerWatcher
 
+	if len(w.rule.Triggers) == 0 {
+		w.logger.Log("msg", "rule has no triggers", "rule", w.rule.ID)
+		return
+	}
+
 	for _, trigger := range w.rule.Triggers {
 		triggerWatcher, err := w.triggerWatcherFactory.Create(
 			trigger,
@@ -102,6 +104,7 @@ func (w *ruleWatcher) Start(ctx context.Context) {
 	for {
 		select {
 		case triggerEvt := <-w.triggeredChan:
+
 			w.logger.Log("msg", "rule triggered", "rule", w.rule.ID, "trigger", triggerEvt.Trigger.ID)
 			w.rule.LastExecuted = triggerEvt.Time
 			w.ruleWriter.Save(&w.rule)

@@ -14,7 +14,6 @@ import (
 	"gitlab.com/teserakt/c2ae/internal/engine"
 	"gitlab.com/teserakt/c2ae/internal/engine/actions"
 	"gitlab.com/teserakt/c2ae/internal/engine/watchers"
-	"gitlab.com/teserakt/c2ae/internal/events"
 	"gitlab.com/teserakt/c2ae/internal/models"
 	"gitlab.com/teserakt/c2ae/internal/pb"
 	"gitlab.com/teserakt/c2ae/internal/services"
@@ -103,7 +102,6 @@ func main() {
 		ruleService,
 		triggerWatcherFactory,
 		actionFactory,
-		make(chan events.TriggerEvent),
 		globalErrorChan,
 		log.With(logger, "type", "ruleWatcher"),
 	)

@@ -216,14 +216,12 @@ func TestRuleWatcherFactory(t *testing.T) {
 	mockTriggerWatcherFactory := NewMockTriggerWatcherFactory(mockCtrl)
 	mockActionFactory := actions.NewMockActionFactory(mockCtrl)
 
-	triggeredChan := make(chan events.TriggerEvent)
 	errorChan := make(chan<- error)
 
 	factory := NewRuleWatcherFactory(
 		mockRuleWriter,
 		mockTriggerWatcherFactory,
 		mockActionFactory,
-		triggeredChan,
 		errorChan,
 		log.NewNopLogger(),
 	)
@@ -252,10 +250,6 @@ func TestRuleWatcherFactory(t *testing.T) {
 				mockTriggerWatcherFactory,
 				typedWatcher.triggerWatcherFactory,
 			)
-		}
-
-		if reflect.DeepEqual(typedWatcher.triggeredChan, triggeredChan) == false {
-			t.Errorf("Expected errorChan to be %p, got %p", triggeredChan, typedWatcher.triggeredChan)
 		}
 
 		if reflect.DeepEqual(typedWatcher.errorChan, errorChan) == false {
