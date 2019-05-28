@@ -15,7 +15,7 @@ import (
 // Server interface
 type Server interface {
 	pb.C2AutomationEngineServer
-	ListenAndServe(errorChan chan<- error)
+	ListenAndServe(ctx context.Context, errorChan chan<- error)
 	RulesModifiedChan() <-chan bool
 }
 
@@ -51,7 +51,7 @@ func (s *apiServer) RulesModifiedChan() <-chan bool {
 	return s.rulesModified
 }
 
-func (s *apiServer) ListenAndServe(errorChan chan<- error) {
+func (s *apiServer) ListenAndServe(ctx context.Context, errorChan chan<- error) {
 	lis, err := net.Listen("tcp", s.addr)
 	if err != nil {
 		s.logger.Log("msg", "failed to listen", "error", err)
@@ -61,7 +61,12 @@ func (s *apiServer) ListenAndServe(errorChan chan<- error) {
 	pb.RegisterC2AutomationEngineServer(grpcServer, s)
 
 	s.logger.Log("msg", "starting api grpc server", "addr", s.addr)
-	errorChan <- grpcServer.Serve(lis)
+	select {
+	case errorChan <- grpcServer.Serve(lis):
+	case <-ctx.Done():
+		s.logger.Log("msg", "context canceled")
+		errorChan <- ctx.Err()
+	}
 }
 
 func (s *apiServer) ListRules(ctx context.Context, req *pb.ListRulesRequest) (*pb.RulesResponse, error) {

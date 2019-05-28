@@ -1,6 +1,7 @@
 package watchers
 
 import (
+	"context"
 	reflect "reflect"
 	"testing"
 	"time"
@@ -58,10 +59,6 @@ func TestTriggerWatcherFactory(t *testing.T) {
 		if typedWatcher.updateChan == nil {
 			t.Errorf("Expected watcher updateChan to be not nil")
 		}
-
-		if typedWatcher.stopChan == nil {
-			t.Errorf("Expected watcher stopChan to be not nil")
-		}
 	})
 
 	t.Run("Factory creates clientSubscribedWatcher", func(t *testing.T) {
@@ -101,10 +98,6 @@ func TestTriggerWatcherFactory(t *testing.T) {
 
 		if typedWatcher.updateChan == nil {
 			t.Errorf("Expected watcher updateChan to be not nil")
-		}
-
-		if typedWatcher.stopChan == nil {
-			t.Errorf("Expected watcher stopChan to be not nil")
 		}
 	})
 
@@ -146,10 +139,6 @@ func TestTriggerWatcherFactory(t *testing.T) {
 		if typedWatcher.updateChan == nil {
 			t.Errorf("Expected watcher updateChan to be not nil")
 		}
-
-		if typedWatcher.stopChan == nil {
-			t.Errorf("Expected watcher stopChan to be not nil")
-		}
 	})
 
 	t.Run("Factory returns error on unknow trigger type", func(t *testing.T) {
@@ -179,7 +168,6 @@ func TestSchedulerTriggerWatcher(t *testing.T) {
 	triggeredChan := make(chan events.TriggerEvent)
 	updateChan := make(chan time.Time)
 	errorChan := make(chan error)
-	stopChan := make(chan bool)
 
 	watcher := &schedulerWatcher{
 		trigger:       trigger,
@@ -188,13 +176,15 @@ func TestSchedulerTriggerWatcher(t *testing.T) {
 
 		updateChan: updateChan,
 		errorChan:  errorChan,
-		stopChan:   stopChan,
 	}
 
 	t.Run("Start launch the schedulerWatcher and properly trigger", func(t *testing.T) {
 
 		initialLastExecuted := time.Now().Add(-2 * time.Minute)
-		go watcher.Start()
+
+		ctx, cancel := context.WithCancel(context.Background())
+
+		go watcher.Start(ctx)
 
 		var triggerEvt events.TriggerEvent
 
@@ -206,7 +196,8 @@ func TestSchedulerTriggerWatcher(t *testing.T) {
 			t.Errorf("Expected to receive a triggerEvent")
 		}
 
-		watcher.Stop()
+		time.Sleep(10 * time.Millisecond)
+		cancel()
 
 		if reflect.DeepEqual(triggerEvt.Trigger, trigger) == false {
 			t.Errorf("Expected triggerEvent to contains trigger %#v, got %#v", trigger, triggerEvt.Trigger)
@@ -233,10 +224,11 @@ func TestSchedulerTriggerWatcher(t *testing.T) {
 
 			updateChan: updateChan,
 			errorChan:  errorChan,
-			stopChan:   stopChan,
 		}
 
-		go invalidWatcher.Start()
+		ctx, cancel := context.WithCancel(context.Background())
+
+		go invalidWatcher.Start(ctx)
 
 		select {
 		case err := <-errorChan:
@@ -247,7 +239,7 @@ func TestSchedulerTriggerWatcher(t *testing.T) {
 			t.Errorf("Expected to get an error")
 		}
 
-		invalidWatcher.Stop()
+		cancel()
 	})
 
 	t.Run("Start handles triggers with invalid cron expressions", func(t *testing.T) {
@@ -272,10 +264,11 @@ func TestSchedulerTriggerWatcher(t *testing.T) {
 
 			updateChan: updateChan,
 			errorChan:  errorChan,
-			stopChan:   stopChan,
 		}
 
-		go invalidWatcher.Start()
+		ctx, cancel := context.WithCancel(context.Background())
+
+		go invalidWatcher.Start(ctx)
 
 		select {
 		case err := <-errorChan:
@@ -286,14 +279,16 @@ func TestSchedulerTriggerWatcher(t *testing.T) {
 			t.Errorf("Expected to get an error")
 		}
 
-		invalidWatcher.Stop()
+		cancel()
 	})
 
 	t.Run("UpdateLastExecuted properly update the watcher lastExecuted", func(t *testing.T) {
 		watcher.lastExecuted = time.Now()
 		updatedTime := time.Now().Add(1 * time.Second)
 
-		go watcher.Start()
+		ctx, cancel := context.WithCancel(context.Background())
+
+		go watcher.Start(ctx)
 
 		err := watcher.UpdateLastExecuted(updatedTime)
 		if err != nil {
@@ -306,17 +301,10 @@ func TestSchedulerTriggerWatcher(t *testing.T) {
 		case <-time.After(10 * time.Millisecond):
 		}
 
-		watcher.Stop()
+		cancel()
 
 		if watcher.lastExecuted != updatedTime {
 			t.Errorf("Expected lastExecuted to be %s, got %s", updatedTime, watcher.lastExecuted)
-		}
-	})
-
-	t.Run("UpdateLastExecuted when watcher is not running returns an error", func(t *testing.T) {
-		err := watcher.UpdateLastExecuted(time.Now())
-		if err == nil {
-			t.Errorf("Expected an error")
 		}
 	})
 
@@ -324,17 +312,4 @@ func TestSchedulerTriggerWatcher(t *testing.T) {
 		// TODO
 	})
 
-	t.Run("Stopping a non running triggerWatcher doesn't block", func(t *testing.T) {
-		testChan := make(chan bool)
-		go func() {
-			watcher.Stop()
-			testChan <- true
-		}()
-
-		select {
-		case <-testChan:
-		case <-time.After(500 * time.Millisecond):
-			t.Errorf("Expected stop to not block.")
-		}
-	})
 }

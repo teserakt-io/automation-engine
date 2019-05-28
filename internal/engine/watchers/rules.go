@@ -1,8 +1,7 @@
 package watchers
 
 import (
-	"fmt"
-	"time"
+	"context"
 
 	"github.com/go-kit/kit/log"
 
@@ -58,7 +57,6 @@ func (f *ruleWatcherFactory) Create(rule models.Rule) RuleWatcher {
 		triggeredChan:         f.triggeredChan,
 		errorChan:             f.errorChan,
 		logger:                f.logger,
-		stopChan:              make(chan bool),
 	}
 }
 
@@ -66,8 +64,7 @@ func (f *ruleWatcherFactory) Create(rule models.Rule) RuleWatcher {
 // It is responsible of monitoring the rule trigger(s), and execute the rule action
 // when the trigger conditions are met.
 type RuleWatcher interface {
-	Start()
-	Stop() error
+	Start(context.Context)
 }
 
 type ruleWatcher struct {
@@ -78,13 +75,9 @@ type ruleWatcher struct {
 	errorChan             chan<- error
 	triggeredChan         chan events.TriggerEvent
 	logger                log.Logger
-
-	stopChan chan bool
 }
 
-func (w *ruleWatcher) Start() {
-	w.logger.Log("msg", "started rule watcher", "rule", w.rule.ID)
-
+func (w *ruleWatcher) Start(ctx context.Context) {
 	var triggerWatchers []TriggerWatcher
 
 	for _, trigger := range w.rule.Triggers {
@@ -103,7 +96,7 @@ func (w *ruleWatcher) Start() {
 
 		triggerWatchers = append(triggerWatchers, triggerWatcher)
 
-		go triggerWatcher.Start()
+		go triggerWatcher.Start(ctx)
 	}
 
 	for {
@@ -114,7 +107,7 @@ func (w *ruleWatcher) Start() {
 			w.ruleWriter.Save(&w.rule)
 
 			for _, triggerWatcher := range triggerWatchers {
-				go triggerWatcher.UpdateLastExecuted(triggerEvt.Time)
+				triggerWatcher.UpdateLastExecuted(triggerEvt.Time)
 			}
 
 			action, err := w.actionFactory.Create(w.rule)
@@ -126,25 +119,10 @@ func (w *ruleWatcher) Start() {
 
 			action.Execute()
 
-		case <-w.stopChan:
-			for _, triggerWatcher := range triggerWatchers {
-				if err := triggerWatcher.Stop(); err != nil {
-					w.errorChan <- err
-				}
-			}
+		case <-ctx.Done():
+			w.logger.Log("msg", "stopping ruleWatcher", "rule", w.rule.ID, "reason", ctx.Err())
 
 			return
 		}
 	}
-}
-
-func (w *ruleWatcher) Stop() error {
-	select {
-	case w.stopChan <- true:
-		w.logger.Log("msg", "stopped ruleWatcher", "rule", w.rule.ID)
-	case <-time.After(100 * time.Millisecond):
-		return fmt.Errorf("Couldn't stop ruleWatcher for rule %d, maybe it's already stopped ?", w.rule.ID)
-	}
-
-	return nil
 }

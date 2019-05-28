@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -38,29 +39,31 @@ func TestAutomationEngine(t *testing.T) {
 		mockRuleWatcherFactory.EXPECT().Create(rules[1]).Times(1).Return(mockRuleWatcher2)
 		mockRuleWatcherFactory.EXPECT().Create(rules[2]).Times(1).Return(mockRuleWatcher3)
 
-		mockRuleWatcher1.EXPECT().Start().Times(1)
-		mockRuleWatcher2.EXPECT().Start().Times(1)
-		mockRuleWatcher3.EXPECT().Start().Times(1)
+		ctx, cancel := context.WithCancel(context.Background())
 
-		mockRuleWatcher1.EXPECT().Stop().Times(1).Return(errors.New("failed to stop"))
-		mockRuleWatcher2.EXPECT().Stop().Times(1)
-		mockRuleWatcher3.EXPECT().Stop().Times(1)
+		mockRuleWatcher1.EXPECT().Start(ctx).Times(1)
+		mockRuleWatcher2.EXPECT().Start(ctx).Times(1)
+		mockRuleWatcher3.EXPECT().Start(ctx).Times(1)
 
-		err := engine.Start()
+		err := engine.Start(ctx)
 		if err != nil {
 			t.Errorf("Expected no error, got %s", err)
 		}
 
-		engine.Stop()
+		cancel()
 	})
 
 	t.Run("Start returns error when it fail to fetch the rules", func(t *testing.T) {
 		expectedError := errors.New("ruleService All() failed")
 		mockRuleService.EXPECT().All().Times(1).Return(nil, expectedError)
 
-		err := engine.Start()
+		ctx, cancel := context.WithCancel(context.Background())
+
+		err := engine.Start(ctx)
 		if err != expectedError {
 			t.Errorf("Expected error to be %s, got %s", expectedError, err)
 		}
+
+		cancel()
 	})
 }

@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 
 	"github.com/go-kit/kit/log"
 
@@ -119,26 +121,50 @@ func main() {
 		log.With(logger, "type", "apiServer"),
 	)
 
-	err = automationEngine.Start()
+	globalCtx, globalCancel := context.WithCancel(context.Background())
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt)
+	defer func() {
+		signal.Stop(sigChan)
+		globalCancel()
+	}()
+
+	go func() {
+		select {
+		case <-sigChan:
+			globalCancel()
+		case <-globalCtx.Done():
+		}
+	}()
+
+	engineCtx, engineCancel := context.WithCancel(globalCtx)
+	err = automationEngine.Start(engineCtx)
 	if err != nil {
 		logger.Log("msg", "error when starting automation engine", "error", err)
 		exitCode = 1
 		return
 	}
 
-	go server.ListenAndServe(globalErrorChan)
+	go server.ListenAndServe(globalCtx, globalErrorChan)
 
 	for {
 		select {
 		case <-server.RulesModifiedChan():
 			logger.Log("msg", "rules modified, restarting automation engine!")
-			automationEngine.Stop()
-			err = automationEngine.Start()
-			if err != nil {
+
+			engineCancel()
+			engineCtx, engineCancel = context.WithCancel(globalCtx)
+
+			if err := automationEngine.Start(engineCtx); err != nil {
 				logger.Log("msg", "failed to restart automation engine", "error", err)
 			}
+
 		case err := <-globalErrorChan:
 			logger.Log("msg", "a goroutine emitted an error", "error", err)
+
+		case <-globalCtx.Done():
+			engineCancel()
+			return
 		}
 	}
 }
