@@ -136,8 +136,8 @@ func TestRuleWatcher(t *testing.T) {
 			Times(1).
 			Return(mockTriggerWatcher2, nil)
 
-		mockTriggerWatcher1.EXPECT().Start(gomock.Any()).Times(1)
-		mockTriggerWatcher2.EXPECT().Start(gomock.Any()).Times(1)
+		mockTriggerWatcher1.EXPECT().Start(ctx).Times(1)
+		mockTriggerWatcher2.EXPECT().Start(ctx).Times(1)
 
 		mockRuleWriter.EXPECT().Save(&modifiedRule).Times(1)
 
