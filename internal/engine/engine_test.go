@@ -40,17 +40,22 @@ func TestAutomationEngine(t *testing.T) {
 		mockRuleWatcherFactory.EXPECT().Create(rules[2]).Times(1).Return(mockRuleWatcher3)
 
 		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
 
-		mockRuleWatcher1.EXPECT().Start(ctx).Times(1)
-		mockRuleWatcher2.EXPECT().Start(ctx).Times(1)
-		mockRuleWatcher3.EXPECT().Start(ctx).Times(1)
+		mockRuleWatcher1.EXPECT().Start(ctx).Times(1).DoAndReturn(func(ctx context.Context) {
+			<-ctx.Done()
+		})
+		mockRuleWatcher2.EXPECT().Start(ctx).Times(1).DoAndReturn(func(ctx context.Context) {
+			<-ctx.Done()
+		})
+		mockRuleWatcher3.EXPECT().Start(ctx).Times(1).DoAndReturn(func(ctx context.Context) {
+			<-ctx.Done()
+		})
 
 		err := engine.Start(ctx)
 		if err != nil {
 			t.Errorf("Expected no error, got %v", err)
 		}
-
-		cancel()
 	})
 
 	t.Run("Start returns error when it fail to fetch the rules", func(t *testing.T) {
@@ -58,12 +63,13 @@ func TestAutomationEngine(t *testing.T) {
 		mockRuleService.EXPECT().All().Times(1).Return(nil, expectedError)
 
 		ctx, cancel := context.WithCancel(context.Background())
+		defer func() {
+			cancel()
+		}()
 
 		err := engine.Start(ctx)
 		if err != expectedError {
 			t.Errorf("Expected error to be %v, got %v", expectedError, err)
 		}
-
-		cancel()
 	})
 }
