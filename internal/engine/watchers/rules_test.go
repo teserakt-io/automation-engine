@@ -28,6 +28,8 @@ func TestRuleWatcher(t *testing.T) {
 		Triggers:     []models.Trigger{trigger1, trigger2},
 	}
 
+	logger := log.NewNopLogger()
+
 	mockRuleWriter := services.NewMockRuleService(mockCtrl)
 	mockTriggerWatcherFactory := NewMockTriggerWatcherFactory(mockCtrl)
 	mockTriggerWatcher1 := NewMockTriggerWatcher(mockCtrl)
@@ -45,7 +47,7 @@ func TestRuleWatcher(t *testing.T) {
 		actionFactory:         mockActionFactory,
 		triggeredChan:         triggeredChan,
 		errorChan:             errorChan,
-		logger:                log.NewNopLogger(),
+		logger:                logger,
 	}
 
 	t.Run("Start start a triggerWatcher for each triggers", func(t *testing.T) {
@@ -66,13 +68,13 @@ func TestRuleWatcher(t *testing.T) {
 
 		go watcher.Start(ctx)
 
-		cancel()
-
 		select {
 		case err := <-errorChan:
 			t.Errorf("Expected no error on errorChan, got %s", err)
-		case <-time.After(10 * time.Millisecond):
+		case <-time.After(100 * time.Millisecond):
 		}
+
+		cancel()
 	})
 
 	t.Run("Error when creating trigger watchers are forwarded to error chan", func(t *testing.T) {
@@ -100,7 +102,7 @@ func TestRuleWatcher(t *testing.T) {
 			if err != expectedError {
 				t.Errorf("Expected err to be %s, got %s", expectedError, err)
 			}
-		case <-time.After(10 * time.Millisecond):
+		case <-time.After(100 * time.Millisecond):
 			t.Errorf("Expected an error on errorChan")
 		}
 
@@ -121,7 +123,7 @@ func TestRuleWatcher(t *testing.T) {
 			actionFactory:         mockActionFactory,
 			triggeredChan:         triggeredChan,
 			errorChan:             errorChan,
-			logger:                log.NewNopLogger(),
+			logger:                logger,
 		}
 
 		mockTriggerWatcherFactory.EXPECT().
@@ -188,7 +190,7 @@ func TestRuleWatcher(t *testing.T) {
 			actionFactory:         mockActionFactory,
 			triggeredChan:         triggeredChan,
 			errorChan:             errorChan,
-			logger:                log.NewNopLogger(),
+			logger:                logger,
 		}
 
 		go newRuleWatcher.Start(ctx)

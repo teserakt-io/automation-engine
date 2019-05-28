@@ -47,7 +47,7 @@ func TestAutomationEngine(t *testing.T) {
 
 		err := engine.Start(ctx)
 		if err != nil {
-			t.Errorf("Expected no error, got %s", err)
+			t.Errorf("Expected no error, got %v", err)
 		}
 
 		cancel()
@@ -61,7 +61,7 @@ func TestAutomationEngine(t *testing.T) {
 
 		err := engine.Start(ctx)
 		if err != expectedError {
-			t.Errorf("Expected error to be %s, got %s", expectedError, err)
+			t.Errorf("Expected error to be %v, got %v", expectedError, err)
 		}
 
 		cancel()

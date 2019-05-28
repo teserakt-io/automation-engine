@@ -44,10 +44,8 @@ func (e *automationEngine) Start(ctx context.Context) error {
 	for _, rule := range rules {
 		ruleWatcher := e.ruleWatcherFactory.Create(rule)
 		e.logger.Log("msg", "started ruleWatcher", "rule", rule.ID)
-
 		go ruleWatcher.Start(ctx)
 	}
 
-	e.logger.Log("msg", "started automation engine")
 	return nil
 }

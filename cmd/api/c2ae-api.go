@@ -130,18 +130,19 @@ func main() {
 	go func() {
 		select {
 		case <-sigChan:
+			logger.Log("msg", "shutdown requested, cancelling context")
 			globalCancel()
 		case <-globalCtx.Done():
 		}
 	}()
 
 	engineCtx, engineCancel := context.WithCancel(globalCtx)
-	err = automationEngine.Start(engineCtx)
-	if err != nil {
+	if err := automationEngine.Start(engineCtx); err != nil {
 		logger.Log("msg", "error when starting automation engine", "error", err)
 		exitCode = 1
 		return
 	}
+	logger.Log("msg", "started automation engine")
 
 	go server.ListenAndServe(globalCtx, globalErrorChan)
 
@@ -151,12 +152,12 @@ func main() {
 			logger.Log("msg", "rules modified, restarting automation engine!")
 
 			engineCancel()
-			engineCtx, engineCancel = context.WithCancel(globalCtx)
 
+			engineCtx, engineCancel = context.WithCancel(globalCtx)
 			if err := automationEngine.Start(engineCtx); err != nil {
 				logger.Log("msg", "failed to restart automation engine", "error", err)
 			}
-
+			logger.Log("msg", "restarted automation engine")
 		case err := <-globalErrorChan:
 			logger.Log("msg", "a goroutine emitted an error", "error", err)
 

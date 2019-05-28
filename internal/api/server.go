@@ -52,7 +52,9 @@ func (s *apiServer) RulesModifiedChan() <-chan bool {
 }
 
 func (s *apiServer) ListenAndServe(ctx context.Context, errorChan chan<- error) {
-	lis, err := net.Listen("tcp", s.addr)
+	var lc net.ListenConfig
+	lis, err := lc.Listen(ctx, "tcp", s.addr)
+
 	if err != nil {
 		s.logger.Log("msg", "failed to listen", "error", err)
 	}
@@ -61,12 +63,7 @@ func (s *apiServer) ListenAndServe(ctx context.Context, errorChan chan<- error) 
 	pb.RegisterC2AutomationEngineServer(grpcServer, s)
 
 	s.logger.Log("msg", "starting api grpc server", "addr", s.addr)
-	select {
-	case errorChan <- grpcServer.Serve(lis):
-	case <-ctx.Done():
-		s.logger.Log("msg", "context canceled")
-		errorChan <- ctx.Err()
-	}
+	errorChan <- grpcServer.Serve(lis)
 }
 
 func (s *apiServer) ListRules(ctx context.Context, req *pb.ListRulesRequest) (*pb.RulesResponse, error) {
