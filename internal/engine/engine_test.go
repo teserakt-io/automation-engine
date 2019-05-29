@@ -17,7 +17,10 @@ import (
 func TestAutomationEngine(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer func() {
-		time.Sleep(100 * time.Millisecond) // Some delay to let the goroutine process ?
+		// Give some time to the goroutine to switch to running state
+		// before letting the mockCtrl to check its expectations.
+		time.Sleep(100 * time.Millisecond)
+
 		mockCtrl.Finish()
 	}()
 

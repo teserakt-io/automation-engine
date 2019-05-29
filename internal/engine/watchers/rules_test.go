@@ -1,7 +1,6 @@
 package watchers
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"reflect"
@@ -20,7 +19,9 @@ import (
 func TestRuleWatcher(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer func() {
-		time.Sleep(100 * time.Millisecond) // Some delay to let the goroutine process ?
+		// Give some time to the goroutine to switch to running state
+		// before letting the mockCtrl to check its expectations.
+		time.Sleep(100 * time.Millisecond)
 		mockCtrl.Finish()
 	}()
 
@@ -194,13 +195,6 @@ func TestRuleWatcher(t *testing.T) {
 
 		expectedError := errors.New("action factory failed to create action")
 		mockActionFactory.EXPECT().Create(gomock.Any()).Times(1).Return(nil, expectedError)
-
-		buf := bytes.NewBuffer(nil)
-		defer func() {
-			t.Log(buf)
-		}()
-
-		logger := log.NewJSONLogger(buf)
 
 		newRuleWatcher := &ruleWatcher{
 			rule:                  modifiedRule,
