@@ -36,7 +36,7 @@ func TestAutomationEngine(t *testing.T) {
 	mockRuleWatcher2 := watchers.NewMockRuleWatcher(mockCtrl)
 	mockRuleWatcher3 := watchers.NewMockRuleWatcher(mockCtrl)
 
-	t.Run("Start properly start a rule watcher for every rules", func(t *testing.T) {
+	t.Run("Start properly start a rule watcher for every rule", func(t *testing.T) {
 		mockRuleService.EXPECT().All().Times(1).Return(rules, nil)
 
 		mockRuleWatcherFactory.EXPECT().Create(rules[0]).Times(1).Return(mockRuleWatcher1)

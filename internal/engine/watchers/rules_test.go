@@ -54,7 +54,7 @@ func TestRuleWatcher(t *testing.T) {
 		logger:                logger,
 	}
 
-	t.Run("Start start a triggerWatcher for each triggers", func(t *testing.T) {
+	t.Run("Start start a triggerWatcher for each trigger", func(t *testing.T) {
 		mockTriggerWatcherFactory.EXPECT().
 			Create(trigger1, rule.LastExecuted, gomock.Any(), gomock.Any()).
 			Times(1).
