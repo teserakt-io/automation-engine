@@ -1,6 +1,7 @@
 package watchers
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"reflect"
@@ -190,6 +191,13 @@ func TestRuleWatcher(t *testing.T) {
 
 		expectedError := errors.New("action factory failed to create action")
 		mockActionFactory.EXPECT().Create(gomock.Any()).Times(1).Return(nil, expectedError)
+
+		buf := bytes.NewBuffer(nil)
+		defer func() {
+			t.Log(buf)
+		}()
+
+		logger := log.NewJSONLogger(buf)
 
 		newRuleWatcher := &ruleWatcher{
 			rule:                  modifiedRule,
