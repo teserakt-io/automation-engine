@@ -110,7 +110,11 @@ func (w *ruleWatcher) Start(ctx context.Context) {
 			w.ruleWriter.Save(&w.rule)
 
 			for _, triggerWatcher := range triggerWatchers {
-				triggerWatcher.UpdateLastExecuted(triggerEvt.Time)
+				if err := triggerWatcher.UpdateLastExecuted(triggerEvt.Time); err != nil {
+					w.errorChan <- err
+
+					continue
+				}
 			}
 
 			action, err := w.actionFactory.Create(w.rule)

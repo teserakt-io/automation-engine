@@ -169,13 +169,7 @@ func (w *schedulerWatcher) Start(ctx context.Context) {
 
 func (w *schedulerWatcher) UpdateLastExecuted(lastExecuted time.Time) error {
 	w.updateChan <- lastExecuted
-	/*
-		select {
-		case w.updateChan <- lastExecuted:
-		case <-time.After(100 * time.Millisecond):
-			return fmt.Errorf("Couldn't update lastExecuted on schedulerWatcher for trigger %d (rule %d), maybe it's already stopped ?", w.trigger.ID, w.trigger.RuleID)
-		}
-	*/
+
 	return nil
 }
 

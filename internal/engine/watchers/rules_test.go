@@ -96,9 +96,6 @@ func TestRuleWatcher(t *testing.T) {
 			Times(1).
 			Return(mockTriggerWatcher2, nil)
 
-		mockTriggerWatcher1.EXPECT().Start(gomock.Eq(ctx)).Times(0).DoAndReturn(func(ctx context.Context) {
-			<-ctx.Done()
-		})
 		mockTriggerWatcher2.EXPECT().Start(gomock.Eq(ctx)).Times(1).DoAndReturn(func(ctx context.Context) {
 			<-ctx.Done()
 		})
@@ -193,7 +190,6 @@ func TestRuleWatcher(t *testing.T) {
 
 		expectedError := errors.New("action factory failed to create action")
 		mockActionFactory.EXPECT().Create(gomock.Any()).Times(1).Return(nil, expectedError)
-		mockAction.EXPECT().Execute().Times(0)
 
 		newRuleWatcher := &ruleWatcher{
 			rule:                  modifiedRule,
@@ -207,7 +203,7 @@ func TestRuleWatcher(t *testing.T) {
 
 		go newRuleWatcher.Start(ctx)
 
-		triggeredChan <- events.TriggerEvent{Trigger: rule.Triggers[1], Time: time.Now()}
+		triggeredChan <- events.TriggerEvent{Trigger: modifiedRule.Triggers[0], Time: time.Now()}
 
 		select {
 		case err := <-errorChan:
