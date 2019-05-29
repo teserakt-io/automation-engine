@@ -19,7 +19,10 @@ import (
 
 func TestRuleWatcher(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
-	defer mockCtrl.Finish()
+	defer func() {
+		time.Sleep(100 * time.Millisecond) // Some delay to let the goroutine process ?
+		mockCtrl.Finish()
+	}()
 
 	trigger1 := models.Trigger{ID: 1}
 	trigger2 := models.Trigger{ID: 2}

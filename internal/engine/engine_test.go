@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
@@ -15,7 +16,10 @@ import (
 
 func TestAutomationEngine(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
-	defer mockCtrl.Finish()
+	defer func() {
+		time.Sleep(100 * time.Millisecond) // Some delay to let the goroutine process ?
+		mockCtrl.Finish()
+	}()
 
 	mockRuleService := services.NewMockRuleService(mockCtrl)
 	mockRuleWatcherFactory := watchers.NewMockRuleWatcherFactory(mockCtrl)
