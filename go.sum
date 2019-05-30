@@ -129,6 +129,8 @@ github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXf
 github.com/tarm/serial v0.0.0-20180830185346-98f6abe2eb07/go.mod h1:kDXzergiv9cbyO7IOYJZWg1U88JhDg3PB6klq9Hg2pA=
 gitlab.com/teserakt/e4common v0.0.0-20190411074353-09816aec1227 h1:X+d4F+CMIlnSdPhvci8Zys0KrMFHhN97cpXSgKUxsB0=
 gitlab.com/teserakt/e4common v0.0.0-20190411074353-09816aec1227/go.mod h1:oLoFi8GU7OcUQRnyqej4QNiLUHNjM9p44VM9IBDoiEk=
+gitlab.com/teserakt/e4common v0.0.0-20190519210613-8c19eb1dd5f3 h1:C4HumYcbLDTOSetXwhCJhpTqaNkQ4CIkL3wXJwqYaa4=
+gitlab.com/teserakt/e4common v0.0.0-20190519210613-8c19eb1dd5f3/go.mod h1:/jkQWmLZLNo+qmXW3NdZzoqBKJzP1NmnA2TAkko9EXM=
 go.opencensus.io v0.18.0/go.mod h1:vKdFvxhtzZ9onBp9VKHK8z/sRpBMnKAsufL7wlDrCOA=
 go.opencensus.io v0.19.1/go.mod h1:gug0GbSHa8Pafr0d2urOSgoXHZ6x/RUlaiT0d9pqb4A=
 go.opencensus.io v0.19.2/go.mod h1:NO/8qkisMZLZ1FCsKNqtJPwc8/TaclWyY0B6wcYNg9M=
