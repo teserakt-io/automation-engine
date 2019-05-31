@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"context"
 	"errors"
 	"reflect"
 	"testing"
@@ -33,10 +34,10 @@ func TestKeyRotationAction(t *testing.T) {
 		}
 
 		gomock.InOrder(
-			mockC2Client.EXPECT().NewClientKey(e4.HashIDAlias("client1")),
-			mockC2Client.EXPECT().NewTopicKey("topic1"),
-			mockC2Client.EXPECT().NewClientKey(e4.HashIDAlias("client2")),
-			mockC2Client.EXPECT().NewTopicKey("topic2"),
+			mockC2Client.EXPECT().NewClientKey(gomock.Any(), e4.HashIDAlias("client1")),
+			mockC2Client.EXPECT().NewTopicKey(gomock.Any(), "topic1"),
+			mockC2Client.EXPECT().NewClientKey(gomock.Any(), e4.HashIDAlias("client2")),
+			mockC2Client.EXPECT().NewTopicKey(gomock.Any(), "topic2"),
 		)
 
 		action := &keyRotationAction{
@@ -46,7 +47,7 @@ func TestKeyRotationAction(t *testing.T) {
 			logger:    log.NewNopLogger(),
 		}
 
-		go action.Execute()
+		go action.Execute(context.Background())
 
 		select {
 		case err := <-errorChan:
@@ -94,11 +95,11 @@ func TestKeyRotationAction(t *testing.T) {
 		topic1Err := errors.New("topic1 error")
 
 		gomock.InOrder(
-			mockC2Client.EXPECT().NewClientKey(e4.HashIDAlias("client1")).Return(client1Err),
-			mockC2Client.EXPECT().NewTopicKey("topic1").Return(topic1Err),
+			mockC2Client.EXPECT().NewClientKey(gomock.Any(), e4.HashIDAlias("client1")).Return(client1Err),
+			mockC2Client.EXPECT().NewTopicKey(gomock.Any(), "topic1").Return(topic1Err),
 		)
 
-		go action.Execute()
+		go action.Execute(context.Background())
 
 		select {
 		case err := <-errorChan:

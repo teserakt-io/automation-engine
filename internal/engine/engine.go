@@ -36,7 +36,7 @@ func NewAutomationEngine(
 }
 
 func (e *automationEngine) Start(ctx context.Context) error {
-	rules, err := e.ruleService.All()
+	rules, err := e.ruleService.All(ctx)
 	if err != nil {
 		return err
 	}

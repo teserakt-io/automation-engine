@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/go-kit/kit/log"
+	"go.opencensus.io/trace"
 	grpc "google.golang.org/grpc"
 
 	"gitlab.com/teserakt/c2ae/internal/models"
@@ -67,7 +68,10 @@ func (s *apiServer) ListenAndServe(ctx context.Context, errorChan chan<- error) 
 }
 
 func (s *apiServer) ListRules(ctx context.Context, req *pb.ListRulesRequest) (*pb.RulesResponse, error) {
-	rules, err := s.ruleService.All()
+	ctx, span := trace.StartSpan(ctx, "ListRules")
+	defer span.End()
+
+	rules, err := s.ruleService.All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -83,8 +87,10 @@ func (s *apiServer) ListRules(ctx context.Context, req *pb.ListRulesRequest) (*p
 }
 
 func (s *apiServer) GetRule(ctx context.Context, req *pb.GetRuleRequest) (*pb.RuleResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "GetRule")
+	defer span.End()
 
-	rule, err := s.ruleService.ByID(int(req.RuleId))
+	rule, err := s.ruleService.ByID(ctx, int(req.RuleId))
 	if err != nil {
 		return nil, err
 	}
@@ -100,6 +106,9 @@ func (s *apiServer) GetRule(ctx context.Context, req *pb.GetRuleRequest) (*pb.Ru
 }
 
 func (s *apiServer) AddRule(ctx context.Context, req *pb.AddRuleRequest) (*pb.RuleResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "AddRule")
+	defer span.End()
+
 	triggers, err := s.converter.PbToTriggers(req.Triggers)
 	if err != nil {
 		return nil, err
@@ -117,7 +126,7 @@ func (s *apiServer) AddRule(ctx context.Context, req *pb.AddRuleRequest) (*pb.Ru
 		Targets:     targets,
 	}
 
-	err = s.ruleService.Save(rule)
+	err = s.ruleService.Save(ctx, rule)
 	if err != nil {
 		return nil, err
 	}
@@ -134,8 +143,10 @@ func (s *apiServer) AddRule(ctx context.Context, req *pb.AddRuleRequest) (*pb.Ru
 	}, nil
 }
 func (s *apiServer) UpdateRule(ctx context.Context, req *pb.UpdateRuleRequest) (*pb.RuleResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "UpdateRule")
+	defer span.End()
 
-	rule, err := s.ruleService.ByID(int(req.RuleId))
+	rule, err := s.ruleService.ByID(ctx, int(req.RuleId))
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +166,7 @@ func (s *apiServer) UpdateRule(ctx context.Context, req *pb.UpdateRuleRequest) (
 	rule.Triggers = triggers
 	rule.Targets = targets
 
-	if err := s.ruleService.Save(&rule); err != nil {
+	if err := s.ruleService.Save(ctx, &rule); err != nil {
 		return nil, err
 	}
 
@@ -172,12 +183,15 @@ func (s *apiServer) UpdateRule(ctx context.Context, req *pb.UpdateRuleRequest) (
 }
 
 func (s *apiServer) DeleteRule(ctx context.Context, req *pb.DeleteRuleRequest) (*pb.DeleteRuleResponse, error) {
-	rule, err := s.ruleService.ByID(int(req.RuleId))
+	ctx, span := trace.StartSpan(ctx, "DeleteRule")
+	defer span.End()
+
+	rule, err := s.ruleService.ByID(ctx, int(req.RuleId))
 	if err != nil {
 		return nil, err
 	}
 
-	if err := s.ruleService.Delete(rule); err != nil {
+	if err := s.ruleService.Delete(ctx, rule); err != nil {
 		return nil, err
 	}
 

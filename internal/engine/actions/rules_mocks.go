@@ -5,6 +5,7 @@
 package actions
 
 import (
+	context "context"
 	gomock "github.com/golang/mock/gomock"
 	models "gitlab.com/teserakt/c2ae/internal/models"
 	reflect "reflect"
@@ -72,13 +73,13 @@ func (m *MockAction) EXPECT() *MockActionMockRecorder {
 }
 
 // Execute mocks base method
-func (m *MockAction) Execute() {
+func (m *MockAction) Execute(arg0 context.Context) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Execute")
+	m.ctrl.Call(m, "Execute", arg0)
 }
 
 // Execute indicates an expected call of Execute
-func (mr *MockActionMockRecorder) Execute() *gomock.Call {
+func (mr *MockActionMockRecorder) Execute(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockAction)(nil).Execute))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockAction)(nil).Execute), arg0)
 }

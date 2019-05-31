@@ -1,6 +1,8 @@
 module gitlab.com/teserakt/c2ae
 
 require (
+	contrib.go.opencensus.io/exporter/ocagent v0.5.0
+	github.com/apache/thrift v0.12.0 // indirect
 	github.com/denisenkom/go-mssqldb v0.0.0-20190401154936-ce35bd87d4b3 // indirect
 	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
 	github.com/go-kit/kit v0.8.0
@@ -16,9 +18,12 @@ require (
 	github.com/lib/pq v1.0.0 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
+	github.com/openzipkin/zipkin-go v0.1.6 // indirect
+	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829 // indirect
 	github.com/rvflash/elapsed v0.2.0
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3 // indirect
 	gitlab.com/teserakt/e4common v0.0.0-20190411074353-09816aec1227
-	google.golang.org/grpc v1.19.0
+	go.opencensus.io v0.21.0
+	google.golang.org/grpc v1.20.1
 )

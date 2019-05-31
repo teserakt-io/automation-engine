@@ -3,9 +3,11 @@ package actions
 //go:generate mockgen -destination=rules_mocks.go -package actions -self_package gitlab.com/teserakt/c2ae/internal/engine/actions gitlab.com/teserakt/c2ae/internal/engine/actions ActionFactory,Action
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/go-kit/kit/log"
+	"go.opencensus.io/trace"
 
 	"gitlab.com/teserakt/c2ae/internal/models"
 	"gitlab.com/teserakt/c2ae/internal/pb"
@@ -20,7 +22,7 @@ type ActionFactory interface {
 
 // Action describe rule's Action methods
 type Action interface {
-	Execute()
+	Execute(context.Context)
 }
 
 type actionFactory struct {
@@ -83,20 +85,23 @@ type keyRotationAction struct {
 
 var _ Action = &keyRotationAction{}
 
-func (a *keyRotationAction) Execute() {
+func (a *keyRotationAction) Execute(ctx context.Context) {
+	ctx, span := trace.StartSpan(ctx, "KeyRotationAction.Execute")
+	defer span.End()
+
 	for _, target := range a.targets {
 		a.logger.Log("msg", "executing action", "action", "keyRotation", "target", target.Expr)
 		switch target.Type {
 		case pb.TargetType_CLIENT:
 			hashedID := e4.HashIDAlias(target.Expr)
-			err := a.c2Client.NewClientKey(hashedID)
+			err := a.c2Client.NewClientKey(ctx, hashedID)
 			if err != nil {
 				a.errorChan <- err
 
 				continue
 			}
 		case pb.TargetType_TOPIC:
-			err := a.c2Client.NewTopicKey(target.Expr)
+			err := a.c2Client.NewTopicKey(ctx, target.Expr)
 			if err != nil {
 				a.errorChan <- err
 

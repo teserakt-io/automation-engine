@@ -15,6 +15,7 @@ import (
 	"gitlab.com/teserakt/c2ae/internal/engine/actions"
 	"gitlab.com/teserakt/c2ae/internal/engine/watchers"
 	"gitlab.com/teserakt/c2ae/internal/models"
+	"gitlab.com/teserakt/c2ae/internal/monitoring"
 	"gitlab.com/teserakt/c2ae/internal/pb"
 	"gitlab.com/teserakt/c2ae/internal/services"
 )
@@ -50,6 +51,8 @@ func main() {
 	flag.StringVar(&appConfig.Addr, "addr", "localhost:5556", "interface:port to listen for incoming connections")
 	flag.StringVar(&appConfig.C2Endpoint, "c2", "localhost:5555", "tcp://interface:port to the c2 backend")
 	flag.StringVar(&appConfig.C2Certificate, "c2cert", "", "path to the c2 backend certificate")
+	flag.BoolVar(&appConfig.OpencensusSampleAll, "ocSampleAll", false, "Enable opencensus full sampling")
+	flag.StringVar(&appConfig.OpencensusAddress, "ocAddr", "localhost:55678", "Opencensus agent address")
 	flag.Parse()
 
 	if err := appConfig.Validate(); err != nil {
@@ -126,6 +129,12 @@ func main() {
 		signal.Stop(sigChan)
 		globalCancel()
 	}()
+
+	if err := monitoring.Setup(appConfig.OpencensusAddress, appConfig.OpencensusSampleAll); err != nil {
+		logger.Log("msg", "failed to setup monitoring", "error", err)
+		exitCode = 1
+		return
+	}
 
 	go func() {
 		select {

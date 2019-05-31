@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/go-kit/kit/log"
+	"go.opencensus.io/trace"
 
 	"gitlab.com/teserakt/c2ae/internal/engine/actions"
 	"gitlab.com/teserakt/c2ae/internal/events"
@@ -104,10 +105,15 @@ func (w *ruleWatcher) Start(ctx context.Context) {
 	for {
 		select {
 		case triggerEvt := <-w.triggeredChan:
+			ctx, span := trace.StartSpan(ctx, "RuleWatcher.RuleTriggered")
+			span.Annotate([]trace.Attribute{
+				trace.Int64Attribute("ruleID", int64(w.rule.ID)),
+				trace.Int64Attribute("triggerID", int64(triggerEvt.Trigger.ID)),
+			}, "Rule triggered")
 
 			w.logger.Log("msg", "rule triggered", "rule", w.rule.ID, "trigger", triggerEvt.Trigger.ID)
 			w.rule.LastExecuted = triggerEvt.Time
-			w.ruleWriter.Save(&w.rule)
+			w.ruleWriter.Save(ctx, &w.rule)
 
 			for _, triggerWatcher := range triggerWatchers {
 				if err := triggerWatcher.UpdateLastExecuted(triggerEvt.Time); err != nil {
@@ -124,8 +130,8 @@ func (w *ruleWatcher) Start(ctx context.Context) {
 				continue
 			}
 
-			action.Execute()
-
+			action.Execute(ctx)
+			span.End()
 		case <-ctx.Done():
 			w.logger.Log("msg", "stopping ruleWatcher", "rule", w.rule.ID, "reason", ctx.Err())
 
