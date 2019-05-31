@@ -162,7 +162,7 @@ func TestRuleWatcher(t *testing.T) {
 
 		go newRuleWatcher.Start(ctx)
 
-		triggeredChan <- events.TriggerEvent{Trigger: rule.Triggers[1], Time: expectedTime}
+		triggeredChan <- events.TriggerEvent{Trigger: modifiedRule.Triggers[1], Time: expectedTime}
 
 		select {
 		case err := <-errorChan:
