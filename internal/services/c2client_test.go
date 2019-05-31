@@ -21,17 +21,17 @@ func TestC2(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("NewClientKey creates expected request", func(t *testing.T) {
-		clientID := []byte("expectedClientID")
+		clientName := "expectedClientName"
 
 		expectedRequest := e4.C2Request{
 			Command: e4.C2Request_NEW_CLIENT_KEY,
-			Id:      clientID,
+			Name:    clientName,
 		}
 		expectedError := errors.New("expected error response")
 
 		mockC2Requester.EXPECT().C2Request(gomock.Any(), expectedRequest).Return(e4.C2Response{}, expectedError)
 
-		err := c2.NewClientKey(ctx, clientID)
+		err := c2.NewClientKey(ctx, clientName)
 		if err != expectedError {
 			t.Errorf("Expected err to be %s, got %s", expectedError, err)
 		}

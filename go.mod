@@ -23,7 +23,8 @@ require (
 	github.com/rvflash/elapsed v0.2.0
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3 // indirect
-	gitlab.com/teserakt/e4common v0.0.0-20190411074353-09816aec1227
 	go.opencensus.io v0.21.0
 	google.golang.org/grpc v1.20.1
+	gitlab.com/teserakt/e4common v0.0.0-20190519210613-8c19eb1dd5f3
+	google.golang.org/grpc v1.19.0
 )

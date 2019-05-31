@@ -35,7 +35,7 @@ func (m *MockC2) EXPECT() *MockC2MockRecorder {
 }
 
 // NewClientKey mocks base method
-func (m *MockC2) NewClientKey(arg0 context.Context, arg1 []byte) error {
+func (m *MockC2) NewClientKey(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewClientKey", arg0, arg1)
 	ret0, _ := ret[0].(error)

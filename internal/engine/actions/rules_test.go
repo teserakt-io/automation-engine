@@ -13,7 +13,6 @@ import (
 	"gitlab.com/teserakt/c2ae/internal/models"
 	"gitlab.com/teserakt/c2ae/internal/pb"
 	"gitlab.com/teserakt/c2ae/internal/services"
-	e4 "gitlab.com/teserakt/e4common"
 )
 
 func TestKeyRotationAction(t *testing.T) {
@@ -34,9 +33,9 @@ func TestKeyRotationAction(t *testing.T) {
 		}
 
 		gomock.InOrder(
-			mockC2Client.EXPECT().NewClientKey(gomock.Any(), e4.HashIDAlias("client1")),
+			mockC2Client.EXPECT().NewClientKey(gomock.Any(), "client1"),
 			mockC2Client.EXPECT().NewTopicKey(gomock.Any(), "topic1"),
-			mockC2Client.EXPECT().NewClientKey(gomock.Any(), e4.HashIDAlias("client2")),
+			mockC2Client.EXPECT().NewClientKey(gomock.Any(), "client2"),
 			mockC2Client.EXPECT().NewTopicKey(gomock.Any(), "topic2"),
 		)
 
@@ -95,7 +94,7 @@ func TestKeyRotationAction(t *testing.T) {
 		topic1Err := errors.New("topic1 error")
 
 		gomock.InOrder(
-			mockC2Client.EXPECT().NewClientKey(gomock.Any(), e4.HashIDAlias("client1")).Return(client1Err),
+			mockC2Client.EXPECT().NewClientKey(gomock.Any(), "client1").Return(client1Err),
 			mockC2Client.EXPECT().NewTopicKey(gomock.Any(), "topic1").Return(topic1Err),
 		)
 

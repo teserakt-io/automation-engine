@@ -15,7 +15,7 @@ import (
 
 // C2 describes a C2 client service interface
 type C2 interface {
-	NewClientKey(ctx context.Context, clientID []byte) error
+	NewClientKey(ctx context.Context, clientName string) error
 	NewTopicKey(ctx context.Context, topic string) error
 }
 
@@ -72,13 +72,13 @@ func NewC2(c2Requester C2Requester) C2 {
 	}
 }
 
-func (c *c2) NewClientKey(ctx context.Context, clientID []byte) error {
+func (c *c2) NewClientKey(ctx context.Context, clientName string) error {
 	ctx, span := trace.StartSpan(ctx, "C2Client.NewClientKey")
 	defer span.End()
 
 	request := e4.C2Request{
 		Command: e4.C2Request_NEW_CLIENT_KEY,
-		Id:      clientID,
+		Name:    clientName,
 	}
 
 	_, err := c.c2Requester.C2Request(ctx, request)
