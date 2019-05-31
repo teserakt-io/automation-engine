@@ -1,6 +1,7 @@
 package watchers
 
 import (
+	"context"
 	"errors"
 	"reflect"
 	"testing"
@@ -17,7 +18,12 @@ import (
 
 func TestRuleWatcher(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
-	defer mockCtrl.Finish()
+	defer func() {
+		// Give some time to the goroutine to switch to running state
+		// before letting the mockCtrl to check its expectations.
+		time.Sleep(100 * time.Millisecond)
+		mockCtrl.Finish()
+	}()
 
 	trigger1 := models.Trigger{ID: 1}
 	trigger2 := models.Trigger{ID: 2}
@@ -27,6 +33,8 @@ func TestRuleWatcher(t *testing.T) {
 		Triggers:     []models.Trigger{trigger1, trigger2},
 	}
 
+	logger := log.NewNopLogger()
+
 	mockRuleWriter := services.NewMockRuleService(mockCtrl)
 	mockTriggerWatcherFactory := NewMockTriggerWatcherFactory(mockCtrl)
 	mockTriggerWatcher1 := NewMockTriggerWatcher(mockCtrl)
@@ -34,7 +42,7 @@ func TestRuleWatcher(t *testing.T) {
 	mockActionFactory := actions.NewMockActionFactory(mockCtrl)
 	mockAction := actions.NewMockAction(mockCtrl)
 
-	triggeredChan := make(chan events.TriggerEvent, 10)
+	triggeredChan := make(chan events.TriggerEvent)
 	errorChan := make(chan error)
 
 	watcher := &ruleWatcher{
@@ -44,11 +52,10 @@ func TestRuleWatcher(t *testing.T) {
 		actionFactory:         mockActionFactory,
 		triggeredChan:         triggeredChan,
 		errorChan:             errorChan,
-		stopChan:              make(chan bool),
-		logger:                log.NewNopLogger(),
+		logger:                logger,
 	}
 
-	t.Run("Start start a triggerWatcher for each triggers", func(t *testing.T) {
+	t.Run("Start start a triggerWatcher for each trigger", func(t *testing.T) {
 		mockTriggerWatcherFactory.EXPECT().
 			Create(trigger1, rule.LastExecuted, gomock.Any(), gomock.Any()).
 			Times(1).
@@ -59,25 +66,30 @@ func TestRuleWatcher(t *testing.T) {
 			Times(1).
 			Return(mockTriggerWatcher2, nil)
 
-		mockTriggerWatcher1.EXPECT().Start().Times(1)
-		mockTriggerWatcher2.EXPECT().Start().Times(1)
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
 
-		mockTriggerWatcher1.EXPECT().Stop().Times(1)
-		mockTriggerWatcher2.EXPECT().Stop().Times(1)
+		mockTriggerWatcher1.EXPECT().Start(ctx).Times(1).DoAndReturn(func(ctx context.Context) {
+			<-ctx.Done()
+		})
+		mockTriggerWatcher2.EXPECT().Start(ctx).Times(1).DoAndReturn(func(ctx context.Context) {
+			<-ctx.Done()
+		})
 
-		go watcher.Start()
-
-		watcher.Stop()
+		go watcher.Start(ctx)
 
 		select {
 		case err := <-errorChan:
 			t.Errorf("Expected no error on errorChan, got %s", err)
-		case <-time.After(10 * time.Millisecond):
+		case <-time.After(100 * time.Millisecond):
 		}
 	})
 
 	t.Run("Error when creating trigger watchers are forwarded to error chan", func(t *testing.T) {
 		expectedError := errors.New("triggerWatcherCreate failed")
+
+		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+		defer cancel()
 
 		mockTriggerWatcherFactory.EXPECT().
 			Create(trigger1, rule.LastExecuted, gomock.Any(), gomock.Any()).
@@ -89,29 +101,39 @@ func TestRuleWatcher(t *testing.T) {
 			Times(1).
 			Return(mockTriggerWatcher2, nil)
 
-		mockTriggerWatcher1.EXPECT().Start().Times(0)
-		mockTriggerWatcher2.EXPECT().Start().Times(1)
+		mockTriggerWatcher2.EXPECT().Start(gomock.Eq(ctx)).Times(1).DoAndReturn(func(ctx context.Context) {
+			<-ctx.Done()
+		})
 
-		mockTriggerWatcher2.EXPECT().Stop().Times(1)
-
-		go watcher.Start()
+		go watcher.Start(ctx)
 
 		select {
 		case err := <-errorChan:
 			if err != expectedError {
 				t.Errorf("Expected err to be %s, got %s", expectedError, err)
 			}
-		case <-time.After(10 * time.Millisecond):
+		case <-time.After(100 * time.Millisecond):
 			t.Errorf("Expected an error on errorChan")
 		}
-
-		watcher.Stop()
 	})
 
 	t.Run("All triggerWatchers get updated when one of them trigger and action get executed", func(t *testing.T) {
 		expectedTime := time.Now()
 		modifiedRule := rule
 		modifiedRule.LastExecuted = expectedTime
+
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		newRuleWatcher := &ruleWatcher{
+			rule:                  modifiedRule,
+			ruleWriter:            mockRuleWriter,
+			triggerWatcherFactory: mockTriggerWatcherFactory,
+			actionFactory:         mockActionFactory,
+			triggeredChan:         triggeredChan,
+			errorChan:             errorChan,
+			logger:                logger,
+		}
 
 		mockTriggerWatcherFactory.EXPECT().
 			Create(trigger1, modifiedRule.LastExecuted, gomock.Any(), gomock.Any()).
@@ -123,8 +145,12 @@ func TestRuleWatcher(t *testing.T) {
 			Times(1).
 			Return(mockTriggerWatcher2, nil)
 
-		mockTriggerWatcher1.EXPECT().Start().Times(1)
-		mockTriggerWatcher2.EXPECT().Start().Times(1)
+		mockTriggerWatcher1.EXPECT().Start(ctx).Times(1).DoAndReturn(func(ctx context.Context) {
+			<-ctx.Done()
+		})
+		mockTriggerWatcher2.EXPECT().Start(ctx).Times(1).DoAndReturn(func(ctx context.Context) {
+			<-ctx.Done()
+		})
 
 		mockRuleWriter.EXPECT().Save(&modifiedRule).Times(1)
 
@@ -134,31 +160,15 @@ func TestRuleWatcher(t *testing.T) {
 		mockActionFactory.EXPECT().Create(modifiedRule).Times(1).Return(mockAction, nil)
 		mockAction.EXPECT().Execute().Times(1)
 
-		mockTriggerWatcher1.EXPECT().Stop().Times(1)
-		mockTriggerWatcher2.EXPECT().Stop().Times(1)
-
-		newRuleWatcher := &ruleWatcher{
-			rule:                  modifiedRule,
-			ruleWriter:            mockRuleWriter,
-			triggerWatcherFactory: mockTriggerWatcherFactory,
-			actionFactory:         mockActionFactory,
-			triggeredChan:         triggeredChan,
-			errorChan:             errorChan,
-			stopChan:              make(chan bool),
-			logger:                log.NewNopLogger(),
-		}
-
-		go newRuleWatcher.Start()
+		go newRuleWatcher.Start(ctx)
 
 		triggeredChan <- events.TriggerEvent{Trigger: rule.Triggers[1], Time: expectedTime}
 
 		select {
 		case err := <-errorChan:
 			t.Errorf("Expected no error on errorChan, got %s", err)
-		case <-time.After(10 * time.Millisecond):
+		case <-time.After(100 * time.Millisecond):
 		}
-
-		newRuleWatcher.Stop()
 	})
 
 	t.Run("Error is sent on errorChan when the action fail to execute", func(t *testing.T) {
@@ -172,7 +182,12 @@ func TestRuleWatcher(t *testing.T) {
 			Times(1).
 			Return(mockTriggerWatcher1, nil)
 
-		mockTriggerWatcher1.EXPECT().Start().Times(1)
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		mockTriggerWatcher1.EXPECT().Start(ctx).Times(1).DoAndReturn(func(ctx context.Context) {
+			<-ctx.Done()
+		})
 
 		mockRuleWriter.EXPECT().Save(gomock.Any()).Times(1)
 
@@ -180,9 +195,6 @@ func TestRuleWatcher(t *testing.T) {
 
 		expectedError := errors.New("action factory failed to create action")
 		mockActionFactory.EXPECT().Create(gomock.Any()).Times(1).Return(nil, expectedError)
-		mockAction.EXPECT().Execute().Times(0)
-
-		mockTriggerWatcher1.EXPECT().Stop().Times(1)
 
 		newRuleWatcher := &ruleWatcher{
 			rule:                  modifiedRule,
@@ -191,64 +203,20 @@ func TestRuleWatcher(t *testing.T) {
 			actionFactory:         mockActionFactory,
 			triggeredChan:         triggeredChan,
 			errorChan:             errorChan,
-			stopChan:              make(chan bool),
-			logger:                log.NewNopLogger(),
+			logger:                logger,
 		}
 
-		go newRuleWatcher.Start()
+		go newRuleWatcher.Start(ctx)
 
-		triggeredChan <- events.TriggerEvent{Trigger: rule.Triggers[1], Time: time.Now()}
+		triggeredChan <- events.TriggerEvent{Trigger: modifiedRule.Triggers[0], Time: time.Now()}
 
 		select {
 		case err := <-errorChan:
 			if err != expectedError {
 				t.Errorf("Expected error to be %s, got %s", expectedError, err)
 			}
-		case <-time.After(10 * time.Millisecond):
-			t.Errorf("Expected an error when actionFactory failed to create action")
-		}
-
-		newRuleWatcher.Stop()
-	})
-
-	t.Run("Stopping a non running RuleWatcher returns an error", func(t *testing.T) {
-		err := watcher.Stop()
-		if err == nil {
-			t.Errorf("Expected an error")
-		}
-	})
-
-	t.Run("Stop forward errors when a triggerwatcher fail to stop", func(t *testing.T) {
-		mockTriggerWatcherFactory.EXPECT().
-			Create(trigger1, rule.LastExecuted, gomock.Any(), gomock.Any()).
-			Times(1).
-			Return(mockTriggerWatcher1, nil)
-
-		mockTriggerWatcherFactory.EXPECT().
-			Create(trigger2, rule.LastExecuted, gomock.Any(), gomock.Any()).
-			Times(1).
-			Return(mockTriggerWatcher2, nil)
-
-		mockTriggerWatcher1.EXPECT().Start().Times(1)
-		mockTriggerWatcher2.EXPECT().Start().Times(1)
-
-		expectedErr := errors.New("triggerWatcher stop failure")
-		mockTriggerWatcher1.EXPECT().Stop().Times(1).Return(expectedErr)
-		mockTriggerWatcher2.EXPECT().Stop().Times(1)
-
-		go watcher.Start()
-
-		time.Sleep(100 * time.Millisecond)
-
-		watcher.Stop()
-
-		select {
-		case err := <-errorChan:
-			if err != expectedErr {
-				t.Errorf("Expected error to be %s, got %s", expectedErr, err)
-			}
 		case <-time.After(100 * time.Millisecond):
-			t.Errorf("Expected an error")
+			t.Errorf("Expected an error when actionFactory failed to create action")
 		}
 	})
 }
@@ -261,14 +229,12 @@ func TestRuleWatcherFactory(t *testing.T) {
 	mockTriggerWatcherFactory := NewMockTriggerWatcherFactory(mockCtrl)
 	mockActionFactory := actions.NewMockActionFactory(mockCtrl)
 
-	triggeredChan := make(chan events.TriggerEvent)
 	errorChan := make(chan<- error)
 
 	factory := NewRuleWatcherFactory(
 		mockRuleWriter,
 		mockTriggerWatcherFactory,
 		mockActionFactory,
-		triggeredChan,
 		errorChan,
 		log.NewNopLogger(),
 	)
@@ -299,16 +265,8 @@ func TestRuleWatcherFactory(t *testing.T) {
 			)
 		}
 
-		if reflect.DeepEqual(typedWatcher.triggeredChan, triggeredChan) == false {
-			t.Errorf("Expected errorChan to be %p, got %p", triggeredChan, typedWatcher.triggeredChan)
-		}
-
 		if reflect.DeepEqual(typedWatcher.errorChan, errorChan) == false {
 			t.Errorf("Expected errorChan to be %p, got %p", errorChan, typedWatcher.errorChan)
-		}
-
-		if typedWatcher.stopChan == nil {
-			t.Error("Expected stopChan to be not nil")
 		}
 
 		if reflect.DeepEqual(typedWatcher.actionFactory, mockActionFactory) == false {

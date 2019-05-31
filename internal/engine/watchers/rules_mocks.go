@@ -5,6 +5,7 @@
 package watchers
 
 import (
+	context "context"
 	gomock "github.com/golang/mock/gomock"
 	models "gitlab.com/teserakt/c2ae/internal/models"
 	reflect "reflect"
@@ -71,27 +72,13 @@ func (m *MockRuleWatcher) EXPECT() *MockRuleWatcherMockRecorder {
 }
 
 // Start mocks base method
-func (m *MockRuleWatcher) Start() {
+func (m *MockRuleWatcher) Start(arg0 context.Context) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Start")
+	m.ctrl.Call(m, "Start", arg0)
 }
 
 // Start indicates an expected call of Start
-func (mr *MockRuleWatcherMockRecorder) Start() *gomock.Call {
+func (mr *MockRuleWatcherMockRecorder) Start(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockRuleWatcher)(nil).Start))
-}
-
-// Stop mocks base method
-func (m *MockRuleWatcher) Stop() error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Stop")
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Stop indicates an expected call of Stop
-func (mr *MockRuleWatcherMockRecorder) Stop() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stop", reflect.TypeOf((*MockRuleWatcher)(nil).Stop))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockRuleWatcher)(nil).Start), arg0)
 }

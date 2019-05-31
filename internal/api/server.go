@@ -15,7 +15,7 @@ import (
 // Server interface
 type Server interface {
 	pb.C2AutomationEngineServer
-	ListenAndServe(errorChan chan<- error)
+	ListenAndServe(ctx context.Context, errorChan chan<- error)
 	RulesModifiedChan() <-chan bool
 }
 
@@ -51,8 +51,10 @@ func (s *apiServer) RulesModifiedChan() <-chan bool {
 	return s.rulesModified
 }
 
-func (s *apiServer) ListenAndServe(errorChan chan<- error) {
-	lis, err := net.Listen("tcp", s.addr)
+func (s *apiServer) ListenAndServe(ctx context.Context, errorChan chan<- error) {
+	var lc net.ListenConfig
+	lis, err := lc.Listen(ctx, "tcp", s.addr)
+
 	if err != nil {
 		s.logger.Log("msg", "failed to listen", "error", err)
 	}

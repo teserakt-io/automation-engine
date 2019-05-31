@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 
 	"github.com/go-kit/kit/log"
 
@@ -12,7 +14,6 @@ import (
 	"gitlab.com/teserakt/c2ae/internal/engine"
 	"gitlab.com/teserakt/c2ae/internal/engine/actions"
 	"gitlab.com/teserakt/c2ae/internal/engine/watchers"
-	"gitlab.com/teserakt/c2ae/internal/events"
 	"gitlab.com/teserakt/c2ae/internal/models"
 	"gitlab.com/teserakt/c2ae/internal/pb"
 	"gitlab.com/teserakt/c2ae/internal/services"
@@ -101,7 +102,6 @@ func main() {
 		ruleService,
 		triggerWatcherFactory,
 		actionFactory,
-		make(chan events.TriggerEvent),
 		globalErrorChan,
 		log.With(logger, "type", "ruleWatcher"),
 	)
@@ -119,26 +119,51 @@ func main() {
 		log.With(logger, "type", "apiServer"),
 	)
 
-	err = automationEngine.Start()
-	if err != nil {
+	globalCtx, globalCancel := context.WithCancel(context.Background())
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt)
+	defer func() {
+		signal.Stop(sigChan)
+		globalCancel()
+	}()
+
+	go func() {
+		select {
+		case <-sigChan:
+			logger.Log("msg", "shutdown requested, cancelling context")
+			globalCancel()
+		case <-globalCtx.Done():
+		}
+	}()
+
+	engineCtx, engineCancel := context.WithCancel(globalCtx)
+	if err := automationEngine.Start(engineCtx); err != nil {
 		logger.Log("msg", "error when starting automation engine", "error", err)
 		exitCode = 1
 		return
 	}
+	logger.Log("msg", "started automation engine")
 
-	go server.ListenAndServe(globalErrorChan)
+	go server.ListenAndServe(globalCtx, globalErrorChan)
 
 	for {
 		select {
 		case <-server.RulesModifiedChan():
 			logger.Log("msg", "rules modified, restarting automation engine!")
-			automationEngine.Stop()
-			err = automationEngine.Start()
-			if err != nil {
+
+			engineCancel()
+
+			engineCtx, engineCancel = context.WithCancel(globalCtx)
+			if err := automationEngine.Start(engineCtx); err != nil {
 				logger.Log("msg", "failed to restart automation engine", "error", err)
 			}
+			logger.Log("msg", "restarted automation engine")
 		case err := <-globalErrorChan:
 			logger.Log("msg", "a goroutine emitted an error", "error", err)
+
+		case <-globalCtx.Done():
+			engineCancel()
+			return
 		}
 	}
 }

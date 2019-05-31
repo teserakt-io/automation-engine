@@ -1,6 +1,7 @@
 package watchers
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -16,8 +17,7 @@ import (
 
 // TriggerWatcher defines an interface for types watching on a trigger
 type TriggerWatcher interface {
-	Start()
-	Stop() error
+	Start(context.Context)
 	UpdateLastExecuted(time.Time) error
 }
 
@@ -36,7 +36,6 @@ type triggerWatcherFactory struct {
 	logger        log.Logger
 	triggeredChan chan<- events.TriggerEvent
 	errorChan     chan<- error
-	stopChan      chan bool
 }
 
 var _ TriggerWatcherFactory = &triggerWatcherFactory{}
@@ -66,8 +65,7 @@ func (f *triggerWatcherFactory) Create(
 			trigger:       trigger,
 			triggeredChan: triggeredChan,
 			errorChan:     errorChan,
-			stopChan:      make(chan bool, 1),
-			updateChan:    make(chan time.Time),
+			updateChan:    make(chan time.Time, 1),
 			lastExecuted:  lastExecuted,
 			logger:        f.logger,
 		}
@@ -77,7 +75,6 @@ func (f *triggerWatcherFactory) Create(
 			trigger:       trigger,
 			triggeredChan: triggeredChan,
 			errorChan:     errorChan,
-			stopChan:      make(chan bool, 1),
 			updateChan:    make(chan time.Time),
 			lastExecuted:  lastExecuted,
 			logger:        f.logger,
@@ -88,7 +85,6 @@ func (f *triggerWatcherFactory) Create(
 			trigger:       trigger,
 			triggeredChan: triggeredChan,
 			errorChan:     errorChan,
-			stopChan:      make(chan bool, 1),
 			updateChan:    make(chan time.Time),
 			lastExecuted:  lastExecuted,
 			logger:        f.logger,
@@ -125,13 +121,12 @@ type schedulerWatcher struct {
 	errorChan     chan<- error
 	logger        log.Logger
 
-	stopChan     chan bool
 	updateChan   chan time.Time
 	lastExecuted time.Time
 }
 
-func (w *schedulerWatcher) Start() {
-	w.logger.Log("msg", "started trigger watcher", "trigger", w.trigger.ID, "rule", w.trigger.RuleID)
+func (w *schedulerWatcher) Start(ctx context.Context) {
+	w.logger.Log("msg", "started trigger schedulerWatcher", "trigger", w.trigger.ID, "rule", w.trigger.RuleID)
 
 	settings := &pb.TriggerSettingsTimeInterval{}
 	if err := settings.Decode(w.trigger.Settings); err != nil {
@@ -165,29 +160,15 @@ func (w *schedulerWatcher) Start() {
 			}
 			w.lastExecuted = now
 		case w.lastExecuted = <-w.updateChan:
-		case <-w.stopChan:
+		case <-ctx.Done():
+			w.logger.Log("msg", "stopping trigger schedulerWatcher", "trigger", w.trigger.ID, "rule", w.trigger.RuleID, "reason", ctx.Err())
 			return
 		}
 	}
 }
 
-func (w *schedulerWatcher) Stop() error {
-	select {
-	case w.stopChan <- true:
-		w.logger.Log("msg", "stopped schedulerWatcher", "trigger", w.trigger.ID, "rule", w.trigger.RuleID)
-	case <-time.After(100 * time.Millisecond):
-		return fmt.Errorf("Couldn't stop schedulerWatcher for trigger %d (rule %d), maybe it's already stopped ?", w.trigger.ID, w.trigger.RuleID)
-	}
-
-	return nil
-}
-
 func (w *schedulerWatcher) UpdateLastExecuted(lastExecuted time.Time) error {
-	select {
-	case w.updateChan <- lastExecuted:
-	case <-time.After(100 * time.Millisecond):
-		return fmt.Errorf("Couldn't update lastExecuted on schedulerWatcher for trigger %d (rule %d), maybe it's already stopped ?", w.trigger.ID, w.trigger.RuleID)
-	}
+	w.updateChan <- lastExecuted
 
 	return nil
 }
@@ -196,19 +177,13 @@ type clientSubscribedWatcher struct {
 	trigger       models.Trigger
 	triggeredChan chan<- events.TriggerEvent
 	errorChan     chan<- error
-	stopChan      chan bool
 	updateChan    chan time.Time
 	lastExecuted  time.Time
 	logger        log.Logger
 }
 
-func (w *clientSubscribedWatcher) Start() {
+func (w *clientSubscribedWatcher) Start(ctx context.Context) {
 	// TODO
-}
-
-func (w *clientSubscribedWatcher) Stop() error {
-	// TODO
-	return nil
 }
 
 func (w *clientSubscribedWatcher) UpdateLastExecuted(time.Time) error {
@@ -220,19 +195,13 @@ type clientUnsubscribedWatcher struct {
 	trigger       models.Trigger
 	triggeredChan chan<- events.TriggerEvent
 	errorChan     chan<- error
-	stopChan      chan bool
 	updateChan    chan time.Time
 	lastExecuted  time.Time
 	logger        log.Logger
 }
 
-func (w *clientUnsubscribedWatcher) Start() {
+func (w *clientUnsubscribedWatcher) Start(ctx context.Context) {
 	// TODO
-}
-
-func (w *clientUnsubscribedWatcher) Stop() error {
-	// TODO
-	return nil
 }
 
 func (w *clientUnsubscribedWatcher) UpdateLastExecuted(time.Time) error {

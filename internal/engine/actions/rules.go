@@ -10,7 +10,6 @@ import (
 	"gitlab.com/teserakt/c2ae/internal/models"
 	"gitlab.com/teserakt/c2ae/internal/pb"
 	"gitlab.com/teserakt/c2ae/internal/services"
-	e4 "gitlab.com/teserakt/e4common"
 )
 
 // ActionFactory is responsible of Aciton creation
@@ -88,8 +87,13 @@ func (a *keyRotationAction) Execute() {
 		a.logger.Log("msg", "executing action", "action", "keyRotation", "target", target.Expr)
 		switch target.Type {
 		case pb.TargetType_CLIENT:
-			hashedID := e4.HashIDAlias(target.Expr)
-			err := a.c2Client.NewClientKey(hashedID)
+			// TODO: for now we expect target to be defined with exact names of client.
+			// But we may want later to allow some wildcards to target multiple clients at once
+			// like weather-station-*, which should match weather-station-east, weather-station-west...
+			// But it might not be possible to fetch all existing client names (huge number)
+			// Maybe we could just send the wildcarded expression to the C2 and let it deal with it and
+			// match the clients directly from a DB query.
+			err := a.c2Client.NewClientKey(target.Expr)
 			if err != nil {
 				a.errorChan <- err
 

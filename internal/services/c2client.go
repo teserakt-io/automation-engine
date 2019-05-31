@@ -13,7 +13,7 @@ import (
 
 // C2 describes a C2 client service interface
 type C2 interface {
-	NewClientKey(clientID []byte) error
+	NewClientKey(clientName string) error
 	NewTopicKey(topic string) error
 }
 
@@ -70,10 +70,10 @@ func NewC2(c2Requester C2Requester) C2 {
 	}
 }
 
-func (c *c2) NewClientKey(clientID []byte) error {
+func (c *c2) NewClientKey(clientName string) error {
 	request := e4.C2Request{
 		Command: e4.C2Request_NEW_CLIENT_KEY,
-		Id:      clientID,
+		Name:    clientName,
 	}
 
 	_, err := c.c2Requester.C2Request(request)
