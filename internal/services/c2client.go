@@ -7,19 +7,21 @@ import (
 	"errors"
 	"time"
 
+	"go.opencensus.io/trace"
+
 	"gitlab.com/teserakt/c2ae/internal/pb"
 	e4 "gitlab.com/teserakt/e4common"
 )
 
 // C2 describes a C2 client service interface
 type C2 interface {
-	NewClientKey(clientName string) error
-	NewTopicKey(topic string) error
+	NewClientKey(ctx context.Context, clientName string) error
+	NewTopicKey(ctx context.Context, topic string) error
 }
 
 // C2Requester defines a type able to make request to C2 backend
 type C2Requester interface {
-	C2Request(e4.C2Request) (e4.C2Response, error)
+	C2Request(context.Context, e4.C2Request) (e4.C2Response, error)
 }
 
 type c2Requester struct {
@@ -35,14 +37,14 @@ func NewC2Requester(c2PbClientFactory pb.C2PbClientFactory) C2Requester {
 	}
 }
 
-func (r *c2Requester) C2Request(in e4.C2Request) (e4.C2Response, error) {
+func (r *c2Requester) C2Request(ctx context.Context, in e4.C2Request) (e4.C2Response, error) {
 	client, err := r.c2PbClientFactory.Create()
 	if err != nil {
 		return e4.C2Response{}, err
 	}
 	defer client.Close()
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 
 	resp, err := client.C2Command(ctx, &in)
@@ -70,24 +72,30 @@ func NewC2(c2Requester C2Requester) C2 {
 	}
 }
 
-func (c *c2) NewClientKey(clientName string) error {
+func (c *c2) NewClientKey(ctx context.Context, clientName string) error {
+	ctx, span := trace.StartSpan(ctx, "C2Client.NewClientKey")
+	defer span.End()
+
 	request := e4.C2Request{
 		Command: e4.C2Request_NEW_CLIENT_KEY,
 		Name:    clientName,
 	}
 
-	_, err := c.c2Requester.C2Request(request)
+	_, err := c.c2Requester.C2Request(ctx, request)
 
 	return err
 }
 
-func (c *c2) NewTopicKey(topic string) error {
+func (c *c2) NewTopicKey(ctx context.Context, topic string) error {
+	ctx, span := trace.StartSpan(ctx, "C2Client.NewTopicKey")
+	defer span.End()
+
 	request := e4.C2Request{
 		Command: e4.C2Request_NEW_TOPIC,
 		Topic:   topic,
 	}
 
-	_, err := c.c2Requester.C2Request(request)
+	_, err := c.c2Requester.C2Request(ctx, request)
 
 	return err
 }

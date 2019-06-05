@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"reflect"
 	"testing"
@@ -17,6 +18,7 @@ func TestC2(t *testing.T) {
 	mockC2Requester := NewMockC2Requester(mockCtrl)
 
 	c2 := NewC2(mockC2Requester)
+	ctx := context.Background()
 
 	t.Run("NewClientKey creates expected request", func(t *testing.T) {
 		clientName := "expectedClientName"
@@ -27,9 +29,9 @@ func TestC2(t *testing.T) {
 		}
 		expectedError := errors.New("expected error response")
 
-		mockC2Requester.EXPECT().C2Request(expectedRequest).Return(e4.C2Response{}, expectedError)
+		mockC2Requester.EXPECT().C2Request(gomock.Any(), expectedRequest).Return(e4.C2Response{}, expectedError)
 
-		err := c2.NewClientKey(clientName)
+		err := c2.NewClientKey(ctx, clientName)
 		if err != expectedError {
 			t.Errorf("Expected err to be %s, got %s", expectedError, err)
 		}
@@ -44,9 +46,9 @@ func TestC2(t *testing.T) {
 		}
 		expectedError := errors.New("expected error response")
 
-		mockC2Requester.EXPECT().C2Request(expectedRequest).Return(e4.C2Response{}, expectedError)
+		mockC2Requester.EXPECT().C2Request(gomock.Any(), expectedRequest).Return(e4.C2Response{}, expectedError)
 
-		err := c2.NewTopicKey(topicID)
+		err := c2.NewTopicKey(ctx, topicID)
 		if err != expectedError {
 			t.Errorf("Expected err to be %s, got %s", expectedError, err)
 		}
@@ -61,6 +63,7 @@ func TestC2Requester(t *testing.T) {
 	mockC2PbClientFactory := pb.NewMockC2PbClientFactory(mockCtrl)
 	mockC2PbClient := pb.NewMockC2PbClient(mockCtrl)
 
+	ctx := context.Background()
 	requester := NewC2Requester(mockC2PbClientFactory)
 
 	t.Run("C2Request properly calls the C2PbClient", func(t *testing.T) {
@@ -78,7 +81,7 @@ func TestC2Requester(t *testing.T) {
 		mockC2PbClient.EXPECT().C2Command(gomock.Any(), &expectedRequest).Return(&expectedResponse, nil)
 		mockC2PbClient.EXPECT().Close()
 
-		resp, err := requester.C2Request(expectedRequest)
+		resp, err := requester.C2Request(ctx, expectedRequest)
 		if err != nil {
 			t.Errorf("Expected no error, got %s", err)
 		}
@@ -92,7 +95,7 @@ func TestC2Requester(t *testing.T) {
 		factoryError := errors.New("factory error")
 		mockC2PbClientFactory.EXPECT().Create().Return(nil, factoryError)
 
-		_, err := requester.C2Request(e4.C2Request{})
+		_, err := requester.C2Request(ctx, e4.C2Request{})
 		if err != factoryError {
 			t.Errorf("Expected err to be %s, got %s", factoryError, err)
 		}
@@ -104,7 +107,7 @@ func TestC2Requester(t *testing.T) {
 		mockC2PbClient.EXPECT().C2Command(gomock.Any(), gomock.Any()).Return(nil, clientError)
 		mockC2PbClient.EXPECT().Close()
 
-		_, err := requester.C2Request(e4.C2Request{})
+		_, err := requester.C2Request(ctx, e4.C2Request{})
 		if err != clientError {
 			t.Errorf("Expected err to be %s, got %s", clientError, err)
 		}
@@ -119,7 +122,7 @@ func TestC2Requester(t *testing.T) {
 		}, nil)
 		mockC2PbClient.EXPECT().Close()
 
-		_, err := requester.C2Request(e4.C2Request{})
+		_, err := requester.C2Request(ctx, e4.C2Request{})
 		if err == nil || err.Error() != expectedErrorMsg {
 			t.Errorf("Expected err to be %s, got %s", expectedErrorMsg, err)
 		}

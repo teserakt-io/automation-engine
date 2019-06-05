@@ -152,17 +152,17 @@ func TestRuleWatcher(t *testing.T) {
 			<-ctx.Done()
 		})
 
-		mockRuleWriter.EXPECT().Save(&modifiedRule).Times(1)
+		mockRuleWriter.EXPECT().Save(gomock.Any(), &modifiedRule).Times(1)
 
 		mockTriggerWatcher1.EXPECT().UpdateLastExecuted(expectedTime).Times(1)
 		mockTriggerWatcher2.EXPECT().UpdateLastExecuted(expectedTime).Times(1)
 
 		mockActionFactory.EXPECT().Create(modifiedRule).Times(1).Return(mockAction, nil)
-		mockAction.EXPECT().Execute().Times(1)
+		mockAction.EXPECT().Execute(gomock.Any()).Times(1)
 
 		go newRuleWatcher.Start(ctx)
 
-		triggeredChan <- events.TriggerEvent{Trigger: rule.Triggers[1], Time: expectedTime}
+		triggeredChan <- events.TriggerEvent{Trigger: modifiedRule.Triggers[1], Time: expectedTime}
 
 		select {
 		case err := <-errorChan:
@@ -189,7 +189,7 @@ func TestRuleWatcher(t *testing.T) {
 			<-ctx.Done()
 		})
 
-		mockRuleWriter.EXPECT().Save(gomock.Any()).Times(1)
+		mockRuleWriter.EXPECT().Save(gomock.Any(), gomock.Any()).Times(1)
 
 		mockTriggerWatcher1.EXPECT().UpdateLastExecuted(gomock.Any()).Times(1)
 

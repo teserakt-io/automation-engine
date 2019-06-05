@@ -40,7 +40,7 @@ func TestAutomationEngine(t *testing.T) {
 	mockRuleWatcher3 := watchers.NewMockRuleWatcher(mockCtrl)
 
 	t.Run("Start properly start a rule watcher for every rule", func(t *testing.T) {
-		mockRuleService.EXPECT().All().Times(1).Return(rules, nil)
+		mockRuleService.EXPECT().All(gomock.Any()).Times(1).Return(rules, nil)
 
 		mockRuleWatcherFactory.EXPECT().Create(rules[0]).Times(1).Return(mockRuleWatcher1)
 		mockRuleWatcherFactory.EXPECT().Create(rules[1]).Times(1).Return(mockRuleWatcher2)
@@ -49,13 +49,13 @@ func TestAutomationEngine(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		mockRuleWatcher1.EXPECT().Start(ctx).Times(1).DoAndReturn(func(ctx context.Context) {
+		mockRuleWatcher1.EXPECT().Start(gomock.Any()).Times(1).DoAndReturn(func(ctx context.Context) {
 			<-ctx.Done()
 		})
-		mockRuleWatcher2.EXPECT().Start(ctx).Times(1).DoAndReturn(func(ctx context.Context) {
+		mockRuleWatcher2.EXPECT().Start(gomock.Any()).Times(1).DoAndReturn(func(ctx context.Context) {
 			<-ctx.Done()
 		})
-		mockRuleWatcher3.EXPECT().Start(ctx).Times(1).DoAndReturn(func(ctx context.Context) {
+		mockRuleWatcher3.EXPECT().Start(gomock.Any()).Times(1).DoAndReturn(func(ctx context.Context) {
 			<-ctx.Done()
 		})
 
@@ -67,7 +67,7 @@ func TestAutomationEngine(t *testing.T) {
 
 	t.Run("Start returns error when it fail to fetch the rules", func(t *testing.T) {
 		expectedError := errors.New("ruleService All() failed")
-		mockRuleService.EXPECT().All().Times(1).Return(nil, expectedError)
+		mockRuleService.EXPECT().All(gomock.Any()).Times(1).Return(nil, expectedError)
 
 		ctx, cancel := context.WithCancel(context.Background())
 		defer func() {

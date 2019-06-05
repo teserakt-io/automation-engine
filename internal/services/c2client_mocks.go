@@ -5,6 +5,7 @@
 package services
 
 import (
+	context "context"
 	gomock "github.com/golang/mock/gomock"
 	e4common "gitlab.com/teserakt/e4common"
 	reflect "reflect"
@@ -34,31 +35,31 @@ func (m *MockC2) EXPECT() *MockC2MockRecorder {
 }
 
 // NewClientKey mocks base method
-func (m *MockC2) NewClientKey(arg0 string) error {
+func (m *MockC2) NewClientKey(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NewClientKey", arg0)
+	ret := m.ctrl.Call(m, "NewClientKey", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // NewClientKey indicates an expected call of NewClientKey
-func (mr *MockC2MockRecorder) NewClientKey(arg0 interface{}) *gomock.Call {
+func (mr *MockC2MockRecorder) NewClientKey(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewClientKey", reflect.TypeOf((*MockC2)(nil).NewClientKey), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewClientKey", reflect.TypeOf((*MockC2)(nil).NewClientKey), arg0, arg1)
 }
 
 // NewTopicKey mocks base method
-func (m *MockC2) NewTopicKey(arg0 string) error {
+func (m *MockC2) NewTopicKey(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NewTopicKey", arg0)
+	ret := m.ctrl.Call(m, "NewTopicKey", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // NewTopicKey indicates an expected call of NewTopicKey
-func (mr *MockC2MockRecorder) NewTopicKey(arg0 interface{}) *gomock.Call {
+func (mr *MockC2MockRecorder) NewTopicKey(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewTopicKey", reflect.TypeOf((*MockC2)(nil).NewTopicKey), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewTopicKey", reflect.TypeOf((*MockC2)(nil).NewTopicKey), arg0, arg1)
 }
 
 // MockC2Requester is a mock of C2Requester interface
@@ -85,16 +86,16 @@ func (m *MockC2Requester) EXPECT() *MockC2RequesterMockRecorder {
 }
 
 // C2Request mocks base method
-func (m *MockC2Requester) C2Request(arg0 e4common.C2Request) (e4common.C2Response, error) {
+func (m *MockC2Requester) C2Request(arg0 context.Context, arg1 e4common.C2Request) (e4common.C2Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "C2Request", arg0)
+	ret := m.ctrl.Call(m, "C2Request", arg0, arg1)
 	ret0, _ := ret[0].(e4common.C2Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // C2Request indicates an expected call of C2Request
-func (mr *MockC2RequesterMockRecorder) C2Request(arg0 interface{}) *gomock.Call {
+func (mr *MockC2RequesterMockRecorder) C2Request(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "C2Request", reflect.TypeOf((*MockC2Requester)(nil).C2Request), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "C2Request", reflect.TypeOf((*MockC2Requester)(nil).C2Request), arg0, arg1)
 }

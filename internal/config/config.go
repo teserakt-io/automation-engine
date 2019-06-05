@@ -8,10 +8,12 @@ import (
 
 // API describes the configuration required for the API application
 type API struct {
-	DBFilepath    string
-	Addr          string
-	C2Endpoint    string
-	C2Certificate string
+	DBFilepath          string
+	Addr                string
+	C2Endpoint          string
+	C2Certificate       string
+	OpencensusSampleAll bool
+	OpencensusAddress   string
 }
 
 // Config validation errors

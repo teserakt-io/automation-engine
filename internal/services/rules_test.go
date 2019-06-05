@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -68,12 +69,14 @@ func createRules(t *testing.T, srv RuleService) (rule1 models.Rule, rule2 models
 	rule2.Targets[0].Rule = &rule2
 	rule2.Triggers[0].Rule = &rule2
 
-	err := srv.Save(&rule1)
+	ctx := context.Background()
+
+	err := srv.Save(ctx, &rule1)
 	if err != nil {
 		t.Errorf("Expected nil error, got %s", err)
 	}
 
-	err = srv.Save(&rule2)
+	err = srv.Save(ctx, &rule2)
 	if err != nil {
 		t.Errorf("Expected nil error, got %s", err)
 	}
@@ -82,6 +85,7 @@ func createRules(t *testing.T, srv RuleService) (rule1 models.Rule, rule2 models
 }
 
 func TestRuleService(t *testing.T) {
+	ctx := context.Background()
 
 	t.Run("All returns all rules", func(t *testing.T) {
 		db, closeFunc := getTestDB(t)
@@ -89,7 +93,7 @@ func TestRuleService(t *testing.T) {
 
 		srv := NewRuleService(db)
 
-		rules, err := srv.All()
+		rules, err := srv.All(ctx)
 		if err != nil {
 			t.Errorf("Expected error to be nil, got %s", err)
 		}
@@ -100,7 +104,7 @@ func TestRuleService(t *testing.T) {
 
 		rule1, rule2 := createRules(t, srv)
 
-		rules, err = srv.All()
+		rules, err = srv.All(ctx)
 		if len(rules) != 2 {
 			t.Errorf("Expected 2 rules, got %d", len(rules))
 		}
@@ -127,7 +131,7 @@ func TestRuleService(t *testing.T) {
 			},
 		}
 
-		err := srv.Save(&rule)
+		err := srv.Save(ctx, &rule)
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
@@ -145,7 +149,7 @@ func TestRuleService(t *testing.T) {
 
 		expectedDescription := "New description"
 		rule.Description = expectedDescription
-		err = srv.Save(&rule)
+		err = srv.Save(ctx, &rule)
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
@@ -166,7 +170,7 @@ func TestRuleService(t *testing.T) {
 
 		rule1, rule2 := createRules(t, srv)
 
-		rule, err := srv.ByID(rule1.ID)
+		rule, err := srv.ByID(ctx, rule1.ID)
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
@@ -175,7 +179,7 @@ func TestRuleService(t *testing.T) {
 			t.Errorf("Expected rule 1 to be %#v, got %#v", rule1, rule)
 		}
 
-		rule, err = srv.ByID(rule2.ID)
+		rule, err = srv.ByID(ctx, rule2.ID)
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
@@ -184,7 +188,7 @@ func TestRuleService(t *testing.T) {
 			t.Errorf("Expected rule 2 to be %#v, got %#v", rule2, rule)
 		}
 
-		_, err = srv.ByID(3)
+		_, err = srv.ByID(ctx, 3)
 		if err == nil {
 			t.Errorf("Expected err to be %s, got %s", gorm.ErrRecordNotFound, err)
 		}
@@ -198,35 +202,35 @@ func TestRuleService(t *testing.T) {
 
 		rule1, rule2 := createRules(t, srv)
 
-		if err := srv.Delete(rule1); err != nil {
+		if err := srv.Delete(ctx, rule1); err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
 
-		_, err := srv.ByID(rule1.ID)
+		_, err := srv.ByID(ctx, rule1.ID)
 		if err != gorm.ErrRecordNotFound {
 			t.Errorf("Expected err to be %s, got %s", gorm.ErrRecordNotFound, err)
 		}
 
-		_, err = srv.TriggerByID(rule1.Triggers[0].ID)
+		_, err = srv.TriggerByID(ctx, rule1.Triggers[0].ID)
 		if err != gorm.ErrRecordNotFound {
 			t.Errorf("Expected err to be %s, got %s", gorm.ErrRecordNotFound, err)
 		}
 
-		_, err = srv.TargetByID(rule1.Targets[0].ID)
+		_, err = srv.TargetByID(ctx, rule1.Targets[0].ID)
 		if err != gorm.ErrRecordNotFound {
 			t.Errorf("Expected err to be %s, got %s", gorm.ErrRecordNotFound, err)
 		}
 
-		_, err = srv.ByID(rule2.ID)
+		_, err = srv.ByID(ctx, rule2.ID)
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
-		_, err = srv.TriggerByID(rule2.Triggers[0].ID)
+		_, err = srv.TriggerByID(ctx, rule2.Triggers[0].ID)
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
 
-		_, err = srv.TargetByID(rule2.Targets[0].ID)
+		_, err = srv.TargetByID(ctx, rule2.Targets[0].ID)
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
@@ -240,7 +244,7 @@ func TestRuleService(t *testing.T) {
 
 		rule1, rule2 := createRules(t, srv)
 
-		trigger, err := srv.TriggerByID(rule1.Triggers[0].ID)
+		trigger, err := srv.TriggerByID(ctx, rule1.Triggers[0].ID)
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
@@ -249,7 +253,7 @@ func TestRuleService(t *testing.T) {
 			t.Errorf("Expected trigger to be %#v, got %#v", rule1.Triggers[0], trigger)
 		}
 
-		trigger, err = srv.TriggerByID(rule2.Triggers[0].ID)
+		trigger, err = srv.TriggerByID(ctx, rule2.Triggers[0].ID)
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
@@ -258,7 +262,7 @@ func TestRuleService(t *testing.T) {
 			t.Errorf("Expected trigger to be %#v, got %#v", rule2.Triggers[0], trigger)
 		}
 
-		_, err = srv.TriggerByID(3)
+		_, err = srv.TriggerByID(ctx, 3)
 		if err != gorm.ErrRecordNotFound {
 			t.Errorf("Expected err to be %s, got %s", gorm.ErrRecordNotFound, err)
 		}
@@ -272,7 +276,7 @@ func TestRuleService(t *testing.T) {
 
 		rule1, rule2 := createRules(t, srv)
 
-		target, err := srv.TargetByID(rule1.Targets[0].ID)
+		target, err := srv.TargetByID(ctx, rule1.Targets[0].ID)
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
@@ -281,7 +285,7 @@ func TestRuleService(t *testing.T) {
 			t.Errorf("Expected trigger to be %#v, got %#v", rule1.Targets[0], target)
 		}
 
-		target, err = srv.TargetByID(2)
+		target, err = srv.TargetByID(ctx, 2)
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
@@ -290,7 +294,7 @@ func TestRuleService(t *testing.T) {
 			t.Errorf("Expected trigger to be %#v, got %#v", rule2.Targets[0], target)
 		}
 
-		_, err = srv.TargetByID(3)
+		_, err = srv.TargetByID(ctx, 3)
 		if err != gorm.ErrRecordNotFound {
 			t.Errorf("Expected err to be %s, got %s", gorm.ErrRecordNotFound, err)
 		}

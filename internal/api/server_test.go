@@ -55,7 +55,7 @@ func TestServer(t *testing.T) {
 			&pb.Rule{Id: 3},
 		}
 
-		mockRuleService.EXPECT().All().Times(1).Return(rules, nil)
+		mockRuleService.EXPECT().All(gomock.Any()).Times(1).Return(rules, nil)
 		mockConverter.EXPECT().RulesToPb(rules).Times(1).Return(pbRules, nil)
 
 		resp, err := server.ListRules(context.Background(), &pb.ListRulesRequest{})
@@ -92,7 +92,7 @@ func TestServer(t *testing.T) {
 		mockConverter.EXPECT().PbToTriggers(pbTriggers).Times(1)
 		mockConverter.EXPECT().PbToTargets(pbTargets).Times(1)
 
-		mockRuleService.EXPECT().Save(gomock.Any()).Times(1)
+		mockRuleService.EXPECT().Save(gomock.Any(), gomock.Any()).Times(1)
 
 		pbRule := &pb.Rule{Id: 1}
 		mockConverter.EXPECT().RuleToPb(gomock.Any()).Times(1).Return(pbRule, nil)
@@ -155,12 +155,12 @@ func TestServer(t *testing.T) {
 			Id: 2,
 		}
 
-		mockRuleService.EXPECT().ByID(1).Times(1).Return(ruleBefore, nil)
+		mockRuleService.EXPECT().ByID(gomock.Any(), 1).Times(1).Return(ruleBefore, nil)
 
 		mockConverter.EXPECT().PbToTriggers(pbTriggers).Times(1).Return(triggers, nil)
 		mockConverter.EXPECT().PbToTargets(pbTargets).Times(1).Return(targets, nil)
 
-		mockRuleService.EXPECT().Save(gomock.Any()).Times(1)
+		mockRuleService.EXPECT().Save(gomock.Any(), gomock.Any()).Times(1)
 
 		mockConverter.EXPECT().RuleToPb(updatedRule).Times(1).Return(updatedPbRule, nil)
 
@@ -184,8 +184,8 @@ func TestServer(t *testing.T) {
 
 		rule := models.Rule{ID: 1}
 
-		mockRuleService.EXPECT().ByID(1).Times(1).Return(rule, nil)
-		mockRuleService.EXPECT().Delete(rule).Times(1)
+		mockRuleService.EXPECT().ByID(gomock.Any(), 1).Times(1).Return(rule, nil)
+		mockRuleService.EXPECT().Delete(gomock.Any(), rule).Times(1)
 
 		resp, err := server.DeleteRule(context.Background(), req)
 		if err != nil {
@@ -208,7 +208,7 @@ func TestServer(t *testing.T) {
 		rule := models.Rule{ID: 1}
 		pbRule := &pb.Rule{Id: 1}
 
-		mockRuleService.EXPECT().ByID(1).Times(1).Return(rule, nil)
+		mockRuleService.EXPECT().ByID(gomock.Any(), 1).Times(1).Return(rule, nil)
 		mockConverter.EXPECT().RuleToPb(rule).Times(1).Return(pbRule, nil)
 
 		resp, err := server.GetRule(context.Background(), req)
