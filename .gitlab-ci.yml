@@ -5,8 +5,12 @@ stages:
   - build
 
 before_script:
+  # Packages
+  - PACKAGES="openssh-client git bash"
+  - command -v apt >/dev/null 2>&1 && (apt-get update && apt-get install -y ${PACKAGES}) || (apk update && apk add ${PACKAGES})
+
   # https://docs.gitlab.com/ee/ci/ssh_keys/
-  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+  - echo "Configuring git"
   - eval $(ssh-agent -s)
   - echo "$SSH_CI_KEY" | tr -d '\r' | ssh-add - > /dev/null
   - mkdir -p ~/.ssh && chmod 600 ~/.ssh
@@ -15,13 +19,13 @@ before_script:
   # Force use of ssh urls instead of https for gitlab.com. Has to be done before any go get...
   - git config --global url."git@gitlab.com:".insteadOf "https://gitlab.com/"
 
-  # Install global go tools
-  - go install golang.org/x/lint/golint
-  - go get github.com/jstemmer/go-junit-report
-
 test:
   stage: test
   script:
+    # Install global go tools
+    - go install golang.org/x/lint/golint
+    - go get github.com/jstemmer/go-junit-report
+    # Run lint and tests
     - golint -set_exit_status ./...
     - go test -v -coverprofile=cover.out -timeout 10s -race ./... | tee >(go-junit-report > report.xml)
     - go tool cover -func cover.out
