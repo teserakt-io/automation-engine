@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"os"
 	"os/signal"
@@ -18,6 +17,8 @@ import (
 	"gitlab.com/teserakt/c2ae/internal/monitoring"
 	"gitlab.com/teserakt/c2ae/internal/pb"
 	"gitlab.com/teserakt/c2ae/internal/services"
+	slibcfg "gitlab.com/teserakt/serverlib/config"
+	slibpath "gitlab.com/teserakt/serverlib/path"
 )
 
 // Provided by build script
@@ -46,36 +47,49 @@ func main() {
 	logger = log.With(logger, "ts", log.DefaultTimestampUTC, "caller", log.DefaultCaller)
 	defer logger.Log("msg", "goodbye")
 
-	var appConfig config.API
-	flag.StringVar(&appConfig.DBFilepath, "db", "", "path to the sqlite db file")
-	flag.StringVar(&appConfig.Addr, "addr", "localhost:5556", "interface:port to listen for incoming connections")
-	flag.StringVar(&appConfig.C2Endpoint, "c2", "localhost:5555", "tcp://interface:port to the c2 backend")
-	flag.StringVar(&appConfig.C2Certificate, "c2cert", "", "path to the c2 backend certificate")
-	flag.BoolVar(&appConfig.OpencensusSampleAll, "ocSampleAll", false, "Enable opencensus full sampling")
-	flag.StringVar(&appConfig.OpencensusAddress, "ocAddr", "localhost:55678", "Opencensus agent address")
-	flag.Parse()
-
-	if err := appConfig.Validate(); err != nil {
-		logger.Log("msg", "invalid settings", "error", err)
-		flag.Usage()
+	configResolver, err := slibpath.NewAppPathResolver(os.Args[0])
+	if err != nil {
+		logger.Log("msg", "failed to create configuration resolver", "error", err)
 		exitCode = 1
 		return
 	}
-	logger.Log("msg", "successfully loaded configuration")
 
-	dbConfig := models.DBConfig{
-		Dialect:   models.DBDialectSQLite,
-		CnxString: appConfig.DBFilepath,
-		LogMode:   false,
+	configLoader := slibcfg.NewViperLoader("config", configResolver)
+
+	appConfig := config.NewAPI()
+	if err := configLoader.Load(appConfig.ViperCfgFields()); err != nil {
+		logger.Log("msg", "failed to load configuration", "error", err)
+		exitCode = 1
+		return
 	}
 
-	db, err := models.NewDB(dbConfig)
+	if err := appConfig.Validate(); err != nil {
+		logger.Log("msg", "failed to validate configuration", "error", err)
+		exitCode = 1
+		return
+	}
+
+	logger.Log("msg", "successfully loaded configuration")
+
+	cnxStr, err := appConfig.DB.ConnectionString()
+	if err != nil {
+		logger.Log("msg", "failed to create database connection string: %v", err)
+		exitCode = 1
+		return
+	}
+
+	db, err := models.NewDB(models.DBConfig{
+		Dialect:   appConfig.DB.Type.String(),
+		CnxString: cnxStr,
+		LogMode:   appConfig.DB.Logging,
+	})
 	if err != nil {
 		logger.Log("msg", "database creation failed", "error", err)
 		exitCode = 1
 		return
 	}
 	defer db.Close()
+	logger.Log(append(appConfig.DB.Log(), "msg", "successfully connected to database")...)
 
 	if err := db.Migrate(); err != nil {
 		logger.Log("msg", "database migration failed", "error", err)
@@ -96,6 +110,9 @@ func main() {
 	}
 
 	c2Requester := services.NewC2Requester(c2ClientFactory)
+	// TODO: we might want to test the connection here and fail if C2 isn't running, or certs are bad...
+	// Maybe add a Ping() to the C2 server allowing to test the connection / C2 health without
+	// sending a real commands.
 	c2client := services.NewC2(c2Requester)
 
 	triggerWatcherFactory := watchers.NewTriggerWatcherFactory(log.With(logger, "type", "triggerWatcher"))
@@ -153,7 +170,12 @@ func main() {
 	}
 	logger.Log("msg", "started automation engine")
 
-	go server.ListenAndServe(globalCtx, globalErrorChan)
+	go func() {
+		err := server.ListenAndServe(globalCtx)
+		logger.Log("msg", "failed to listen and serve api", "error", err)
+		globalCancel()
+		return
+	}()
 
 	for {
 		select {

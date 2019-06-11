@@ -1,87 +1,334 @@
 package config
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	slibcfg "gitlab.com/teserakt/serverlib/config"
 )
 
 func TestConfig(t *testing.T) {
-	t.Run("Validate checks for DBFilePath", func(t *testing.T) {
-		c := API{}
+	t.Run("Validate properly checks all configuration fields", func(t *testing.T) {
 
-		err := c.Validate()
-		if err != ErrDBFilepathRequired {
-			t.Errorf("Expected err to be %s, got %s", ErrDBFilepathRequired, err)
-		}
-	})
-
-	t.Run("Validate checks for C2Endpoint", func(t *testing.T) {
-		c := API{
-			DBFilepath: "/some/file",
-		}
-
-		err := c.Validate()
-		if err != ErrC2EndpointRequired {
-			t.Errorf("Expected err to be %s, got %s", ErrC2EndpointRequired, err)
-		}
-	})
-
-	t.Run("Validate checks for C2Certificate", func(t *testing.T) {
-		c := API{
-			DBFilepath: "/some/file",
-			C2Endpoint: "someEndpoint",
-		}
-
-		err := c.Validate()
-		if err != ErrC2CertificateRequired {
-			t.Errorf("Expected err to be %s, got %s", ErrC2CertificateRequired, err)
-		}
-	})
-
-	t.Run("Validate checks that C2Certificate file exists and is readable", func(t *testing.T) {
-		expectedPath := "/unknow/file"
-
-		c := API{
-			DBFilepath:    "/some/file",
-			C2Endpoint:    "someEndpoint",
-			C2Certificate: expectedPath,
-		}
-
-		err := c.Validate()
-		typedErr, ok := err.(ErrC2CertificatePath)
-		if !ok {
-			t.Errorf("Expected err to be a ErrC2CertificatePath error, got %T", err)
-		}
-
-		if typedErr.Path != expectedPath {
-			t.Errorf("Expected error path to be %s, got %s", expectedPath, typedErr.Path)
-		}
-
-		if !os.IsNotExist(typedErr.Reason) {
-			t.Errorf("Expectged error reason to be a os.ErrNotExists, got %T", typedErr.Reason)
-		}
-	})
-
-	t.Run("Validate on valide configuration returns no errors", func(t *testing.T) {
-		tempFile, err := ioutil.TempFile(os.TempDir(), "")
+		validFile, err := ioutil.TempFile("", "")
 		if err != nil {
-			t.Fatalf("Failed to create temporary file")
+			t.Fatalf("failed to create temp file: %v", err)
 		}
-		defer func() {
-			tempFile.Close()
-			os.Remove(tempFile.Name())
-		}()
+		validFile.Close()
+		defer os.Remove(validFile.Name())
 
-		c := API{
-			DBFilepath:    "/some/file",
-			C2Endpoint:    "something",
-			C2Certificate: tempFile.Name(),
+		testCases := []struct {
+			cfg         API
+			expectedErr error
+		}{
+			{
+				cfg:         API{},
+				expectedErr: ErrListenAddrRequired,
+			},
+			{
+				cfg: API{
+					Addr: "127.0.0.1:5556",
+				},
+				expectedErr: ErrNoPassphrase,
+			},
+			{
+				cfg: API{
+					Addr: "127.0.0.1:5556",
+					DB: DBCfg{
+						Passphrase: "something",
+					},
+				},
+				expectedErr: ErrUnsupportedDBType,
+			},
+			{
+				cfg: API{
+					Addr: "127.0.0.1:5556",
+					DB: DBCfg{
+						Passphrase: "something",
+						Type:       slibcfg.DBTypeSQLite,
+					},
+				},
+				expectedErr: ErrNoDBFile,
+			},
+			{
+				cfg: API{
+					Addr: "127.0.0.1:5556",
+					DB: DBCfg{
+						Passphrase: "something",
+						Type:       slibcfg.DBTypeSQLite,
+						File:       "/some/file",
+					},
+				},
+				expectedErr: ErrC2EndpointRequired,
+			},
+			{
+				cfg: API{
+					Addr: "127.0.0.1:5556",
+					DB: DBCfg{
+						Passphrase: "something",
+						Type:       slibcfg.DBTypeSQLite,
+						File:       "/some/file",
+					},
+					C2Endpoint: "localhost:5555",
+				},
+				expectedErr: ErrC2CertificateRequired,
+			},
+			{
+				cfg: API{
+					Addr: "127.0.0.1:5556",
+					DB: DBCfg{
+						Passphrase: "something",
+						Type:       slibcfg.DBTypeSQLite,
+						File:       "/some/file",
+					},
+					C2Endpoint:    "localhost:5555",
+					C2Certificate: "/some/path",
+				},
+				expectedErr: ErrC2CertificatePath,
+			},
+			{
+				cfg: API{
+					Addr: "127.0.0.1:5556",
+					DB: DBCfg{
+						Passphrase: "something",
+						Type:       slibcfg.DBTypeSQLite,
+						File:       "/some/file",
+					},
+					C2Endpoint:    "localhost:5555",
+					C2Certificate: validFile.Name(),
+				},
+				expectedErr: nil,
+			},
+			{
+				cfg: API{
+					Addr: "127.0.0.1:5556",
+					DB: DBCfg{
+						Type: slibcfg.DBTypePostgres,
+					},
+					C2Endpoint:    "localhost:5555",
+					C2Certificate: validFile.Name(),
+				},
+				expectedErr: ErrNoPassphrase,
+			},
+			{
+				cfg: API{
+					Addr: "127.0.0.1:5556",
+					DB: DBCfg{
+						Type:       slibcfg.DBTypePostgres,
+						Passphrase: "something",
+					},
+					C2Endpoint:    "localhost:5555",
+					C2Certificate: validFile.Name(),
+				},
+				expectedErr: ErrNoDBAddr,
+			},
+			{
+				cfg: API{
+					Addr: "127.0.0.1:5556",
+					DB: DBCfg{
+						Type:       slibcfg.DBTypePostgres,
+						Passphrase: "something",
+						Host:       "127.0.0.1:5432",
+					},
+					C2Endpoint:    "localhost:5555",
+					C2Certificate: validFile.Name(),
+				},
+				expectedErr: ErrNoDatabase,
+			},
+			{
+				cfg: API{
+					Addr: "127.0.0.1:5556",
+					DB: DBCfg{
+						Type:       slibcfg.DBTypePostgres,
+						Passphrase: "something",
+						Host:       "127.0.0.1:5432",
+						Database:   "something",
+					},
+					C2Endpoint:    "localhost:5555",
+					C2Certificate: validFile.Name(),
+				},
+				expectedErr: ErrNoUsername,
+			},
+			{
+				cfg: API{
+					Addr: "127.0.0.1:5556",
+					DB: DBCfg{
+						Type:       slibcfg.DBTypePostgres,
+						Passphrase: "something",
+						Host:       "127.0.0.1:5432",
+						Database:   "something",
+						Username:   "something",
+					},
+					C2Endpoint:    "localhost:5555",
+					C2Certificate: validFile.Name(),
+				},
+				expectedErr: ErrNoPassword,
+			},
+			{
+				cfg: API{
+					Addr: "127.0.0.1:5556",
+					DB: DBCfg{
+						Type:       slibcfg.DBTypePostgres,
+						Passphrase: "something",
+						Host:       "127.0.0.1:5432",
+						Database:   "something",
+						Username:   "something",
+						Password:   "something",
+					},
+					C2Endpoint:    "localhost:5555",
+					C2Certificate: validFile.Name(),
+				},
+				expectedErr: ErrNoSchema,
+			},
+			{
+				cfg: API{
+					Addr: "127.0.0.1:5556",
+					DB: DBCfg{
+						Type:       slibcfg.DBTypePostgres,
+						Passphrase: "something",
+						Host:       "127.0.0.1:5432",
+						Database:   "something",
+						Username:   "something",
+						Password:   "something",
+						Schema:     "schema",
+					},
+					C2Endpoint:    "localhost:5555",
+					C2Certificate: validFile.Name(),
+				},
+				expectedErr: ErrInvalidSecureConnection,
+			},
+			{
+				cfg: API{
+					Addr: "127.0.0.1:5556",
+					DB: DBCfg{
+						Type:             slibcfg.DBTypePostgres,
+						Passphrase:       "something",
+						Host:             "127.0.0.1:5432",
+						Database:         "something",
+						Username:         "something",
+						Password:         "something",
+						Schema:           "schema",
+						SecureConnection: slibcfg.DBSecureConnectionEnabled,
+					},
+					C2Endpoint:    "localhost:5555",
+					C2Certificate: validFile.Name(),
+				},
+				expectedErr: nil,
+			},
+			{
+				cfg: API{
+					Addr: "127.0.0.1:5556",
+					DB: DBCfg{
+						Type:             slibcfg.DBTypePostgres,
+						Passphrase:       "something",
+						Host:             "127.0.0.1:5432",
+						Database:         "something",
+						Username:         "something",
+						Password:         "something",
+						Schema:           "schema",
+						SecureConnection: slibcfg.DBSecureConnectionInsecure,
+					},
+					C2Endpoint:    "localhost:5555",
+					C2Certificate: validFile.Name(),
+				},
+				expectedErr: nil,
+			},
+			{
+				cfg: API{
+					Addr: "127.0.0.1:5556",
+					DB: DBCfg{
+						Type:             slibcfg.DBTypePostgres,
+						Passphrase:       "something",
+						Host:             "127.0.0.1:5432",
+						Database:         "something",
+						Username:         "something",
+						Password:         "something",
+						Schema:           "schema",
+						SecureConnection: slibcfg.DBSecureConnectionSelfSigned,
+					},
+					C2Endpoint:    "localhost:5555",
+					C2Certificate: validFile.Name(),
+				},
+				expectedErr: nil,
+			},
 		}
 
-		err = c.Validate()
+		for _, testCase := range testCases {
+			err := testCase.cfg.Validate()
+			if err != testCase.expectedErr {
+				t.Errorf("Expected error to be %v, got %v", testCase.expectedErr, err)
+			}
+		}
+
+	})
+}
+
+func TestDBCfg(t *testing.T) {
+	t.Run("ConnectionString returns the proper connection string for Postgres type", func(t *testing.T) {
+		expectedDatabase := "test"
+		expectedHost := "some/host:port"
+		expectedUsername := "username"
+		expectedPassword := "password"
+
+		cfg := DBCfg{
+			Type:     slibcfg.DBTypePostgres,
+			Database: expectedDatabase,
+			Host:     expectedHost,
+			Username: expectedUsername,
+			Password: expectedPassword,
+		}
+
+		expectedConnectionString := fmt.Sprintf(
+			"host=%s dbname=%s user=%s password=%s %s",
+			expectedHost,
+			expectedDatabase,
+			expectedUsername,
+			expectedPassword,
+			slibcfg.PostgresSSLModeFull,
+		)
+
+		cnxStr, err := cfg.ConnectionString()
+
 		if err != nil {
-			t.Errorf("Expected err to be nil, got %s", err)
+			t.Errorf("expected no error, got %s", err)
+		}
+
+		if expectedConnectionString != cnxStr {
+			t.Errorf("expected connectionString to be %s, got %s", expectedConnectionString, cnxStr)
 		}
 	})
+
+	t.Run("ConnectionString returns the proper connection string for SQLite type", func(t *testing.T) {
+		expectedFile := "some/db/file"
+
+		cfg := DBCfg{
+			Type: slibcfg.DBTypeSQLite,
+			File: expectedFile,
+		}
+
+		cnxStr, err := cfg.ConnectionString()
+
+		if err != nil {
+			t.Errorf("expected no error, got %s", err)
+		}
+
+		if expectedFile != cnxStr {
+			t.Errorf("expected connectionString to be %s, got %s", expectedFile, cnxStr)
+		}
+	})
+
+	t.Run("ConnectionString returns an error on unsupported DB type", func(t *testing.T) {
+		cfg := DBCfg{
+			Type: slibcfg.DBType("unknow"),
+		}
+
+		_, err := cfg.ConnectionString()
+
+		if err != ErrUnsupportedDBType {
+			t.Errorf("Expected err to be %s, got %s", ErrUnsupportedDBType, err)
+		}
+	})
+
 }

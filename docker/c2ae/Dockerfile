@@ -23,8 +23,7 @@ FROM debian:stable AS c2ae-api
 # Alpine doesn't work even with libc6-compat
 
 COPY --from=buildenv /build/bin/c2ae-api /opt/e4/bin/c2ae-api
-
-RUN mkdir -p /opt/e4/db /opt/e4/configs
+COPY --from=buildenv /build/configs/ /opt/e4/configs
 
 # Redirect log file to stdout
 RUN ln -s /dev/stdout /var/log/e4_c2ae.log
@@ -34,13 +33,7 @@ WORKDIR /opt/e4
 # Default GRPC
 EXPOSE 5556
 
-ENV C2AE_C2_ENDPOINT="localhost:5555"
-ENV C2AE_C2CERT_PATH="/opt/e4/configs/c2-cert.pem"
-ENV C2AE_DB_PATH="/opt/e4/db/c2ae.db"
-ENV C2AE_LISTEN_ADDR="0.0.0.0:5556"
-ENV C2AE_OC_ENDPOINT="localhost:55678"
-
-ENTRYPOINT /opt/e4/bin/c2ae-api -c2 ${C2AE_C2_ENDPOINT} -c2cert ${C2AE_C2CERT_PATH} -db ${C2AE_DB_PATH} -ocSampleAll -addr ${C2AE_LISTEN_ADDR} -ocAddr ${C2AE_OC_ENDPOINT}
+ENTRYPOINT /opt/e4/bin/c2ae-api
 
 # c2ae-cli stage
 FROM debian:stable AS c2ae-cli

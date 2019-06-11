@@ -1,0 +1,43 @@
+###############################################################
+# C2AE configuration file, to be edited manually
+###############################################################
+
+# C2AE settings
+###############################################################
+## interface / port the API will listen on
+listen: localhost:5556
+
+# Database settings
+###############################################################
+## supported types are sqlite3 and postgres
+db-type: sqlite3
+##
+db-file: /tmp/c2ae.sqlite
+## username to connect to postgres
+#db-username: e4_c2ae_test
+## password to connect to postgres
+#db-password: teserakte4
+## set to true to show detailed logging of database operations
+#db-logging: 1
+## host of the db
+db-host: localhost
+## db name
+db-database: c2ae
+## passphrase used to derive the key to encrypt keys in the db
+db-encryption-passphrase: meh
+## TLS connection: enable || selfsigned || insecure
+db-secure-connection: enable
+# Postgres database schema
+# db-schema: e4_c2ae_test
+
+# C2 settings
+###############################################################
+# host:port, e.g. localhost:5555
+c2-host-port: localhost:5555
+# path to the PEM-encoded certificate file, either absolute or relative to this file
+c2-cert: c2-cert.pem
+
+# OpenCensus settings
+###############################################################
+oc-agent-addr: localhost:55678
+oc-sample-all: true
