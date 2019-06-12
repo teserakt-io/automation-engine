@@ -5,6 +5,7 @@ import (
 	"fmt"
 	stdlog "log"
 	"os"
+
 	"os/signal"
 
 	"github.com/go-kit/kit/log"

@@ -3,13 +3,36 @@ syntax = "proto3";
 package pb;
 
 import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
 
 service C2AutomationEngine {
-    rpc ListRules (ListRulesRequest) returns (RulesResponse) {}
-    rpc GetRule(GetRuleRequest) returns (RuleResponse) {}
-    rpc AddRule (AddRuleRequest) returns (RuleResponse) {}
-    rpc UpdateRule (UpdateRuleRequest) returns (RuleResponse) {}
-    rpc DeleteRule (DeleteRuleRequest) returns (DeleteRuleResponse) {}
+    rpc ListRules (ListRulesRequest) returns (RulesResponse) {
+        option (google.api.http) = {
+              get: "/rules"
+        };
+    }
+    rpc GetRule(GetRuleRequest) returns (RuleResponse) {
+        option (google.api.http) = {
+            get: "/rules/{ruleId}"
+        };
+    }
+    rpc AddRule (AddRuleRequest) returns (RuleResponse) {
+        option (google.api.http) = {
+            post: "/rules"
+            body: "*"
+        };
+    }
+    rpc UpdateRule (UpdateRuleRequest) returns (RuleResponse) {
+        option (google.api.http) = {
+            put: "/rules"
+            body: "*"
+        };
+    }
+    rpc DeleteRule (DeleteRuleRequest) returns (DeleteRuleResponse) {
+        option (google.api.http) = {
+            delete: "/rules/{ruleId}"
+        };
+    }
 }
 
 enum ActionType {
@@ -42,7 +65,6 @@ message Trigger {
     int32 id = 1;
     TriggerType type = 2;
     bytes settings = 3;
-    bytes state = 4;
 }
 
 message Rule {

@@ -107,7 +107,6 @@ func createRules(t *testing.T, srv RuleService) (rule1 models.Rule, rule2 models
 				ID:          1,
 				TriggerType: pb.TriggerType_TIME_INTERVAL,
 				Settings:    []byte("settings1"),
-				State:       []byte("state1"),
 			},
 		},
 	}
@@ -127,7 +126,6 @@ func createRules(t *testing.T, srv RuleService) (rule1 models.Rule, rule2 models
 				ID:          2,
 				TriggerType: pb.TriggerType_CLIENT_SUBSCRIBED,
 				Settings:    []byte("settings2"),
-				State:       []byte("state2"),
 			},
 		},
 	}

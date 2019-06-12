@@ -30,5 +30,4 @@ type Trigger struct {
 	RuleID      int `gorm:"type:int REFERENCES rules(id) ON DELETE CASCADE"`
 	TriggerType pb.TriggerType
 	Settings    []byte
-	State       []byte
 }

@@ -108,7 +108,6 @@ func (c *converter) TriggerToPb(trigger Trigger) (*pb.Trigger, error) {
 		Id:       int32(trigger.ID),
 		Type:     trigger.TriggerType,
 		Settings: trigger.Settings,
-		State:    trigger.State,
 	}, nil
 }
 
@@ -174,7 +173,6 @@ func (c *converter) PbToTrigger(trigger *pb.Trigger) (Trigger, error) {
 		ID:          int(trigger.Id),
 		TriggerType: trigger.Type,
 		Settings:    trigger.Settings,
-		State:       trigger.State,
 	}, nil
 }
 

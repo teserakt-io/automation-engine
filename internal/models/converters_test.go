@@ -17,19 +17,16 @@ func TestConverter(t *testing.T) {
 	trigger1 := Trigger{
 		ID:          1,
 		Settings:    []byte("settings1"),
-		State:       []byte("state1"),
 		TriggerType: pb.TriggerType_CLIENT_SUBSCRIBED,
 	}
 	trigger2 := Trigger{
 		ID:          2,
 		Settings:    []byte("settings2"),
-		State:       []byte("state2"),
 		TriggerType: pb.TriggerType_TIME_INTERVAL,
 	}
 	trigger3 := Trigger{
 		ID:          3,
 		Settings:    []byte("settings3"),
-		State:       []byte("state3"),
 		TriggerType: pb.TriggerType_CLIENT_UNSUBSCRIBED,
 	}
 
@@ -155,10 +152,6 @@ func assertSameTrigger(t *testing.T, trigger Trigger, pbTrigger *pb.Trigger) {
 
 	if bytes.Equal(trigger.Settings, pbTrigger.Settings) == false {
 		t.Errorf("Expected trigger settings to be %v, got %v", trigger.Settings, pbTrigger.Settings)
-	}
-
-	if bytes.Equal(trigger.State, pbTrigger.State) == false {
-		t.Errorf("Expected trigger state to be %v, got %v", trigger.State, pbTrigger.State)
 	}
 }
 

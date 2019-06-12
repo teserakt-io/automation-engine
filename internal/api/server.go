@@ -2,9 +2,13 @@ package api
 
 import (
 	context "context"
+	"fmt"
 	"net"
+	"net/http"
 
 	"github.com/go-kit/kit/log"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/soheilhy/cmux"
 	"go.opencensus.io/trace"
 	grpc "google.golang.org/grpc"
 
@@ -59,12 +63,64 @@ func (s *apiServer) ListenAndServe(ctx context.Context) error {
 		s.logger.Log("msg", "failed to listen", "error", err)
 		return err
 	}
+	defer lis.Close()
+
+	errChan := make(chan error, 1)
+
+	m := cmux.New(lis)
+
+	// Start the gRPC and HTTP/JSON (grpc-gateway) servers on the same port.
+	grpcL := m.MatchWithWriters(
+		cmux.HTTP2MatchHeaderFieldSendSettings("content-type", "application/grpc"),
+		cmux.HTTP2MatchHeaderFieldSendSettings("content-type", "application/grpc+proto"),
+	)
+	httpL := m.Match(cmux.Any())
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterC2AutomationEngineServer(grpcServer, s)
 
-	s.logger.Log("msg", "starting api grpc server", "addr", s.addr)
-	return grpcServer.Serve(lis)
+	httpMux := runtime.NewServeMux()
+	opts := []grpc.DialOption{grpc.WithInsecure()}
+	err = pb.RegisterC2AutomationEngineHandlerFromEndpoint(ctx, httpMux, lis.Addr().String(), opts)
+	if err != nil {
+		return fmt.Errorf("failed to register http listener : %v", err)
+	}
+
+	go func() {
+		s.logger.Log("msg", "starting api grpc server", "addr", s.addr)
+		select {
+		case errChan <- grpcServer.Serve(grpcL):
+		case <-ctx.Done():
+			return
+		}
+	}()
+
+	go func() {
+		s.logger.Log("msg", "starting api http server", "addr", s.addr)
+		select {
+		case errChan <- http.Serve(httpL, httpMux):
+		case <-ctx.Done():
+			return
+		}
+	}()
+
+	go func() {
+		select {
+		case errChan <- m.Serve():
+		case <-ctx.Done():
+			return
+		}
+	}()
+
+	s.logger.Log("msg", "api server ready to accept connexions")
+
+	select {
+	case err := <-errChan:
+		return err
+	case <-ctx.Done():
+		s.logger.Log("msg", "stopping api server")
+		return ctx.Err()
+	}
 }
 
 func (s *apiServer) ListRules(ctx context.Context, req *pb.ListRulesRequest) (*pb.RulesResponse, error) {
@@ -109,9 +165,19 @@ func (s *apiServer) AddRule(ctx context.Context, req *pb.AddRuleRequest) (*pb.Ru
 	ctx, span := trace.StartSpan(ctx, "AddRule")
 	defer span.End()
 
+	// Force creation of new triggers
+	for i := 0; i < len(req.Triggers); i++ {
+		req.Triggers[i].Id = 0
+	}
+
 	triggers, err := s.converter.PbToTriggers(req.Triggers)
 	if err != nil {
 		return nil, err
+	}
+
+	// Force creation of new targets
+	for i := 0; i < len(req.Targets); i++ {
+		req.Targets[i].Id = 0
 	}
 
 	targets, err := s.converter.PbToTargets(req.Targets)
