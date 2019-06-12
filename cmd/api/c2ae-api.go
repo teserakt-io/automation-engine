@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	stdlog "log"
 	"os"
 	"os/signal"
 
@@ -47,6 +48,9 @@ func main() {
 	logger = log.With(logger, "ts", log.DefaultTimestampUTC, "caller", log.DefaultCaller)
 	defer logger.Log("msg", "goodbye")
 
+	// compatibility for packages that do not understand go-kit logger:
+	stdLogger := stdlog.New(log.NewStdlibAdapter(logger), "", 0)
+
 	configResolver, err := slibpath.NewAppPathResolver(os.Args[0])
 	if err != nil {
 		logger.Log("msg", "failed to create configuration resolver", "error", err)
@@ -71,18 +75,7 @@ func main() {
 
 	logger.Log("msg", "successfully loaded configuration")
 
-	cnxStr, err := appConfig.DB.ConnectionString()
-	if err != nil {
-		logger.Log("msg", "failed to create database connection string: %v", err)
-		exitCode = 1
-		return
-	}
-
-	db, err := models.NewDB(models.DBConfig{
-		Dialect:   appConfig.DB.Type.String(),
-		CnxString: cnxStr,
-		LogMode:   appConfig.DB.Logging,
-	})
+	db, err := models.NewDB(appConfig.DB, stdLogger)
 	if err != nil {
 		logger.Log("msg", "database creation failed", "error", err)
 		exitCode = 1
@@ -112,7 +105,8 @@ func main() {
 	c2Requester := services.NewC2Requester(c2ClientFactory)
 	// TODO: we might want to test the connection here and fail if C2 isn't running, or certs are bad...
 	// Maybe add a Ping() to the C2 server allowing to test the connection / C2 health without
-	// sending a real commands.
+	// sending a real commands. Otherwise we just establish C2 connections only when sending an actual
+	// command, ie: when a rule trigger.
 	c2client := services.NewC2(c2Requester)
 
 	triggerWatcherFactory := watchers.NewTriggerWatcherFactory(log.With(logger, "type", "triggerWatcher"))

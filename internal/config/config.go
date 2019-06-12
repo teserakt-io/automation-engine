@@ -69,7 +69,7 @@ func (c *API) ViperCfgFields() []slibcfg.ViperCfgField {
 		{&c.DB.Username, "db-username", slibcfg.ViperString, "", "C2AE_DB_USERNAME"},
 		{&c.DB.Password, "db-password", slibcfg.ViperString, "", "C2AE_DB_PASSWORD"},
 		{&c.DB.Passphrase, "db-encryption-passphrase", slibcfg.ViperString, "", "C2AE_DB_ENCRYPTION_PASSPHRASE"},
-		{&c.DB.SecureConnection, "db-secure-connection", slibcfg.ViperDBSecureConnection, "enable", "E4C2AE_DB_SECURE_CONNECTION"},
+		{&c.DB.SecureConnection, "db-secure-connection", slibcfg.ViperDBSecureConnection, slibcfg.DBSecureConnectionEnabled, "E4C2AE_DB_SECURE_CONNECTION"},
 
 		{&c.C2Endpoint, "c2-host-port", slibcfg.ViperString, "localhost:5555", "C2AE_C2_ENDPOINT"},
 		{&c.C2Certificate, "c2-cert", slibcfg.ViperRelativePath, "", "C2AE_C2CERT_PATH"},

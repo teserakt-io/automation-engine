@@ -3,14 +3,17 @@ package services
 import (
 	"context"
 	"io/ioutil"
+	"log"
 	"os"
 	"reflect"
 	"testing"
 
 	"github.com/jinzhu/gorm"
 
+	"gitlab.com/teserakt/c2ae/internal/config"
 	"gitlab.com/teserakt/c2ae/internal/models"
 	"gitlab.com/teserakt/c2ae/internal/pb"
+	slibcfg "gitlab.com/teserakt/serverlib/config"
 )
 
 func getTestDB(t *testing.T) (models.Database, func()) {
@@ -19,11 +22,13 @@ func getTestDB(t *testing.T) (models.Database, func()) {
 		t.Fatalf("Cannot create temporary file: %s", err)
 	}
 
-	db, err := models.NewDB(models.DBConfig{
-		Dialect:   models.DBDialectSQLite,
-		CnxString: f.Name(),
-		LogMode:   false,
-	})
+	logger := log.New(os.Stdout, "", 0)
+
+	db, err := models.NewDB(config.DBCfg{
+		Type:    slibcfg.DBTypeSQLite,
+		File:    f.Name(),
+		Logging: false,
+	}, logger)
 
 	if err != nil {
 		t.Fatalf("Cannot open database: %s", err)
