@@ -3,6 +3,13 @@ version: '3.7'
 services:
   postgres:
     image: postgres:alpine
+    environment:
+      # Must be same as in configs/config.yaml#db-password
+      - POSTGRES_PASSWORD=teserakte4
+      # Must be same as configs/config.yaml#db-username
+      - POSTGRES_USER=c2ae_test
+      # Must be same as configs/config.yaml#db-database
+      - POSTGRES_DB=e4
     ports:
       - 127.0.0.1:5432:5432
     volumes:

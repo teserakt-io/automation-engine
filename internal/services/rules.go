@@ -60,7 +60,7 @@ func (s *ruleService) All(ctx context.Context) ([]models.Rule, error) {
 	ctx, span := trace.StartSpan(ctx, "RuleService.All")
 	defer span.End()
 
-	var rules []models.Rule
+	rules := []models.Rule{}
 	if result := s.gorm().Find(&rules); result.Error != nil {
 		return nil, result.Error
 	}
@@ -86,7 +86,6 @@ func (s *ruleService) ByID(ctx context.Context, ruleID int) (models.Rule, error)
 	defer span.End()
 
 	r := models.Rule{}
-
 	if result := s.gorm().First(&r, ruleID); result.Error != nil {
 		return r, result.Error
 	}
@@ -100,17 +99,9 @@ func (s *ruleService) TriggerByID(ctx context.Context, triggerID int) (models.Tr
 	defer span.End()
 
 	t := models.Trigger{}
-
 	if result := s.gorm().First(&t, triggerID); result.Error != nil {
 		return t, result.Error
 	}
-
-	// Fetch related rule
-	rule, err := s.ByID(ctx, t.RuleID)
-	if err != nil {
-		return t, err
-	}
-	t.Rule = &rule
 
 	return t, nil
 }
@@ -121,17 +112,9 @@ func (s *ruleService) TargetByID(ctx context.Context, targetID int) (models.Targ
 	defer span.End()
 
 	t := models.Target{}
-
 	if result := s.gorm().First(&t, targetID); result.Error != nil {
 		return t, result.Error
 	}
-
-	// Fetch related rule
-	rule, err := s.ByID(ctx, t.RuleID)
-	if err != nil {
-		return t, err
-	}
-	t.Rule = &rule
 
 	return t, nil
 }

@@ -13,6 +13,7 @@ import (
 
 	// import _ "github.com/jinzhu/gorm/dialects/mysql"
 	// import _ "github.com/jinzhu/gorm/dialects/mssql"
+	slibcfg "gitlab.com/teserakt/serverlib/config"
 
 	"gitlab.com/teserakt/c2ae/internal/config"
 )
@@ -20,12 +21,6 @@ import (
 var (
 	// ErrUnsupportedDialect is returned when creating a new database with a Config having an unsupported dialect
 	ErrUnsupportedDialect = errors.New("unsupported database dialect")
-)
-
-// List of available DB dialects (adding new ones imply importing the matching driver as well)
-const (
-	DBDialectSQLite   = "sqlite3"
-	DBDialectPostgres = "postgres"
 )
 
 // Database describes a generic database implementation
@@ -59,7 +54,6 @@ func NewDB(config config.DBCfg, logger *log.Logger) (Database, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Print(cnxStr)
 
 	db, err = gorm.Open(config.Type.String(), cnxStr)
 	if err != nil {
@@ -80,11 +74,14 @@ func (gdb *gormDB) Migrate() error {
 	gdb.logger.Println("Database Migration Started.")
 
 	switch gdb.config.Type {
-	case DBDialectSQLite:
+	case slibcfg.DBTypeSQLite:
 		// Enable foreign key support for sqlite3
 		gdb.Connection().Exec("PRAGMA foreign_keys = ON")
-	case DBDialectPostgres:
-		gdb.Connection().Exec(fmt.Sprintf("SET search_path TO %s;", gdb.config.Schema))
+	case slibcfg.DBTypePostgres:
+		result := gdb.Connection().Exec(fmt.Sprintf("SET search_path TO %s;", gdb.config.Schema))
+		if result.Error != nil {
+			return result.Error
+		}
 	}
 
 	result := gdb.Connection().AutoMigrate(

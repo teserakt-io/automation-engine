@@ -1,0 +1,2 @@
+
+CREATE SCHEMA c2ae_test AUTHORIZATION c2ae_test;

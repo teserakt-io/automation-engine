@@ -9,6 +9,8 @@ NOW=$(shell  date "+%Y%m%d")
 GOOS=$(shell uname -s | tr '[:upper:]' '[:lower:]')
 GOARCH=amd64
 
+C2AETEST_POSTGRES="${C2AETEST_POSTGRES:-}"
+
 .PHONY: help
 help: ## This help.
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -24,7 +26,8 @@ build-api:
 
 .PHONY: test
 test: ## Run tests
-	go test -coverprofile=/tmp/go-code-cover -race -timeout 10s  ./...
+	@if ! test -z "$$C2AETEST_POSTGRES"; then echo "C2AETEST_POSTGRES => enabled"; else echo "C2AETEST_POSTGRES => disabled"; fi; \
+	go test -v -coverprofile=/tmp/go-code-cover -race -timeout 10s  ./...
 
 .PHONY: generate
 generate: ## Generate mocks and proto files
