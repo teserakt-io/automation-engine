@@ -5,7 +5,6 @@ import (
 	"fmt"
 	stdlog "log"
 	"os"
-
 	"os/signal"
 
 	"github.com/go-kit/kit/log"
@@ -128,7 +127,7 @@ func main() {
 	)
 
 	server := api.NewServer(
-		appConfig.Addr,
+		appConfig.Server,
 		ruleService,
 		converter,
 		log.With(logger, "type", "apiServer"),

@@ -1,17 +1,24 @@
 package api
 
 import (
-	context "context"
+	"bytes"
+	"context"
+	"fmt"
+	"io/ioutil"
+	"net"
+	"net/http"
 	"reflect"
 	"testing"
 	"time"
 
+	"gitlab.com/teserakt/c2ae/internal/config"
 	"gitlab.com/teserakt/c2ae/internal/models"
 	"gitlab.com/teserakt/c2ae/internal/pb"
 	"gitlab.com/teserakt/c2ae/internal/services"
 
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
+	"google.golang.org/grpc"
 )
 
 func assertRulesModified(t *testing.T, rulesModifiedChan <-chan bool, expectedModified bool) {
@@ -28,7 +35,24 @@ func TestServer(t *testing.T) {
 	mockConverter := models.NewMockConverter(mockCtrl)
 	mockRuleService := services.NewMockRuleService(mockCtrl)
 
-	server := NewServer(":0", mockRuleService, mockConverter, log.NewNopLogger())
+	grpcLis, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("Failed to obtain a free address: %v", err)
+	}
+	httpLis, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("Failed to obtain a free address: %v", err)
+	}
+
+	serverCfg := config.ServerCfg{
+		GRPCAddr: grpcLis.Addr().String(),
+		HTTPAddr: httpLis.Addr().String(),
+	}
+
+	grpcLis.Close()
+	httpLis.Close()
+
+	server := NewServer(serverCfg, mockRuleService, mockConverter, log.NewNopLogger())
 
 	rulesModifiedChan := make(chan bool)
 	go func() {
@@ -200,7 +224,6 @@ func TestServer(t *testing.T) {
 	})
 
 	t.Run("GetRule returns expected rule", func(t *testing.T) {
-
 		req := &pb.GetRuleRequest{
 			RuleId: 1,
 		}
@@ -222,4 +245,77 @@ func TestServer(t *testing.T) {
 			t.Errorf("Expected rule to be %#v, got %#v", pbRule, resp.Rule)
 		}
 	})
+
+	t.Run("ListenAndServe listen for grpc or http requests", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		errChan := make(chan error)
+
+		go func() {
+			errChan <- server.ListenAndServe(ctx)
+		}()
+
+		select {
+		case err := <-errChan:
+			t.Errorf("Expected no error, got %v", err)
+		case <-time.After(1 * time.Second):
+		}
+
+		rules := []models.Rule{
+			models.Rule{ID: 1},
+			models.Rule{ID: 2},
+			models.Rule{ID: 3},
+		}
+
+		pbRules := []*pb.Rule{
+			&pb.Rule{Id: 1},
+			&pb.Rule{Id: 2},
+			&pb.Rule{Id: 3},
+		}
+
+		mockRuleService.EXPECT().All(gomock.Any()).AnyTimes().Return(rules, nil)
+		mockConverter.EXPECT().RulesToPb(rules).AnyTimes().Return(pbRules, nil)
+
+		// Test retrieve all rules with a GRPC client
+		grpcClient := newGrpcClient(t, serverCfg.GRPCAddr)
+		grpcResp, err := grpcClient.ListRules(context.Background(), &pb.ListRulesRequest{})
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+
+		if len(grpcResp.Rules) != len(pbRules) {
+			t.Errorf("Expected %d rules, got %d", len(pbRules), len(grpcResp.Rules))
+		}
+
+		for i, r := range grpcResp.Rules {
+			if r.Id != pbRules[i].Id {
+				t.Errorf("Expected ruleID to be %d, got %d", pbRules[i].Id, r.Id)
+			}
+		}
+
+		// Test retrieve all rule with a HTTP request
+		httpEndpoint := fmt.Sprintf("http://%s/rules", serverCfg.HTTPAddr)
+		req, err := http.NewRequest("GET", httpEndpoint, bytes.NewBuffer(nil))
+		if err != nil {
+			t.Fatalf("Failed to create request: %v", err)
+		}
+
+		//req.Header.Add("Content-Type", "application/json")
+		httpResp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Errorf("HTTP request failed: %v", err)
+		}
+		d, err := ioutil.ReadAll(httpResp.Body)
+		t.Log(string(d), err)
+	})
+}
+
+func newGrpcClient(t *testing.T, addr string) pb.C2AutomationEngineClient {
+	cnx, err := grpc.Dial(addr, grpc.WithInsecure())
+	if err != nil {
+		t.Fatalf("failed to dial: %v", err)
+	}
+
+	return pb.NewC2AutomationEngineClient(cnx)
 }

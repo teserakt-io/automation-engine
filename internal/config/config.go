@@ -10,12 +10,18 @@ import (
 
 // API describes the configuration required for the API application
 type API struct {
-	Addr                string
+	Server              ServerCfg
 	DB                  DBCfg
 	C2Endpoint          string
 	C2Certificate       string
 	OpencensusSampleAll bool
 	OpencensusAddress   string
+}
+
+// ServerCfg holds configuration for api server
+type ServerCfg struct {
+	GRPCAddr string
+	HTTPAddr string
 }
 
 // DBCfg holds configuration for databases
@@ -38,7 +44,8 @@ var (
 	ErrC2EndpointRequired      = errors.New("c2 endpoint is required")
 	ErrC2CertificateRequired   = errors.New("c2 certificate is required")
 	ErrC2CertificatePath       = errors.New("c2 certificate can't be read")
-	ErrListenAddrRequired      = errors.New("listen address is required")
+	ErrGRPCListenAddrRequired  = errors.New("grpc listen address is required")
+	ErrHTTPListenAddrRequired  = errors.New("http listen address is required")
 	ErrNoPassphrase            = errors.New("no database passphrase supplied")
 	ErrNoDBAddr                = errors.New("no database address supplied")
 	ErrNoDatabase              = errors.New("no database name supplied")
@@ -58,7 +65,8 @@ func NewAPI() *API {
 // ViperCfgFields returns the list of configuration bound's fields to be loaded by viper
 func (c *API) ViperCfgFields() []slibcfg.ViperCfgField {
 	return []slibcfg.ViperCfgField{
-		{&c.Addr, "listen", slibcfg.ViperString, "localhost:5556", "C2AE_LISTEN_ADDR"},
+		{&c.Server.GRPCAddr, "listen-grpc", slibcfg.ViperString, "localhost:5556", "C2AE_GRPC_LISTEN_ADDR"},
+		{&c.Server.HTTPAddr, "listen-http", slibcfg.ViperString, "localhost:8886", "C2AE_HTTP_LISTEN_ADDR"},
 
 		{&c.DB.Logging, "db-logging", slibcfg.ViperBool, false, ""},
 		{&c.DB.Type, "db-type", slibcfg.ViperDBType, "sqlite3", "C2AE_DB_TYPE"},
@@ -81,8 +89,8 @@ func (c *API) ViperCfgFields() []slibcfg.ViperCfgField {
 
 // Validate checks configuration and return errors when invalid
 func (c API) Validate() error {
-	if len(c.Addr) == 0 {
-		return ErrListenAddrRequired
+	if err := c.Server.Validate(); err != nil {
+		return err
 	}
 
 	if err := c.DB.Validate(); err != nil {
@@ -99,6 +107,19 @@ func (c API) Validate() error {
 
 	if _, err := os.Stat(c.C2Certificate); err != nil {
 		return ErrC2CertificatePath
+	}
+
+	return nil
+}
+
+// Validate checks ServerCfg and returns an error if anything is invalid
+func (c ServerCfg) Validate() error {
+	if len(c.GRPCAddr) == 0 {
+		return ErrGRPCListenAddrRequired
+	}
+
+	if len(c.HTTPAddr) == 0 {
+		return ErrHTTPListenAddrRequired
 	}
 
 	return nil

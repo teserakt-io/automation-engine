@@ -25,17 +25,23 @@ func TestConfig(t *testing.T) {
 		}{
 			{
 				cfg:         API{},
-				expectedErr: ErrListenAddrRequired,
+				expectedErr: ErrGRPCListenAddrRequired,
 			},
 			{
 				cfg: API{
-					Addr: "127.0.0.1:5556",
+					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556"},
+				},
+				expectedErr: ErrHTTPListenAddrRequired,
+			},
+			{
+				cfg: API{
+					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
 				},
 				expectedErr: ErrNoPassphrase,
 			},
 			{
 				cfg: API{
-					Addr: "127.0.0.1:5556",
+					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
 					DB: DBCfg{
 						Passphrase: "something",
 					},
@@ -44,7 +50,7 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Addr: "127.0.0.1:5556",
+					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
 					DB: DBCfg{
 						Passphrase: "something",
 						Type:       slibcfg.DBTypeSQLite,
@@ -54,7 +60,7 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Addr: "127.0.0.1:5556",
+					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
 					DB: DBCfg{
 						Passphrase: "something",
 						Type:       slibcfg.DBTypeSQLite,
@@ -65,7 +71,7 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Addr: "127.0.0.1:5556",
+					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
 					DB: DBCfg{
 						Passphrase: "something",
 						Type:       slibcfg.DBTypeSQLite,
@@ -77,7 +83,7 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Addr: "127.0.0.1:5556",
+					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
 					DB: DBCfg{
 						Passphrase: "something",
 						Type:       slibcfg.DBTypeSQLite,
@@ -90,7 +96,7 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Addr: "127.0.0.1:5556",
+					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
 					DB: DBCfg{
 						Passphrase: "something",
 						Type:       slibcfg.DBTypeSQLite,
@@ -103,7 +109,7 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Addr: "127.0.0.1:5556",
+					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
 					DB: DBCfg{
 						Type: slibcfg.DBTypePostgres,
 					},
@@ -114,7 +120,7 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Addr: "127.0.0.1:5556",
+					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
 					DB: DBCfg{
 						Type:       slibcfg.DBTypePostgres,
 						Passphrase: "something",
@@ -126,7 +132,7 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Addr: "127.0.0.1:5556",
+					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
 					DB: DBCfg{
 						Type:       slibcfg.DBTypePostgres,
 						Passphrase: "something",
@@ -139,7 +145,7 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Addr: "127.0.0.1:5556",
+					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
 					DB: DBCfg{
 						Type:       slibcfg.DBTypePostgres,
 						Passphrase: "something",
@@ -153,7 +159,7 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Addr: "127.0.0.1:5556",
+					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
 					DB: DBCfg{
 						Type:       slibcfg.DBTypePostgres,
 						Passphrase: "something",
@@ -168,7 +174,7 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Addr: "127.0.0.1:5556",
+					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
 					DB: DBCfg{
 						Type:       slibcfg.DBTypePostgres,
 						Passphrase: "something",
@@ -184,7 +190,7 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Addr: "127.0.0.1:5556",
+					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
 					DB: DBCfg{
 						Type:       slibcfg.DBTypePostgres,
 						Passphrase: "something",
@@ -201,7 +207,7 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Addr: "127.0.0.1:5556",
+					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
 					DB: DBCfg{
 						Type:             slibcfg.DBTypePostgres,
 						Passphrase:       "something",
@@ -219,7 +225,7 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Addr: "127.0.0.1:5556",
+					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
 					DB: DBCfg{
 						Type:             slibcfg.DBTypePostgres,
 						Passphrase:       "something",
@@ -237,7 +243,7 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Addr: "127.0.0.1:5556",
+					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
 					DB: DBCfg{
 						Type:             slibcfg.DBTypePostgres,
 						Passphrase:       "something",

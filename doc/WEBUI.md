@@ -59,7 +59,7 @@ See [api.swagger.json](./api.swagger.json)
 - From the enums, the "UNDEFINED_*" values shouldn't appear on the UI.
 - Taking apart the pbAction's UNDEFINED_ACTION, there is only one KEY_ROTATION action left, but consider more to be added in the futur
 - When creating or updating a rule, pushing new pbTrigger or pbTarget objects in its triggers / targets properties will create them linked to the current pbRule. The id field of the new pbTrigger / pbTarget can be ommited in this case (or set to 0, but better to not set it at all).
-- The pbTrigger settings field is expected to be a json object, transmitted as a base64 string to the API. Its content is fixed by the pbTriggerType, see `pbTriggerType settings section below for details`
+- The pbTrigger settings field is expected to be a json object, transmitted as a base64 string to the API. Its content is fixed by the pbTriggerType, see `pbTriggerType settings` section below for details
 - The target expression field is expecting a valid regular expression.
 
 ### pbTriggerType settings

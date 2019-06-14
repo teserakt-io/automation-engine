@@ -8,10 +8,10 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/soheilhy/cmux"
 	"go.opencensus.io/trace"
 	grpc "google.golang.org/grpc"
 
+	"gitlab.com/teserakt/c2ae/internal/config"
 	"gitlab.com/teserakt/c2ae/internal/models"
 	"gitlab.com/teserakt/c2ae/internal/pb"
 	"gitlab.com/teserakt/c2ae/internal/services"
@@ -25,7 +25,7 @@ type Server interface {
 }
 
 type apiServer struct {
-	addr        string
+	cfg         config.ServerCfg
 	ruleService services.RuleService
 	converter   models.Converter
 	logger      log.Logger
@@ -37,13 +37,13 @@ var _ pb.C2AutomationEngineServer = &apiServer{}
 
 // NewServer creates a new Server implementing the C2AutomationEngineServer interface
 func NewServer(
-	addr string,
+	cfg config.ServerCfg,
 	ruleService services.RuleService,
 	converter models.Converter,
 	logger log.Logger,
 ) Server {
 	return &apiServer{
-		addr:        addr,
+		cfg:         cfg,
 		ruleService: ruleService,
 		converter:   converter,
 		logger:      logger,
@@ -58,58 +58,26 @@ func (s *apiServer) RulesModifiedChan() <-chan bool {
 
 func (s *apiServer) ListenAndServe(ctx context.Context) error {
 	var lc net.ListenConfig
-	lis, err := lc.Listen(ctx, "tcp", s.addr)
+	grpcLis, err := lc.Listen(ctx, "tcp", s.cfg.GRPCAddr)
 	if err != nil {
-		s.logger.Log("msg", "failed to listen", "error", err)
+		s.logger.Log("msg", "failed to listen", "addr", s.cfg.GRPCAddr, "error", err)
 		return err
 	}
-	defer lis.Close()
+	defer grpcLis.Close()
 
-	errChan := make(chan error, 1)
-
-	m := cmux.New(lis)
-
-	// Start the gRPC and HTTP/JSON (grpc-gateway) servers on the same port.
-	grpcL := m.MatchWithWriters(
-		cmux.HTTP2MatchHeaderFieldSendSettings("content-type", "application/grpc"),
-		cmux.HTTP2MatchHeaderFieldSendSettings("content-type", "application/grpc+proto"),
-	)
-	httpL := m.Match(cmux.Any())
-
-	grpcServer := grpc.NewServer()
-	pb.RegisterC2AutomationEngineServer(grpcServer, s)
-
-	httpMux := runtime.NewServeMux()
-	opts := []grpc.DialOption{grpc.WithInsecure()}
-	err = pb.RegisterC2AutomationEngineHandlerFromEndpoint(ctx, httpMux, lis.Addr().String(), opts)
+	httpLis, err := lc.Listen(ctx, "tcp", s.cfg.HTTPAddr)
 	if err != nil {
-		return fmt.Errorf("failed to register http listener : %v", err)
+		s.logger.Log("msg", "failed to listen", "addr", s.cfg.HTTPAddr, "error", err)
+		return err
 	}
+	defer httpLis.Close()
 
+	errChan := make(chan error)
 	go func() {
-		s.logger.Log("msg", "starting api grpc server", "addr", s.addr)
-		select {
-		case errChan <- grpcServer.Serve(grpcL):
-		case <-ctx.Done():
-			return
-		}
+		errChan <- s.listenAndServeGRPC(ctx, grpcLis)
 	}()
-
 	go func() {
-		s.logger.Log("msg", "starting api http server", "addr", s.addr)
-		select {
-		case errChan <- http.Serve(httpL, httpMux):
-		case <-ctx.Done():
-			return
-		}
-	}()
-
-	go func() {
-		select {
-		case errChan <- m.Serve():
-		case <-ctx.Done():
-			return
-		}
+		errChan <- s.listenAndServeHTTP(ctx, httpLis)
 	}()
 
 	s.logger.Log("msg", "api server ready to accept connexions")
@@ -118,9 +86,28 @@ func (s *apiServer) ListenAndServe(ctx context.Context) error {
 	case err := <-errChan:
 		return err
 	case <-ctx.Done():
-		s.logger.Log("msg", "stopping api server")
 		return ctx.Err()
 	}
+}
+
+func (s *apiServer) listenAndServeGRPC(ctx context.Context, lis net.Listener) error {
+	grpcServer := grpc.NewServer()
+	pb.RegisterC2AutomationEngineServer(grpcServer, s)
+
+	s.logger.Log("msg", "starting grpc listener", "addr", lis.Addr().String())
+	return grpcServer.Serve(lis)
+}
+
+func (s *apiServer) listenAndServeHTTP(ctx context.Context, lis net.Listener) error {
+	httpMux := runtime.NewServeMux()
+	opts := []grpc.DialOption{grpc.WithInsecure()}
+	err := pb.RegisterC2AutomationEngineHandlerFromEndpoint(ctx, httpMux, s.cfg.GRPCAddr, opts)
+	if err != nil {
+		return fmt.Errorf("failed to register http listener : %v", err)
+	}
+
+	s.logger.Log("msg", "starting http listener", "addr", lis.Addr().String())
+	return http.Serve(lis, httpMux)
 }
 
 func (s *apiServer) ListRules(ctx context.Context, req *pb.ListRulesRequest) (*pb.RulesResponse, error) {
