@@ -15,18 +15,6 @@ services:
     volumes:
       - ./docker/postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
       - postgres-data:/var/lib/postgresql/data
-  swagger:
-    image: metz/swaggerui
-    ports:
-      - 127.0.0.1:8889:8080
-    volumes:
-      - ./doc/api.swagger.json:/swaggerui/swagger/swagger.json:ro
-
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - 127.0.0.1:8888:8080
 
 volumes:
   postgres-data:

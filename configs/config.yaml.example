@@ -5,7 +5,8 @@
 # C2AE settings
 ###############################################################
 ## interface / port the API will listen on
-listen: localhost:5556
+listen-grpc: localhost:5556
+listen-http: localhost:8886
 
 # Database settings
 ###############################################################
