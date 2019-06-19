@@ -20,12 +20,13 @@ type API struct {
 
 // ServerCfg holds configuration for api server
 type ServerCfg struct {
-	GRPCAddr string
-	GRPCCert string
-	GRPCKey  string
-	HTTPAddr string
-	HTTPCert string
-	HTTPKey  string
+	GRPCAddr     string
+	GRPCCert     string
+	GRPCKey      string
+	HTTPAddr     string
+	HTTPGRPCAddr string
+	HTTPCert     string
+	HTTPKey      string
 }
 
 // DBCfg holds configuration for databases
@@ -63,6 +64,7 @@ var (
 	ErrGRPCKeyRequired         = errors.New("grpc key path is required")
 	ErrHTTPCertRequired        = errors.New("http certificate path is required")
 	ErrHTTPKeyRequired         = errors.New("http key path is required")
+	ErrHTTPGRPCAddrRequired    = errors.New("http-grpc address is required")
 )
 
 // NewAPI creates a new configuration struct for the C2AE api
@@ -77,6 +79,7 @@ func (c *API) ViperCfgFields() []slibcfg.ViperCfgField {
 		{&c.Server.GRPCCert, "grpc-cert", slibcfg.ViperRelativePath, "", "C2AE_GRPC_CERT"},
 		{&c.Server.GRPCKey, "grpc-key", slibcfg.ViperRelativePath, "", "C2AE_GRPC_KEY"},
 		{&c.Server.HTTPAddr, "listen-http", slibcfg.ViperString, "localhost:8886", "C2AE_HTTP_LISTEN_ADDR"},
+		{&c.Server.HTTPGRPCAddr, "http-grpc-addr", slibcfg.ViperString, "localhost:5556", "C2AE_HTTP_GRPC_ADDR"},
 		{&c.Server.HTTPCert, "http-cert", slibcfg.ViperRelativePath, "", "C2AE_HTTP_CERT"},
 		{&c.Server.HTTPKey, "http-key", slibcfg.ViperRelativePath, "", "C2AE_HTTP_KEY"},
 
@@ -140,6 +143,10 @@ func (c ServerCfg) Validate() error {
 
 	if len(c.HTTPAddr) == 0 {
 		return ErrHTTPListenAddrRequired
+	}
+
+	if len(c.HTTPGRPCAddr) == 0 {
+		return ErrHTTPGRPCAddrRequired
 	}
 
 	if len(c.HTTPCert) == 0 {

@@ -58,12 +58,13 @@ func TestServer(t *testing.T) {
 	keyPath := filepath.Join(getRootDir(), "test/data/c2ae-key.pem")
 
 	serverCfg := config.ServerCfg{
-		GRPCAddr: grpcLis.Addr().String(),
-		GRPCCert: certPath,
-		GRPCKey:  keyPath,
-		HTTPAddr: httpLis.Addr().String(),
-		HTTPCert: certPath,
-		HTTPKey:  keyPath,
+		GRPCAddr:     grpcLis.Addr().String(),
+		GRPCCert:     certPath,
+		GRPCKey:      keyPath,
+		HTTPAddr:     httpLis.Addr().String(),
+		HTTPGRPCAddr: grpcLis.Addr().String(),
+		HTTPCert:     certPath,
+		HTTPKey:      keyPath,
 	}
 
 	grpcLis.Close()

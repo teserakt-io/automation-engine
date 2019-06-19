@@ -9,6 +9,7 @@ listen-grpc: localhost:5556
 grpc-cert: c2ae-cert.pem
 grpc-key: c2ae-key.pem
 listen-http: localhost:8886
+http-grpc-addr: 127.0.0.1:5556
 http-cert: c2ae-cert.pem
 http-key: c2ae-key.pem
 
