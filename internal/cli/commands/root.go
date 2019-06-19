@@ -13,6 +13,7 @@ type Command interface {
 
 type rootCommandFlags struct {
 	Endpoint string
+	Cert     string
 }
 
 type rootCommand struct {
@@ -49,6 +50,13 @@ func NewRootCommand(c2aeClientFactory cli.APIClientFactory, version string) Comm
 		cli.EndpointFlag,
 		"e",
 		"127.0.0.1:5556", "url to the c2ae grpc api",
+	)
+
+	cobraCmd.PersistentFlags().StringVarP(
+		&rootCmd.flags.Cert,
+		cli.CertFlag,
+		"c",
+		"configs/c2ae-cert.pem", "path to the c2ae grpc api certificate",
 	)
 
 	cobraCmd.AddCommand(

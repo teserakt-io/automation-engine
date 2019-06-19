@@ -46,5 +46,6 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 WORKDIR /opt/e4
 
 ENV C2AE_API_ENDPOINT="localhost:5556"
+ENV C2AE_API_CERT="/opt/c2ae/c2ae-cert.pem"
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

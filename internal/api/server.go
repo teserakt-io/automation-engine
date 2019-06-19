@@ -10,6 +10,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"go.opencensus.io/trace"
 	grpc "google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 
 	"gitlab.com/teserakt/c2ae/internal/config"
 	"gitlab.com/teserakt/c2ae/internal/models"
@@ -91,7 +92,15 @@ func (s *apiServer) ListenAndServe(ctx context.Context) error {
 }
 
 func (s *apiServer) listenAndServeGRPC(ctx context.Context, lis net.Listener) error {
-	grpcServer := grpc.NewServer()
+	creds, err := credentials.NewServerTLSFromFile(s.cfg.GRPCCert, s.cfg.GRPCKey)
+	if err != nil {
+		s.logger.Log("msg", "failed to get credentials", "cert", s.cfg.GRPCCert, "key", s.cfg.GRPCKey, "error", err)
+		return err
+	}
+
+	s.logger.Log("msg", "using TLS for gRPC", "cert", s.cfg.GRPCAddr, "key", s.cfg.GRPCKey)
+
+	grpcServer := grpc.NewServer(grpc.Creds(creds))
 	pb.RegisterC2AutomationEngineServer(grpcServer, s)
 
 	s.logger.Log("msg", "starting grpc listener", "addr", lis.Addr().String())
@@ -99,15 +108,20 @@ func (s *apiServer) listenAndServeGRPC(ctx context.Context, lis net.Listener) er
 }
 
 func (s *apiServer) listenAndServeHTTP(ctx context.Context, lis net.Listener) error {
+	creds, err := credentials.NewClientTLSFromFile(s.cfg.GRPCCert, "")
+	if err != nil {
+		return fmt.Errorf("failed to create TLS credentials from %v: %v", s.cfg.GRPCCert, err)
+	}
+
 	httpMux := runtime.NewServeMux()
-	opts := []grpc.DialOption{grpc.WithInsecure()}
-	err := pb.RegisterC2AutomationEngineHandlerFromEndpoint(ctx, httpMux, s.cfg.GRPCAddr, opts)
+	opts := []grpc.DialOption{grpc.WithTransportCredentials(creds)}
+	err = pb.RegisterC2AutomationEngineHandlerFromEndpoint(ctx, httpMux, s.cfg.HTTPGRPCAddr, opts)
 	if err != nil {
 		return fmt.Errorf("failed to register http listener : %v", err)
 	}
 
 	s.logger.Log("msg", "starting http listener", "addr", lis.Addr().String())
-	return http.Serve(lis, httpMux)
+	return http.ServeTLS(lis, httpMux, s.cfg.HTTPCert, s.cfg.HTTPKey)
 }
 
 func (s *apiServer) ListRules(ctx context.Context, req *pb.ListRulesRequest) (*pb.RulesResponse, error) {
