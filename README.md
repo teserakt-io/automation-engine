@@ -11,7 +11,15 @@ It also start the c2ae engine, which will monitor existing rule triggers and pro
 ### Usage
 
 ```bash
+# Init config
 cp configs/config.yaml.example configs/config.yaml
+# Generate TLS certificate
+openssl req -nodes -newkey rsa:2048 -keyout configs/c2ae-key.pem -x509 -sha256 -days 365 -out configs/c2ae-cert.pem -subj "/CN=localhost" -addext "subjectAltName = 'IP:127.0.0.1'"
+
+# Retrieve c2 certificate
+cp /path/to/c2/configs/c2-cert.pem configs/c2-cert.pem
+
+# Run api server
 ./bin/c2ae-api
 ```
 
@@ -28,6 +36,13 @@ The cli client allow to define new rules and list currently defined ones by inte
 
 ```bash
 ./bin/c2ae-cli --help
+```
+
+It require a C2AE-API running and can be specified where to connect to using the `--endpoint` and `--cert` global flags.
+
+example (those are also default values):
+```
+./bin/c2ae-cli --endpoint 127.0.0.1:5556 --cert configs/c2ae-cert.pem list
 ```
 
 ### CLI client auto completion
@@ -92,15 +107,5 @@ docker run -it  --rm --link c2ae-api -e C2AE_API_ENDPOINT="c2ae-api:5556" regist
 
 ## Development
 
-Start api with:
-```
-go run cmd/api/c2ae-api.go -db /tmp/c2ae.db -c2cert /path/to/c2/cert.pem
-```
-
-Run cli with:
-```
-go run cmd/cli/c2ae-cli.go --help
-```
-
-A Makefile is also provided with various targets, like build, running tests, getting coverage, generating the mocks / protobuf...
+A Makefile is provided with various targets, like build, running tests, getting coverage, generating the mocks / protobuf...
 Run ```make``` for the full list of targets and descriptions.

@@ -2,6 +2,9 @@ package cli
 
 import (
 	"errors"
+	"fmt"
+
+	"google.golang.org/grpc/credentials"
 
 	"github.com/spf13/cobra"
 	"gitlab.com/teserakt/c2ae/internal/pb"
@@ -11,11 +14,15 @@ import (
 const (
 	// EndpointFlag is the global flag name used to store the api endpoint url
 	EndpointFlag = "endpoint"
+	// CertFlag is the global flag name used to store the api certificate path
+	CertFlag = "cert"
 )
 
 var (
-	// ErrFlagUndefined is returned when the endpoint flag cannot be found on given command
-	ErrFlagUndefined = errors.New("cannot retrieve endpoint flag on given cobra command")
+	// ErrEndpointFlagUndefined is returned when the endpoint flag cannot be found on given command
+	ErrEndpointFlagUndefined = errors.New("cannot retrieve endpoint flag on given cobra command")
+	// ErrCertFlagUndefined is returned when the cert flag cannot be found on given command
+	ErrCertFlagUndefined = errors.New("cannot retrieve cert flag on given cobra command")
 )
 
 // C2AutomationEngineClient override the protobuf client definition to offer a Close method
@@ -37,6 +44,7 @@ var _ APIClientFactory = &apiClientFactory{}
 
 // NewAPIClientFactory creates a new C2AutomationEngineClient factory
 func NewAPIClientFactory() APIClientFactory {
+
 	return &apiClientFactory{}
 }
 
@@ -50,13 +58,22 @@ var _ pb.C2AutomationEngineClient = &c2AutomationEngineClient{}
 
 // NewClient creates a new ob.C2AutomationEngineClient instance connecting to given api endpoint
 func (c *apiClientFactory) NewClient(cmd *cobra.Command) (C2AutomationEngineClient, error) {
-	flag := cmd.Flag(EndpointFlag)
-	if flag == nil {
-		return nil, ErrFlagUndefined
+	endpointFlag := cmd.Flag(EndpointFlag)
+	if endpointFlag == nil || len(endpointFlag.Value.String()) == 0 {
+		return nil, ErrEndpointFlagUndefined
 	}
 
-	// TODO check https://godoc.org/google.golang.org/grpc#DialOption for available DialOptions
-	cnx, err := grpc.Dial(flag.Value.String(), grpc.WithInsecure())
+	certFlag := cmd.Flag(CertFlag)
+	if certFlag == nil || len(certFlag.Value.String()) == 0 {
+		return nil, ErrCertFlagUndefined
+	}
+
+	creds, err := credentials.NewClientTLSFromFile(certFlag.Value.String(), "")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create TLS credentials from certificate %v: %v", certFlag.Value.String(), err)
+	}
+
+	cnx, err := grpc.Dial(endpointFlag.Value.String(), grpc.WithTransportCredentials(creds))
 	if err != nil {
 		return nil, err
 	}
