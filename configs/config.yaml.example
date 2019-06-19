@@ -6,7 +6,11 @@
 ###############################################################
 ## interface / port the API will listen on
 listen-grpc: localhost:5556
+grpc-cert: c2ae-cert.pem
+grpc-key: c2ae-key.pem
 listen-http: localhost:8886
+http-cert: c2ae-cert.pem
+http-key: c2ae-key.pem
 
 # Database settings
 ###############################################################

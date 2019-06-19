@@ -267,15 +267,15 @@ func RegisterC2AutomationEngineHandlerClient(ctx context.Context, mux *runtime.S
 }
 
 var (
-	pattern_C2AutomationEngine_ListRules_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"rules"}, ""))
+	pattern_C2AutomationEngine_ListRules_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"rules"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_C2AutomationEngine_GetRule_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"rules", "ruleId"}, ""))
+	pattern_C2AutomationEngine_GetRule_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"rules", "ruleId"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_C2AutomationEngine_AddRule_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"rules"}, ""))
+	pattern_C2AutomationEngine_AddRule_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"rules"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_C2AutomationEngine_UpdateRule_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"rules"}, ""))
+	pattern_C2AutomationEngine_UpdateRule_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"rules"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_C2AutomationEngine_DeleteRule_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"rules", "ruleId"}, ""))
+	pattern_C2AutomationEngine_DeleteRule_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"rules", "ruleId"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

@@ -21,7 +21,11 @@ type API struct {
 // ServerCfg holds configuration for api server
 type ServerCfg struct {
 	GRPCAddr string
+	GRPCCert string
+	GRPCKey  string
 	HTTPAddr string
+	HTTPCert string
+	HTTPKey  string
 }
 
 // DBCfg holds configuration for databases
@@ -55,6 +59,10 @@ var (
 	ErrNoPassword              = errors.New("no password supplied")
 	ErrInvalidSecureConnection = errors.New("invalid secure connection mode")
 	ErrNoSchema                = errors.New("no schema supplied")
+	ErrGRPCCertRequired        = errors.New("grpc certificate path is required")
+	ErrGRPCKeyRequired         = errors.New("grpc key path is required")
+	ErrHTTPCertRequired        = errors.New("http certificate path is required")
+	ErrHTTPKeyRequired         = errors.New("http key path is required")
 )
 
 // NewAPI creates a new configuration struct for the C2AE api
@@ -66,7 +74,11 @@ func NewAPI() *API {
 func (c *API) ViperCfgFields() []slibcfg.ViperCfgField {
 	return []slibcfg.ViperCfgField{
 		{&c.Server.GRPCAddr, "listen-grpc", slibcfg.ViperString, "localhost:5556", "C2AE_GRPC_LISTEN_ADDR"},
+		{&c.Server.GRPCCert, "grpc-cert", slibcfg.ViperRelativePath, "", "C2AE_GRPC_CERT"},
+		{&c.Server.GRPCKey, "grpc-key", slibcfg.ViperRelativePath, "", "C2AE_GRPC_KEY"},
 		{&c.Server.HTTPAddr, "listen-http", slibcfg.ViperString, "localhost:8886", "C2AE_HTTP_LISTEN_ADDR"},
+		{&c.Server.HTTPCert, "http-cert", slibcfg.ViperRelativePath, "", "C2AE_HTTP_CERT"},
+		{&c.Server.HTTPKey, "http-key", slibcfg.ViperRelativePath, "", "C2AE_HTTP_KEY"},
 
 		{&c.DB.Logging, "db-logging", slibcfg.ViperBool, false, ""},
 		{&c.DB.Type, "db-type", slibcfg.ViperDBType, "sqlite3", "C2AE_DB_TYPE"},
@@ -118,8 +130,24 @@ func (c ServerCfg) Validate() error {
 		return ErrGRPCListenAddrRequired
 	}
 
+	if len(c.GRPCCert) == 0 {
+		return ErrGRPCCertRequired
+	}
+
+	if len(c.GRPCKey) == 0 {
+		return ErrGRPCKeyRequired
+	}
+
 	if len(c.HTTPAddr) == 0 {
 		return ErrHTTPListenAddrRequired
+	}
+
+	if len(c.HTTPCert) == 0 {
+		return ErrHTTPCertRequired
+	}
+
+	if len(c.HTTPKey) == 0 {
+		return ErrHTTPKeyRequired
 	}
 
 	return nil

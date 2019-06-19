@@ -31,17 +31,54 @@ func TestConfig(t *testing.T) {
 				cfg: API{
 					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556"},
 				},
+				expectedErr: ErrGRPCCertRequired,
+			},
+			{
+				cfg: API{
+					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem"},
+				},
+				expectedErr: ErrGRPCKeyRequired,
+			},
+			{
+				cfg: API{
+					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem"},
+				},
 				expectedErr: ErrHTTPListenAddrRequired,
 			},
 			{
 				cfg: API{
-					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886",
+					},
+				},
+				expectedErr: ErrHTTPCertRequired,
+			},
+			{
+				cfg: API{
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPCert: "c2ae-cert.pem",
+					},
+				},
+				expectedErr: ErrHTTPKeyRequired,
+			},
+
+			{
+				cfg: API{
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPCert: "c2ae-cert.pem", HTTPKey: "c2ae-key.pem",
+					},
 				},
 				expectedErr: ErrNoPassphrase,
 			},
 			{
 				cfg: API{
-					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPCert: "c2ae-cert.pem", HTTPKey: "c2ae-key.pem",
+					},
 					DB: DBCfg{
 						Passphrase: "something",
 					},
@@ -50,7 +87,10 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPCert: "c2ae-cert.pem", HTTPKey: "c2ae-key.pem",
+					},
 					DB: DBCfg{
 						Passphrase: "something",
 						Type:       slibcfg.DBTypeSQLite,
@@ -60,7 +100,10 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPCert: "c2ae-cert.pem", HTTPKey: "c2ae-key.pem",
+					},
 					DB: DBCfg{
 						Passphrase: "something",
 						Type:       slibcfg.DBTypeSQLite,
@@ -71,7 +114,10 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPCert: "c2ae-cert.pem", HTTPKey: "c2ae-key.pem",
+					},
 					DB: DBCfg{
 						Passphrase: "something",
 						Type:       slibcfg.DBTypeSQLite,
@@ -83,7 +129,10 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPCert: "c2ae-cert.pem", HTTPKey: "c2ae-key.pem",
+					},
 					DB: DBCfg{
 						Passphrase: "something",
 						Type:       slibcfg.DBTypeSQLite,
@@ -96,7 +145,10 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPCert: "c2ae-cert.pem", HTTPKey: "c2ae-key.pem",
+					},
 					DB: DBCfg{
 						Passphrase: "something",
 						Type:       slibcfg.DBTypeSQLite,
@@ -109,7 +161,10 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPCert: "c2ae-cert.pem", HTTPKey: "c2ae-key.pem",
+					},
 					DB: DBCfg{
 						Type: slibcfg.DBTypePostgres,
 					},
@@ -120,7 +175,10 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPCert: "c2ae-cert.pem", HTTPKey: "c2ae-key.pem",
+					},
 					DB: DBCfg{
 						Type:       slibcfg.DBTypePostgres,
 						Passphrase: "something",
@@ -132,7 +190,10 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPCert: "c2ae-cert.pem", HTTPKey: "c2ae-key.pem",
+					},
 					DB: DBCfg{
 						Type:       slibcfg.DBTypePostgres,
 						Passphrase: "something",
@@ -145,7 +206,10 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPCert: "c2ae-cert.pem", HTTPKey: "c2ae-key.pem",
+					},
 					DB: DBCfg{
 						Type:       slibcfg.DBTypePostgres,
 						Passphrase: "something",
@@ -159,7 +223,10 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPCert: "c2ae-cert.pem", HTTPKey: "c2ae-key.pem",
+					},
 					DB: DBCfg{
 						Type:       slibcfg.DBTypePostgres,
 						Passphrase: "something",
@@ -174,7 +241,10 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPCert: "c2ae-cert.pem", HTTPKey: "c2ae-key.pem",
+					},
 					DB: DBCfg{
 						Type:       slibcfg.DBTypePostgres,
 						Passphrase: "something",
@@ -190,7 +260,10 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPCert: "c2ae-cert.pem", HTTPKey: "c2ae-key.pem",
+					},
 					DB: DBCfg{
 						Type:       slibcfg.DBTypePostgres,
 						Passphrase: "something",
@@ -207,7 +280,10 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPCert: "c2ae-cert.pem", HTTPKey: "c2ae-key.pem",
+					},
 					DB: DBCfg{
 						Type:             slibcfg.DBTypePostgres,
 						Passphrase:       "something",
@@ -225,7 +301,10 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPCert: "c2ae-cert.pem", HTTPKey: "c2ae-key.pem",
+					},
 					DB: DBCfg{
 						Type:             slibcfg.DBTypePostgres,
 						Passphrase:       "something",
@@ -243,7 +322,10 @@ func TestConfig(t *testing.T) {
 			},
 			{
 				cfg: API{
-					Server: ServerCfg{GRPCAddr: "127.0.0.1:5556", HTTPAddr: "127.0.0.1:8886"},
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPCert: "c2ae-cert.pem", HTTPKey: "c2ae-key.pem",
+					},
 					DB: DBCfg{
 						Type:             slibcfg.DBTypePostgres,
 						Passphrase:       "something",

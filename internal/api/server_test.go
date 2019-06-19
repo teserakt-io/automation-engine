@@ -3,11 +3,14 @@ package api
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
+	"path/filepath"
 	"reflect"
+	"runtime"
 	"testing"
 	"time"
 
@@ -19,6 +22,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 func assertRulesModified(t *testing.T, rulesModifiedChan <-chan bool, expectedModified bool) {
@@ -26,6 +30,12 @@ func assertRulesModified(t *testing.T, rulesModifiedChan <-chan bool, expectedMo
 	if rulesModified != expectedModified {
 		t.Errorf("Expected rulesModified to be %t, got %t", expectedModified, rulesModified)
 	}
+}
+
+func getRootDir() string {
+	_, filename, _, _ := runtime.Caller(0)
+
+	return filepath.Join(filepath.Dir(filename), "..", "..")
 }
 
 func TestServer(t *testing.T) {
@@ -44,9 +54,16 @@ func TestServer(t *testing.T) {
 		t.Fatalf("Failed to obtain a free address: %v", err)
 	}
 
+	certPath := filepath.Join(getRootDir(), "test/data/c2ae-cert.pem")
+	keyPath := filepath.Join(getRootDir(), "test/data/c2ae-key.pem")
+
 	serverCfg := config.ServerCfg{
 		GRPCAddr: grpcLis.Addr().String(),
+		GRPCCert: certPath,
+		GRPCKey:  keyPath,
 		HTTPAddr: httpLis.Addr().String(),
+		HTTPCert: certPath,
+		HTTPKey:  keyPath,
 	}
 
 	grpcLis.Close()
@@ -278,10 +295,10 @@ func TestServer(t *testing.T) {
 		mockConverter.EXPECT().RulesToPb(rules).AnyTimes().Return(pbRules, nil)
 
 		// Test retrieve all rules with a GRPC client
-		grpcClient := newGrpcClient(t, serverCfg.GRPCAddr)
+		grpcClient := newGrpcClient(t, serverCfg.GRPCAddr, certPath)
 		grpcResp, err := grpcClient.ListRules(context.Background(), &pb.ListRulesRequest{})
 		if err != nil {
-			t.Errorf("Expected no error, got %v", err)
+			t.Fatalf("Expected no error, got %v", err)
 		}
 
 		if len(grpcResp.Rules) != len(pbRules) {
@@ -295,13 +312,13 @@ func TestServer(t *testing.T) {
 		}
 
 		// Test retrieve all rule with a HTTP request
-		httpEndpoint := fmt.Sprintf("http://%s/rules", serverCfg.HTTPAddr)
+		httpEndpoint := fmt.Sprintf("https://%s/rules", serverCfg.HTTPAddr)
 		req, err := http.NewRequest("GET", httpEndpoint, bytes.NewBuffer(nil))
 		if err != nil {
 			t.Fatalf("Failed to create request: %v", err)
 		}
 
-		//req.Header.Add("Content-Type", "application/json")
+		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 		httpResp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Errorf("HTTP request failed: %v", err)
@@ -311,8 +328,13 @@ func TestServer(t *testing.T) {
 	})
 }
 
-func newGrpcClient(t *testing.T, addr string) pb.C2AutomationEngineClient {
-	cnx, err := grpc.Dial(addr, grpc.WithInsecure())
+func newGrpcClient(t *testing.T, addr string, certPath string) pb.C2AutomationEngineClient {
+	creds, err := credentials.NewClientTLSFromFile(certPath, "")
+	if err != nil {
+		t.Fatalf("Failed to create TLS credentials: %v", err)
+	}
+
+	cnx, err := grpc.Dial(addr, grpc.WithTransportCredentials(creds))
 	if err != nil {
 		t.Fatalf("failed to dial: %v", err)
 	}
