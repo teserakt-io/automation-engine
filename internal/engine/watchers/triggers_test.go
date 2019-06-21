@@ -190,13 +190,13 @@ func TestSchedulerTriggerWatcher(t *testing.T) {
 
 		select {
 		case triggerEvt = <-triggeredChan:
+			time.Sleep(100 * time.Millisecond)
 		case err := <-errorChan:
 			t.Errorf("Expected no errors, got %s", err)
 		case <-time.After(10 * time.Millisecond):
 			t.Errorf("Expected to receive a triggerEvent")
 		}
 
-		time.Sleep(10 * time.Millisecond)
 		cancel()
 
 		if reflect.DeepEqual(triggerEvt.Trigger, trigger) == false {

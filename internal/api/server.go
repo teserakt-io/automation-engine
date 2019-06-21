@@ -98,7 +98,7 @@ func (s *apiServer) listenAndServeGRPC(ctx context.Context, lis net.Listener) er
 		return err
 	}
 
-	s.logger.Log("msg", "using TLS for gRPC", "cert", s.cfg.GRPCAddr, "key", s.cfg.GRPCKey)
+	s.logger.Log("msg", "using TLS for gRPC", "cert", s.cfg.GRPCCert, "key", s.cfg.GRPCKey)
 
 	grpcServer := grpc.NewServer(grpc.Creds(creds))
 	pb.RegisterC2AutomationEngineServer(grpcServer, s)

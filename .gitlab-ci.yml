@@ -3,6 +3,7 @@ image: golang:1.12
 stages:
   - test
   - build
+  - build-docker
 
 before_script:
   # Packages
@@ -21,7 +22,12 @@ before_script:
 
 test:
   stage: test
+  cache:
+    paths:
+      - .cache
   script:
+    - export GOPATH="$CI_PROJECT_DIR/.cache"
+    - export PATH="${PATH}:${GOPATH}/bin"
     # Install global go tools
     - go install golang.org/x/lint/golint
     - go get github.com/jstemmer/go-junit-report
@@ -38,24 +44,31 @@ test:
 
 build:
   stage: build
+  cache:
+    paths:
+      - .cache
   script:
+    - export GOPATH="$CI_PROJECT_DIR/.cache"
+    - export PATH="${PATH}:${GOPATH}/bin"
     - ./scripts/build.sh
-  # artifacts:
-  #   paths:
-  #     - bin/*
-  #   expire_in: 1 week
+  artifacts:
+    paths:
+      - bin/*
+    expire_in: 1 hr
 
-docker-build:
+build-docker:
   image: docker:stable
-  stage: build
+  stage: build-docker
   tags:
     - docker
   services:
     - docker:dind
+  dependencies:
+    - build
   script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - export BUILDVERSION=${CI_COMMIT_REF_NAME//\//_} # stip / off the branch name and replace by _ to have a valid docker tag format
-    - echo "Building docker image with BUILDVERSION=${BUILDVERSION}"
     - ./scripts/docker-build.sh
-    - docker push registry.gitlab.com/teserakt/c2ae/api:${BUILDVERSION}
-    - docker push registry.gitlab.com/teserakt/c2ae/cli:${BUILDVERSION}
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker push registry.gitlab.com/teserakt/c2ae/api:${CI_COMMIT_REF_NAME//\//_}
+    - docker push registry.gitlab.com/teserakt/c2ae/api:${CI_COMMIT_SHORT_SHA}
+    - docker push registry.gitlab.com/teserakt/c2ae/cli:${CI_COMMIT_REF_NAME//\//_}
+    - docker push registry.gitlab.com/teserakt/c2ae/cli:${CI_COMMIT_SHORT_SHA}

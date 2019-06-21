@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+set -e
 
 PROJECT=c2ae
 
@@ -18,7 +18,6 @@ GOARCH=amd64
 
 CMDS=($(find ${DIR}/../cmd/ -mindepth 1 -maxdepth 1  -type d -exec basename {} \;))
 for cmd in ${CMDS[@]}; do
-
     printf "Building ${PROJECT}-${cmd}:\n\tversion ${NOW}-${GIT_COMMIT}\n\tOS ${GOOS}\n\tarch: ${GOARCH}\n"
 
     printf "=> ${PROJECT}-${cmd}...\n"
