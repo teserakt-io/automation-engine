@@ -1,8 +1,7 @@
 image: golang:1.12
 
 stages:
-  - test
-  - build
+  - all
   - build-docker
 
 before_script:
@@ -20,8 +19,8 @@ before_script:
   # Force use of ssh urls instead of https for gitlab.com. Has to be done before any go get...
   - git config --global url."git@gitlab.com:".insteadOf "https://gitlab.com/"
 
-test:
-  stage: test
+all:
+  stage: all
   cache:
     paths:
       - .cache
@@ -35,26 +34,15 @@ test:
     - golint -set_exit_status ./...
     - go test -v -coverprofile=cover.out -timeout 10s -race ./... | tee >(go-junit-report > report.xml)
     - go tool cover -func cover.out
+    - ./scripts/build.sh
   coverage: '/^total:\t+\(statements\)\t+(\d+\.\d+)%/'
   artifacts:
     reports:
       junit:
         - report.xml
-    expire_in: 1 week
-
-build:
-  stage: build
-  cache:
-    paths:
-      - .cache
-  script:
-    - export GOPATH="$CI_PROJECT_DIR/.cache"
-    - export PATH="${PATH}:${GOPATH}/bin"
-    - ./scripts/build.sh
-  artifacts:
     paths:
       - bin/*
-    expire_in: 1 hr
+    expire_in: 1 week
 
 build-docker:
   image: docker:stable
@@ -64,7 +52,7 @@ build-docker:
   services:
     - docker:dind
   dependencies:
-    - build
+    - all
   script:
     - ./scripts/docker-build.sh
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
