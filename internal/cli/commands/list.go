@@ -74,7 +74,7 @@ func (c *listCommand) run(cmd *cobra.Command, args []string) error {
 
 	for _, rule := range resp.Rules {
 
-		t, err := ptypes.Timestamp(rule.LastExectued)
+		t, err := ptypes.Timestamp(rule.LastExecuted)
 		if err != nil {
 			log.Fatal(err)
 		}

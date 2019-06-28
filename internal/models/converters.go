@@ -60,7 +60,7 @@ func (c *converter) RuleToPb(rule Rule) (*pb.Rule, error) {
 		Description:  rule.Description,
 		Targets:      targets,
 		Triggers:     triggers,
-		LastExectued: lastExecuted,
+		LastExecuted: lastExecuted,
 	}, nil
 }
 
@@ -128,7 +128,7 @@ func (c *converter) TriggersToPb(triggers []Trigger) ([]*pb.Trigger, error) {
 // PbToRule converts a pb.Rule to a models.Rule
 func (c *converter) PbToRule(rule *pb.Rule) (Rule, error) {
 
-	lastExecuted, err := ptypes.Timestamp(rule.LastExectued)
+	lastExecuted, err := ptypes.Timestamp(rule.LastExecuted)
 	if err != nil {
 		return Rule{}, err
 	}

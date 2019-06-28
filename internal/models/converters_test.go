@@ -118,12 +118,12 @@ func assertSameRule(t *testing.T, rule Rule, pbRule *pb.Rule) {
 	if rule.Description != pbRule.Description {
 		t.Errorf("Expected rule description to be %s, got %s", rule.Description, pbRule.Description)
 	}
-	time, err := ptypes.Timestamp(pbRule.LastExectued)
+	time, err := ptypes.Timestamp(pbRule.LastExecuted)
 	if err != nil {
 		t.Errorf("Converted rule have an invalid timestamp: %s", err)
 	}
 	if rule.LastExecuted.UnixNano() != time.UnixNano() {
-		t.Errorf("Expected rule last executed to be %v, got %v", rule.LastExecuted, pbRule.LastExectued)
+		t.Errorf("Expected rule last executed to be %v, got %v", rule.LastExecuted, pbRule.LastExecuted)
 	}
 
 	if len(rule.Triggers) != len(pbRule.Triggers) {

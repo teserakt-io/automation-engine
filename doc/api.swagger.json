@@ -182,7 +182,7 @@
         "action": {
           "$ref": "#/definitions/pbActionType"
         },
-        "lastExectued": {
+        "lastExecuted": {
           "type": "string",
           "format": "date-time"
         },

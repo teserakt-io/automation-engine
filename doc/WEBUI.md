@@ -32,7 +32,7 @@ Perform a KEY_ROTATION action, every 30 minutes, or when a client subscribe to t
 ## WebUI user stories
 
 As a webUI operator, I want to:
-- List the existing rules as a table, with their triggers / targets count, and their lastExectued
+- List the existing rules as a table, with their triggers / targets count, and their lastExecuted
 - Inspect a single rule
     - See all rule targets type / expression
     - See all rule triggers type / settings
