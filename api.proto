@@ -71,7 +71,7 @@ message Rule {
     int32 id = 1;
     string description = 2;
     ActionType action = 3;
-    google.protobuf.Timestamp lastExectued = 4;
+    google.protobuf.Timestamp lastExecuted = 4;
     repeated Trigger triggers = 5;
     repeated Target targets = 6;
 }
