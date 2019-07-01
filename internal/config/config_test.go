@@ -350,6 +350,81 @@ func TestConfig(t *testing.T) {
 				},
 				expectedErr: nil,
 			},
+			{
+				cfg: API{
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPGRPCAddr: "127.0.0.1:5556", HTTPCert: "c2ae-cert.pem", HTTPKey: "c2ae-key.pem",
+					},
+					DB: DBCfg{
+						Type:             slibcfg.DBTypePostgres,
+						Passphrase:       "something",
+						Host:             "127.0.0.1:5432",
+						Database:         "something",
+						Username:         "something",
+						Password:         "something",
+						Schema:           "schema",
+						SecureConnection: slibcfg.DBSecureConnectionSelfSigned,
+					},
+					C2Endpoint:    "localhost:5555",
+					C2Certificate: validFile.Name(),
+					ES: ESCfg{
+						LoggingEnabled: true,
+					},
+				},
+				expectedErr: ErrESLoggingIndexRequired,
+			},
+			{
+				cfg: API{
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPGRPCAddr: "127.0.0.1:5556", HTTPCert: "c2ae-cert.pem", HTTPKey: "c2ae-key.pem",
+					},
+					DB: DBCfg{
+						Type:             slibcfg.DBTypePostgres,
+						Passphrase:       "something",
+						Host:             "127.0.0.1:5432",
+						Database:         "something",
+						Username:         "something",
+						Password:         "something",
+						Schema:           "schema",
+						SecureConnection: slibcfg.DBSecureConnectionSelfSigned,
+					},
+					C2Endpoint:    "localhost:5555",
+					C2Certificate: validFile.Name(),
+					ES: ESCfg{
+						LoggingEnabled: true,
+						LoggingIndex:   "logs",
+					},
+				},
+				expectedErr: ErrESUrlRequired,
+			},
+			{
+				cfg: API{
+					Server: ServerCfg{
+						GRPCAddr: "127.0.0.1:5556", GRPCCert: "c2ae-cert.pem", GRPCKey: "c2ae-key.pem",
+						HTTPAddr: "127.0.0.1:8886", HTTPGRPCAddr: "127.0.0.1:5556", HTTPCert: "c2ae-cert.pem", HTTPKey: "c2ae-key.pem",
+					},
+					DB: DBCfg{
+						Type:             slibcfg.DBTypePostgres,
+						Passphrase:       "something",
+						Host:             "127.0.0.1:5432",
+						Database:         "something",
+						Username:         "something",
+						Password:         "something",
+						Schema:           "schema",
+						SecureConnection: slibcfg.DBSecureConnectionSelfSigned,
+					},
+					C2Endpoint:    "localhost:5555",
+					C2Certificate: validFile.Name(),
+					ES: ESCfg{
+						LoggingEnabled: true,
+						LoggingIndex:   "logs",
+						URLs:           []string{"localhost:5556"},
+					},
+				},
+				expectedErr: nil,
+			},
 		}
 
 		for _, testCase := range testCases {

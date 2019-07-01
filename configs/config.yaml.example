@@ -48,3 +48,12 @@ c2-cert: c2-cert.pem
 ###############################################################
 oc-agent-addr: localhost:55678
 oc-sample-all: true
+
+# ES settings
+###############################################################
+## space separated list of available elasticsearch severs: http://host1:port1 http://host2:port2
+es-urls: http://127.0.0.1:9200
+## enable C2 logs forwarding to elasticsearch
+es-logging-enable: false
+## name of the elasticSearch index for C2 logs
+es-logging-index: logs
