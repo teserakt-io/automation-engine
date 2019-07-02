@@ -8,6 +8,7 @@ import (
 	"os/signal"
 
 	"github.com/go-kit/kit/log"
+	"github.com/olivere/elastic"
 
 	"gitlab.com/teserakt/c2ae/internal/api"
 	"gitlab.com/teserakt/c2ae/internal/config"
@@ -19,6 +20,7 @@ import (
 	"gitlab.com/teserakt/c2ae/internal/pb"
 	"gitlab.com/teserakt/c2ae/internal/services"
 	slibcfg "gitlab.com/teserakt/serverlib/config"
+	sliblog "gitlab.com/teserakt/serverlib/log"
 	slibpath "gitlab.com/teserakt/serverlib/path"
 )
 
@@ -74,6 +76,30 @@ func main() {
 	}
 
 	logger.Log("msg", "successfully loaded configuration")
+
+	// extend logger to forward log to ES
+	if appConfig.ES.LoggingEnabled {
+		esClient, err := elastic.NewClient(
+			elastic.SetURL(appConfig.ES.URLs...),
+			elastic.SetSniff(false),
+		)
+
+		if err != nil {
+			logger.Log("msg", "failed to create elastic client", "error", err)
+			exitCode = 1
+			return
+		}
+
+		esLogger, err := sliblog.WithElasticSearch(logger, esClient, appConfig.ES.LoggingIndex)
+		logger = log.With(esLogger)
+		if err != nil {
+			logger.Log("msg", "failed to initialize elastic log forwarding", "error", err)
+			exitCode = 1
+			return
+		}
+
+		logger.Log("msg", "elasticsearch log forwarding enabled")
+	}
 
 	db, err := models.NewDB(appConfig.DB, stdLogger)
 	if err != nil {

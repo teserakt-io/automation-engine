@@ -12,6 +12,7 @@ import (
 type API struct {
 	Server              ServerCfg
 	DB                  DBCfg
+	ES                  ESCfg
 	C2Endpoint          string
 	C2Certificate       string
 	OpencensusSampleAll bool
@@ -43,6 +44,13 @@ type DBCfg struct {
 	SecureConnection slibcfg.DBSecureConnectionType
 }
 
+// ESCfg holds configuration for elasticsearch
+type ESCfg struct {
+	URLs           []string
+	LoggingEnabled bool
+	LoggingIndex   string
+}
+
 // Config validation errors
 var (
 	ErrDBFilepathRequired      = errors.New("database file path is required")
@@ -65,6 +73,8 @@ var (
 	ErrHTTPCertRequired        = errors.New("http certificate path is required")
 	ErrHTTPKeyRequired         = errors.New("http key path is required")
 	ErrHTTPGRPCAddrRequired    = errors.New("http-grpc address is required")
+	ErrESLoggingIndexRequired  = errors.New("es-logging-index is required")
+	ErrESUrlRequired           = errors.New("at least one es-urls is required")
 )
 
 // NewAPI creates a new configuration struct for the C2AE api
@@ -99,6 +109,10 @@ func (c *API) ViperCfgFields() []slibcfg.ViperCfgField {
 
 		{&c.OpencensusSampleAll, "oc-sample-all", slibcfg.ViperBool, true, ""},
 		{&c.OpencensusAddress, "oc-agent-addr", slibcfg.ViperString, "localhost:55678", "C2AE_OC_ENDPOINT"},
+
+		{&c.ES.URLs, "es-urls", slibcfg.ViperStringSlice, nil, ""},
+		{&c.ES.LoggingEnabled, "es-logging-enable", slibcfg.ViperBool, false, ""},
+		{&c.ES.LoggingIndex, "es-logging-index", slibcfg.ViperString, "logs", ""},
 	}
 }
 
@@ -122,6 +136,10 @@ func (c API) Validate() error {
 
 	if _, err := os.Stat(c.C2Certificate); err != nil {
 		return ErrC2CertificatePath
+	}
+
+	if err := c.ES.Validate(); err != nil {
+		return err
 	}
 
 	return nil
@@ -239,4 +257,24 @@ func (c DBCfg) Log() []interface{} {
 	default:
 		return []interface{}{"type", "unknown"}
 	}
+}
+
+// IsEnabled indicate whenever the elasticsearch is required by configuration or not
+func (c ESCfg) IsEnabled() bool {
+	return c.LoggingEnabled
+}
+
+// Validate checks ESCfg and returns an error if anything is invalid
+func (c ESCfg) Validate() error {
+	if c.LoggingEnabled {
+		if len(c.LoggingIndex) == 0 {
+			return ErrESLoggingIndexRequired
+		}
+	}
+
+	if c.IsEnabled() && len(c.URLs) == 0 {
+		return ErrESUrlRequired
+	}
+
+	return nil
 }
