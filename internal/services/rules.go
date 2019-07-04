@@ -16,9 +16,19 @@ type TriggerReader interface {
 	TriggerByID(ctx context.Context, triggerID int) (models.Trigger, error)
 }
 
+// TriggerWriter defines methods to write triggers
+type TriggerWriter interface {
+	DeleteTriggers(ctx context.Context, triggers ...models.Trigger) error
+}
+
 // TargetReader defines methods to read targets
 type TargetReader interface {
 	TargetByID(ctx context.Context, targetID int) (models.Target, error)
+}
+
+// TargetWriter defines methods to write Targets
+type TargetWriter interface {
+	DeleteTargets(ctx context.Context, targets ...models.Target) error
 }
 
 // RuleReader defines methods availble to read rules from database
@@ -39,7 +49,10 @@ type RuleService interface {
 	RuleWriter
 
 	TargetReader
+	TargetWriter
+
 	TriggerReader
+	TriggerWriter
 }
 
 type ruleService struct {
@@ -126,6 +139,44 @@ func (s *ruleService) Delete(ctx context.Context, rule models.Rule) error {
 
 	if result := s.gorm().Delete(rule); result.Error != nil {
 		return result.Error
+	}
+
+	return nil
+}
+
+// DeleteTriggers will delete all given triggers in a single batch
+func (s *ruleService) DeleteTriggers(ctx context.Context, triggers ...models.Trigger) error {
+	ctx, span := trace.StartSpan(ctx, "RuleService.DeleteTriggers")
+	defer span.End()
+
+	var triggerIds []int
+	for _, trigger := range triggers {
+		triggerIds = append(triggerIds, trigger.ID)
+	}
+
+	if len(triggerIds) > 0 {
+		if result := s.gorm().Delete(models.Trigger{}, "id IN (?)", triggerIds); result.Error != nil {
+			return result.Error
+		}
+	}
+
+	return nil
+}
+
+// DeleteTargets will delete all given targets in a single batch
+func (s *ruleService) DeleteTargets(ctx context.Context, targets ...models.Target) error {
+	ctx, span := trace.StartSpan(ctx, "RuleService.DeleteTargets")
+	defer span.End()
+
+	var targetIds []int
+	for _, target := range targets {
+		targetIds = append(targetIds, target.ID)
+	}
+
+	if len(targetIds) > 0 {
+		if result := s.gorm().Delete(models.Target{}, "id IN (?)", targetIds); result.Error != nil {
+			return result.Error
+		}
 	}
 
 	return nil

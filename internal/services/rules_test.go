@@ -360,4 +360,72 @@ func testDatabase(t *testing.T, getTestDB func(t *testing.T) (models.Database, f
 			t.Errorf("Expected err to be %s, got %s", gorm.ErrRecordNotFound, err)
 		}
 	})
+
+	t.Run("DeleteTargets properly delete given targets", func(t *testing.T) {
+		db, closeFunc := getTestDB(t)
+		defer closeFunc()
+
+		srv := NewRuleService(db)
+		rule1, _ := createRules(t, srv)
+
+		originalTargets := make([]models.Target, len(rule1.Targets))
+		copy(originalTargets, rule1.Targets)
+
+		targets := []models.Target{
+			models.Target{ID: 1000},
+			models.Target{ID: 1001},
+		}
+
+		rule1.Targets = append(rule1.Targets, targets...)
+		if err := srv.Save(ctx, &rule1); err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+
+		err := srv.DeleteTargets(ctx, targets...)
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+
+		r, err := srv.ByID(ctx, rule1.ID)
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+		if reflect.DeepEqual(originalTargets, r.Targets) == false {
+			t.Errorf("Expected Targets to be %#v, got %#v", originalTargets, r.Targets)
+		}
+	})
+
+	t.Run("DeleteTriggers properly delete given triggers", func(t *testing.T) {
+		db, closeFunc := getTestDB(t)
+		defer closeFunc()
+
+		srv := NewRuleService(db)
+		rule1, _ := createRules(t, srv)
+
+		originalTriggers := make([]models.Trigger, len(rule1.Triggers))
+		copy(originalTriggers, rule1.Triggers)
+
+		triggers := []models.Trigger{
+			models.Trigger{ID: 1000},
+			models.Trigger{ID: 1001},
+		}
+
+		rule1.Triggers = append(rule1.Triggers, triggers...)
+		if err := srv.Save(ctx, &rule1); err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+
+		err := srv.DeleteTriggers(ctx, triggers...)
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+
+		r, err := srv.ByID(ctx, rule1.ID)
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+		if reflect.DeepEqual(originalTriggers, r.Triggers) == false {
+			t.Errorf("Expected Triggers to be %#v, got %#v", originalTriggers, r.Triggers)
+		}
+	})
 }

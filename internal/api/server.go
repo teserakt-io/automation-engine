@@ -228,6 +228,24 @@ func (s *apiServer) UpdateRule(ctx context.Context, req *pb.UpdateRuleRequest) (
 		return nil, err
 	}
 
+	deletedTriggers := models.FilterNonExistingTriggers(rule.Triggers, triggers)
+	if len(deletedTriggers) > 0 {
+		s.logger.Log("msg", "deleting removed triggers", "count", len(deletedTriggers))
+		err := s.ruleService.DeleteTriggers(ctx, deletedTriggers...)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	deletedTargets := models.FilterNonExistingTargets(rule.Targets, targets)
+	if len(deletedTargets) > 0 {
+		s.logger.Log("msg", "deleting removed targets", "count", len(deletedTargets))
+		err := s.ruleService.DeleteTargets(ctx, deletedTargets...)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	rule.Description = req.Description
 	rule.ActionType = req.Action
 	rule.Triggers = triggers

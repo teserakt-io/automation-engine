@@ -153,23 +153,23 @@ func TestServer(t *testing.T) {
 
 	t.Run("UpdateRule properly updates rule", func(t *testing.T) {
 		targets := []models.Target{
-			models.Target{ID: 1},
 			models.Target{ID: 2},
+			models.Target{ID: 3},
 		}
 
 		pbTargets := []*pb.Target{
-			&pb.Target{Id: 1},
 			&pb.Target{Id: 2},
+			&pb.Target{Id: 3},
 		}
 
 		triggers := []models.Trigger{
-			models.Trigger{ID: 1},
 			models.Trigger{ID: 2},
+			models.Trigger{ID: 3},
 		}
 
 		pbTriggers := []*pb.Trigger{
-			&pb.Trigger{Id: 1},
 			&pb.Trigger{Id: 2},
+			&pb.Trigger{Id: 3},
 		}
 
 		req := &pb.UpdateRuleRequest{
@@ -183,6 +183,14 @@ func TestServer(t *testing.T) {
 		ruleBefore := models.Rule{
 			ID:          1,
 			Description: "before",
+			Triggers: []models.Trigger{
+				models.Trigger{ID: 1},
+				models.Trigger{ID: 2},
+			},
+			Targets: []models.Target{
+				models.Target{ID: 1},
+				models.Target{ID: 2},
+			},
 		}
 
 		updatedRule := models.Rule{
@@ -201,6 +209,9 @@ func TestServer(t *testing.T) {
 
 		mockConverter.EXPECT().PbToTriggers(pbTriggers).Times(1).Return(triggers, nil)
 		mockConverter.EXPECT().PbToTargets(pbTargets).Times(1).Return(targets, nil)
+
+		mockRuleService.EXPECT().DeleteTriggers(gomock.Any(), []models.Trigger{models.Trigger{ID: 1}}).Times(1)
+		mockRuleService.EXPECT().DeleteTargets(gomock.Any(), []models.Target{models.Target{ID: 1}}).Times(1)
 
 		mockRuleService.EXPECT().Save(gomock.Any(), gomock.Any()).Times(1)
 
