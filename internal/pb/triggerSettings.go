@@ -1,8 +1,7 @@
 package pb
 
 import (
-	"bytes"
-	"encoding/gob"
+	"encoding/json"
 	"errors"
 	fmt "fmt"
 
@@ -54,14 +53,14 @@ func (t *TriggerSettingsTimeInterval) Validate() error {
 	return nil
 }
 
-// Encode gob encode settings to []byte
+// Encode json encode settings to []byte
 func (t *TriggerSettingsTimeInterval) Encode() ([]byte, error) {
-	return gobEncode(t)
+	return jsonEncode(t)
 }
 
-// Decode gob decode bytes to settings
+// Decode json decode bytes to settings
 func (t *TriggerSettingsTimeInterval) Decode(b []byte) error {
-	return gobDecode(t, b)
+	return jsonDecode(t, b)
 }
 
 // Validate implements TriggerSettings and returns an error when the settings are invalid
@@ -77,32 +76,29 @@ func (t *TriggerSettingsEvent) Validate() error {
 	return nil
 }
 
-// Encode gob encode settings to []byte
+// Encode json encode settings to []byte
 func (t *TriggerSettingsEvent) Encode() ([]byte, error) {
-	return gobEncode(t)
+	return jsonEncode(t)
 }
 
-// Decode gob decode bytes to settings
+// Decode json decode bytes to settings
 func (t *TriggerSettingsEvent) Decode(b []byte) error {
-	return gobDecode(t, b)
+	return jsonDecode(t, b)
 }
 
-func gobEncode(t interface{}) ([]byte, error) {
-	buf := bytes.NewBuffer(nil)
-	encoder := gob.NewEncoder(buf)
-
-	if err := encoder.Encode(t); err != nil {
+func jsonEncode(t interface{}) ([]byte, error) {
+	data, err := json.Marshal(t)
+	if err != nil {
 		return nil, err
 	}
 
-	return buf.Bytes(), nil
+	return data, nil
 }
 
-func gobDecode(t interface{}, b []byte) error {
-	buf := bytes.NewBuffer(b)
-	decoder := gob.NewDecoder(buf)
-	if err := decoder.Decode(t); err != nil {
+func jsonDecode(t interface{}, b []byte) error {
+	if err := json.Unmarshal(b, t); err != nil {
 		return err
 	}
+
 	return nil
 }
