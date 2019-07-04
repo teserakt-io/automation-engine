@@ -78,6 +78,44 @@ func (mr *MockRuleServiceMockRecorder) Delete(arg0, arg1 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRuleService)(nil).Delete), arg0, arg1)
 }
 
+// DeleteTargets mocks base method
+func (m *MockRuleService) DeleteTargets(arg0 context.Context, arg1 ...models.Target) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0}
+	for _, a := range arg1 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteTargets", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteTargets indicates an expected call of DeleteTargets
+func (mr *MockRuleServiceMockRecorder) DeleteTargets(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0}, arg1...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTargets", reflect.TypeOf((*MockRuleService)(nil).DeleteTargets), varargs...)
+}
+
+// DeleteTriggers mocks base method
+func (m *MockRuleService) DeleteTriggers(arg0 context.Context, arg1 ...models.Trigger) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0}
+	for _, a := range arg1 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteTriggers", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteTriggers indicates an expected call of DeleteTriggers
+func (mr *MockRuleServiceMockRecorder) DeleteTriggers(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0}, arg1...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTriggers", reflect.TypeOf((*MockRuleService)(nil).DeleteTriggers), varargs...)
+}
+
 // Save mocks base method
 func (m *MockRuleService) Save(arg0 context.Context, arg1 *models.Rule) error {
 	m.ctrl.T.Helper()
