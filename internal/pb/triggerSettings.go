@@ -39,6 +39,24 @@ type TriggerSettingsEvent struct {
 var _ TriggerSettings = &TriggerSettingsTimeInterval{}
 var _ TriggerSettings = &TriggerSettingsEvent{}
 
+// Decode will attempt to turn []byte settings into matching struct given the trigger type
+func Decode(t TriggerType, settings []byte) (TriggerSettings, error) {
+	var triggerSettings TriggerSettings
+
+	switch t {
+	case TriggerType_TIME_INTERVAL:
+		triggerSettings = &TriggerSettingsTimeInterval{}
+	case TriggerType_CLIENT_UNSUBSCRIBED, TriggerType_CLIENT_SUBSCRIBED:
+		triggerSettings = &TriggerSettingsEvent{}
+	default:
+		return nil, fmt.Errorf("trigger type %s is not supported", t)
+	}
+
+	triggerSettings.Decode(settings)
+
+	return triggerSettings, nil
+}
+
 // Validate implements TriggerSettings and returns an error when the settings are invalid
 func (t *TriggerSettingsTimeInterval) Validate() error {
 	if len(t.Expr) == 0 {
@@ -65,13 +83,14 @@ func (t *TriggerSettingsTimeInterval) Decode(b []byte) error {
 
 // Validate implements TriggerSettings and returns an error when the settings are invalid
 func (t *TriggerSettingsEvent) Validate() error {
-	if len(t.EventType) == 0 {
-		return errors.New("EventType is required")
-	}
+	// TODO: re enabled validation once we have some real usage of this setting type
+	// if len(t.EventType) == 0 {
+	// 	return errors.New("EventType is required")
+	// }
 
-	if t.MaxOccurence <= 0 {
-		return errors.New("MaxOccurence must be greater than 0")
-	}
+	// if t.MaxOccurence <= 0 {
+	// 	return errors.New("MaxOccurence must be greater than 0")
+	// }
 
 	return nil
 }

@@ -117,7 +117,7 @@ func main() {
 	}
 	converter := models.NewConverter()
 
-	ruleService := services.NewRuleService(db)
+	ruleService := services.NewRuleService(db, models.NewValidator())
 
 	globalErrorChan := make(chan error)
 
