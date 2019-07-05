@@ -4,6 +4,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jinzhu/gorm"
 	"go.opencensus.io/trace"
@@ -56,15 +57,17 @@ type RuleService interface {
 }
 
 type ruleService struct {
-	db models.Database
+	db        models.Database
+	validator models.Validator
 }
 
 var _ RuleService = &ruleService{}
 
 // NewRuleService creates a new RuleService
-func NewRuleService(db models.Database) RuleService {
+func NewRuleService(db models.Database, validator models.Validator) RuleService {
 	return &ruleService{
-		db: db,
+		db:        db,
+		validator: validator,
 	}
 }
 
@@ -85,6 +88,10 @@ func (s *ruleService) All(ctx context.Context) ([]models.Rule, error) {
 func (s *ruleService) Save(ctx context.Context, rule *models.Rule) error {
 	ctx, span := trace.StartSpan(ctx, "RuleService.Save")
 	defer span.End()
+
+	if err := s.validator.ValidateRule(*rule); err != nil {
+		return fmt.Errorf("rule validation failed: %v", err)
+	}
 
 	if result := s.gorm().Save(rule); result.Error != nil {
 		return result.Error

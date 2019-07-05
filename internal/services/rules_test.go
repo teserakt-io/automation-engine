@@ -2,12 +2,15 @@ package services
 
 import (
 	"context"
+	"errors"
 	"io/ioutil"
 	"log"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/jinzhu/gorm"
 
 	"gitlab.com/teserakt/c2ae/internal/config"
@@ -91,7 +94,7 @@ func postgresTestDB(t *testing.T) (models.Database, func()) {
 	}
 }
 
-func createRules(t *testing.T, srv RuleService) (rule1 models.Rule, rule2 models.Rule) {
+func createRules(t *testing.T, srv RuleService, validator *models.MockValidator) (rule1 models.Rule, rule2 models.Rule) {
 	rule1 = models.Rule{
 		ActionType:  pb.ActionType_KEY_ROTATION,
 		Description: "rule1",
@@ -132,11 +135,13 @@ func createRules(t *testing.T, srv RuleService) (rule1 models.Rule, rule2 models
 
 	ctx := context.Background()
 
+	validator.EXPECT().ValidateRule(rule1).Times(1)
 	err := srv.Save(ctx, &rule1)
 	if err != nil {
 		t.Errorf("Expected nil error, got %s", err)
 	}
 
+	validator.EXPECT().ValidateRule(rule2).Times(1)
 	err = srv.Save(ctx, &rule2)
 	if err != nil {
 		t.Errorf("Expected nil error, got %s", err)
@@ -152,7 +157,12 @@ func testDatabase(t *testing.T, getTestDB func(t *testing.T) (models.Database, f
 		db, closeFunc := getTestDB(t)
 		defer closeFunc()
 
-		srv := NewRuleService(db)
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		validator := models.NewMockValidator(mockCtrl)
+
+		srv := NewRuleService(db, validator)
 
 		rules, err := srv.All(ctx)
 		if err != nil {
@@ -163,7 +173,7 @@ func testDatabase(t *testing.T, getTestDB func(t *testing.T) (models.Database, f
 			t.Errorf("Expected 0 rules, got %d", len(rules))
 		}
 
-		rule1, rule2 := createRules(t, srv)
+		rule1, rule2 := createRules(t, srv, validator)
 
 		rules, err = srv.All(ctx)
 		if len(rules) != 2 {
@@ -179,7 +189,12 @@ func testDatabase(t *testing.T, getTestDB func(t *testing.T) (models.Database, f
 		db, closeFunc := getTestDB(t)
 		defer closeFunc()
 
-		srv := NewRuleService(db)
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		validator := models.NewMockValidator(mockCtrl)
+
+		srv := NewRuleService(db, validator)
 
 		rule := models.Rule{
 			ActionType:  pb.ActionType_KEY_ROTATION,
@@ -191,6 +206,8 @@ func testDatabase(t *testing.T, getTestDB func(t *testing.T) (models.Database, f
 				models.Trigger{ID: 1},
 			},
 		}
+
+		validator.EXPECT().ValidateRule(rule).Times(1).Return(nil)
 
 		err := srv.Save(ctx, &rule)
 		if err != nil {
@@ -210,6 +227,8 @@ func testDatabase(t *testing.T, getTestDB func(t *testing.T) (models.Database, f
 
 		expectedDescription := "New description"
 		rule.Description = expectedDescription
+
+		validator.EXPECT().ValidateRule(rule).Times(1).Return(nil)
 		err = srv.Save(ctx, &rule)
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
@@ -223,13 +242,44 @@ func testDatabase(t *testing.T, getTestDB func(t *testing.T) (models.Database, f
 		}
 	})
 
+	t.Run("Save with invalid rules returns a validation error", func(t *testing.T) {
+		db, closeFunc := getTestDB(t)
+		defer closeFunc()
+
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		validator := models.NewMockValidator(mockCtrl)
+
+		srv := NewRuleService(db, validator)
+
+		rule := models.Rule{}
+
+		validationError := errors.New("validation error")
+		validator.EXPECT().ValidateRule(rule).Times(1).Return(validationError)
+
+		err := srv.Save(ctx, &rule)
+		if err == nil {
+			t.Error("Expected an error, got nil")
+		}
+
+		if !strings.Contains(err.Error(), validationError.Error()) {
+			t.Errorf("Expected err to contains %v, got %v", validationError, err)
+		}
+	})
+
 	t.Run("ByID returns the proper rule", func(t *testing.T) {
 		db, closeFunc := getTestDB(t)
 		defer closeFunc()
 
-		srv := NewRuleService(db)
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
 
-		rule1, rule2 := createRules(t, srv)
+		validator := models.NewMockValidator(mockCtrl)
+
+		srv := NewRuleService(db, validator)
+
+		rule1, rule2 := createRules(t, srv, validator)
 
 		rule, err := srv.ByID(ctx, rule1.ID)
 		if err != nil {
@@ -259,9 +309,14 @@ func testDatabase(t *testing.T, getTestDB func(t *testing.T) (models.Database, f
 		db, closeFunc := getTestDB(t)
 		defer closeFunc()
 
-		srv := NewRuleService(db)
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
 
-		rule1, rule2 := createRules(t, srv)
+		validator := models.NewMockValidator(mockCtrl)
+
+		srv := NewRuleService(db, validator)
+
+		rule1, rule2 := createRules(t, srv, validator)
 
 		if err := srv.Delete(ctx, rule1); err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
@@ -301,9 +356,14 @@ func testDatabase(t *testing.T, getTestDB func(t *testing.T) (models.Database, f
 		db, closeFunc := getTestDB(t)
 		defer closeFunc()
 
-		srv := NewRuleService(db)
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
 
-		rule1, rule2 := createRules(t, srv)
+		validator := models.NewMockValidator(mockCtrl)
+
+		srv := NewRuleService(db, validator)
+
+		rule1, rule2 := createRules(t, srv, validator)
 
 		trigger, err := srv.TriggerByID(ctx, rule1.Triggers[0].ID)
 		if err != nil {
@@ -333,9 +393,14 @@ func testDatabase(t *testing.T, getTestDB func(t *testing.T) (models.Database, f
 		db, closeFunc := getTestDB(t)
 		defer closeFunc()
 
-		srv := NewRuleService(db)
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
 
-		rule1, rule2 := createRules(t, srv)
+		validator := models.NewMockValidator(mockCtrl)
+
+		srv := NewRuleService(db, validator)
+
+		rule1, rule2 := createRules(t, srv, validator)
 
 		target, err := srv.TargetByID(ctx, rule1.Targets[0].ID)
 		if err != nil {
@@ -365,8 +430,13 @@ func testDatabase(t *testing.T, getTestDB func(t *testing.T) (models.Database, f
 		db, closeFunc := getTestDB(t)
 		defer closeFunc()
 
-		srv := NewRuleService(db)
-		rule1, _ := createRules(t, srv)
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		validator := models.NewMockValidator(mockCtrl)
+
+		srv := NewRuleService(db, validator)
+		rule1, _ := createRules(t, srv, validator)
 
 		originalTargets := make([]models.Target, len(rule1.Targets))
 		copy(originalTargets, rule1.Targets)
@@ -377,6 +447,8 @@ func testDatabase(t *testing.T, getTestDB func(t *testing.T) (models.Database, f
 		}
 
 		rule1.Targets = append(rule1.Targets, targets...)
+
+		validator.EXPECT().ValidateRule(rule1).Times(1)
 		if err := srv.Save(ctx, &rule1); err != nil {
 			t.Errorf("Expected no error, got %v", err)
 		}
@@ -399,8 +471,13 @@ func testDatabase(t *testing.T, getTestDB func(t *testing.T) (models.Database, f
 		db, closeFunc := getTestDB(t)
 		defer closeFunc()
 
-		srv := NewRuleService(db)
-		rule1, _ := createRules(t, srv)
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		validator := models.NewMockValidator(mockCtrl)
+
+		srv := NewRuleService(db, validator)
+		rule1, _ := createRules(t, srv, validator)
 
 		originalTriggers := make([]models.Trigger, len(rule1.Triggers))
 		copy(originalTriggers, rule1.Triggers)
@@ -411,6 +488,8 @@ func testDatabase(t *testing.T, getTestDB func(t *testing.T) (models.Database, f
 		}
 
 		rule1.Triggers = append(rule1.Triggers, triggers...)
+
+		validator.EXPECT().ValidateRule(rule1).Times(1)
 		if err := srv.Save(ctx, &rule1); err != nil {
 			t.Errorf("Expected no error, got %v", err)
 		}
