@@ -7,7 +7,6 @@ import (
 	"go.opencensus.io/trace"
 
 	"gitlab.com/teserakt/c2ae/internal/engine/actions"
-	"gitlab.com/teserakt/c2ae/internal/events"
 	"gitlab.com/teserakt/c2ae/internal/models"
 	"gitlab.com/teserakt/c2ae/internal/services"
 )
@@ -52,7 +51,7 @@ func (f *ruleWatcherFactory) Create(rule models.Rule) RuleWatcher {
 		ruleWriter:            f.ruleWriter,
 		triggerWatcherFactory: f.triggerWatcherFactory,
 		actionFactory:         f.actionFactory,
-		triggeredChan:         make(chan events.TriggerEvent),
+		triggeredChan:         make(chan TriggerEvent),
 		errorChan:             f.errorChan,
 		logger:                f.logger,
 	}
@@ -71,7 +70,7 @@ type ruleWatcher struct {
 	actionFactory         actions.ActionFactory
 	ruleWriter            services.RuleWriter
 	errorChan             chan<- error
-	triggeredChan         chan events.TriggerEvent
+	triggeredChan         chan TriggerEvent
 	logger                log.Logger
 }
 

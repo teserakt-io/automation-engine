@@ -128,12 +128,11 @@ func main() {
 		return
 	}
 
-	c2Requester := services.NewC2Requester(c2ClientFactory)
 	// TODO: we might want to test the connection here and fail if C2 isn't running, or certs are bad...
 	// Maybe add a Ping() to the C2 server allowing to test the connection / C2 health without
 	// sending a real commands. Otherwise we just establish C2 connections only when sending an actual
 	// command, ie: when a rule trigger.
-	c2client := services.NewC2(c2Requester)
+	c2client := services.NewC2(c2ClientFactory)
 
 	triggerWatcherFactory := watchers.NewTriggerWatcherFactory(log.With(logger, "type", "triggerWatcher"))
 	actionFactory := actions.NewActionFactory(c2client, globalErrorChan, log.With(logger, "type", "ruleAction"))

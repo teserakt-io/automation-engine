@@ -7,7 +7,7 @@ package pb
 import (
 	context "context"
 	gomock "github.com/golang/mock/gomock"
-	e4common "gitlab.com/teserakt/e4common"
+	pb "gitlab.com/teserakt/c2/pkg/pb"
 	grpc "google.golang.org/grpc"
 	reflect "reflect"
 )
@@ -35,26 +35,6 @@ func (m *MockC2PbClient) EXPECT() *MockC2PbClientMockRecorder {
 	return m.recorder
 }
 
-// C2Command mocks base method
-func (m *MockC2PbClient) C2Command(arg0 context.Context, arg1 *e4common.C2Request, arg2 ...grpc.CallOption) (*e4common.C2Response, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0, arg1}
-	for _, a := range arg2 {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "C2Command", varargs...)
-	ret0, _ := ret[0].(*e4common.C2Response)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// C2Command indicates an expected call of C2Command
-func (mr *MockC2PbClientMockRecorder) C2Command(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0, arg1}, arg2...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "C2Command", reflect.TypeOf((*MockC2PbClient)(nil).C2Command), varargs...)
-}
-
 // Close mocks base method
 func (m *MockC2PbClient) Close() error {
 	m.ctrl.T.Helper()
@@ -67,6 +47,346 @@ func (m *MockC2PbClient) Close() error {
 func (mr *MockC2PbClientMockRecorder) Close() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockC2PbClient)(nil).Close))
+}
+
+// CountClients mocks base method
+func (m *MockC2PbClient) CountClients(arg0 context.Context, arg1 *pb.CountClientsRequest, arg2 ...grpc.CallOption) (*pb.CountClientsResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CountClients", varargs...)
+	ret0, _ := ret[0].(*pb.CountClientsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountClients indicates an expected call of CountClients
+func (mr *MockC2PbClientMockRecorder) CountClients(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountClients", reflect.TypeOf((*MockC2PbClient)(nil).CountClients), varargs...)
+}
+
+// CountClientsForTopic mocks base method
+func (m *MockC2PbClient) CountClientsForTopic(arg0 context.Context, arg1 *pb.CountClientsForTopicRequest, arg2 ...grpc.CallOption) (*pb.CountClientsForTopicResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CountClientsForTopic", varargs...)
+	ret0, _ := ret[0].(*pb.CountClientsForTopicResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountClientsForTopic indicates an expected call of CountClientsForTopic
+func (mr *MockC2PbClientMockRecorder) CountClientsForTopic(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountClientsForTopic", reflect.TypeOf((*MockC2PbClient)(nil).CountClientsForTopic), varargs...)
+}
+
+// CountTopics mocks base method
+func (m *MockC2PbClient) CountTopics(arg0 context.Context, arg1 *pb.CountTopicsRequest, arg2 ...grpc.CallOption) (*pb.CountTopicsResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CountTopics", varargs...)
+	ret0, _ := ret[0].(*pb.CountTopicsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountTopics indicates an expected call of CountTopics
+func (mr *MockC2PbClientMockRecorder) CountTopics(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountTopics", reflect.TypeOf((*MockC2PbClient)(nil).CountTopics), varargs...)
+}
+
+// CountTopicsForClient mocks base method
+func (m *MockC2PbClient) CountTopicsForClient(arg0 context.Context, arg1 *pb.CountTopicsForClientRequest, arg2 ...grpc.CallOption) (*pb.CountTopicsForClientResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CountTopicsForClient", varargs...)
+	ret0, _ := ret[0].(*pb.CountTopicsForClientResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountTopicsForClient indicates an expected call of CountTopicsForClient
+func (mr *MockC2PbClientMockRecorder) CountTopicsForClient(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountTopicsForClient", reflect.TypeOf((*MockC2PbClient)(nil).CountTopicsForClient), varargs...)
+}
+
+// GetClients mocks base method
+func (m *MockC2PbClient) GetClients(arg0 context.Context, arg1 *pb.GetClientsRequest, arg2 ...grpc.CallOption) (*pb.GetClientsResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetClients", varargs...)
+	ret0, _ := ret[0].(*pb.GetClientsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetClients indicates an expected call of GetClients
+func (mr *MockC2PbClientMockRecorder) GetClients(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClients", reflect.TypeOf((*MockC2PbClient)(nil).GetClients), varargs...)
+}
+
+// GetClientsForTopic mocks base method
+func (m *MockC2PbClient) GetClientsForTopic(arg0 context.Context, arg1 *pb.GetClientsForTopicRequest, arg2 ...grpc.CallOption) (*pb.GetClientsForTopicResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetClientsForTopic", varargs...)
+	ret0, _ := ret[0].(*pb.GetClientsForTopicResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetClientsForTopic indicates an expected call of GetClientsForTopic
+func (mr *MockC2PbClientMockRecorder) GetClientsForTopic(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClientsForTopic", reflect.TypeOf((*MockC2PbClient)(nil).GetClientsForTopic), varargs...)
+}
+
+// GetTopics mocks base method
+func (m *MockC2PbClient) GetTopics(arg0 context.Context, arg1 *pb.GetTopicsRequest, arg2 ...grpc.CallOption) (*pb.GetTopicsResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetTopics", varargs...)
+	ret0, _ := ret[0].(*pb.GetTopicsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTopics indicates an expected call of GetTopics
+func (mr *MockC2PbClientMockRecorder) GetTopics(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTopics", reflect.TypeOf((*MockC2PbClient)(nil).GetTopics), varargs...)
+}
+
+// GetTopicsForClient mocks base method
+func (m *MockC2PbClient) GetTopicsForClient(arg0 context.Context, arg1 *pb.GetTopicsForClientRequest, arg2 ...grpc.CallOption) (*pb.GetTopicsForClientResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetTopicsForClient", varargs...)
+	ret0, _ := ret[0].(*pb.GetTopicsForClientResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTopicsForClient indicates an expected call of GetTopicsForClient
+func (mr *MockC2PbClientMockRecorder) GetTopicsForClient(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTopicsForClient", reflect.TypeOf((*MockC2PbClient)(nil).GetTopicsForClient), varargs...)
+}
+
+// NewClient mocks base method
+func (m *MockC2PbClient) NewClient(arg0 context.Context, arg1 *pb.NewClientRequest, arg2 ...grpc.CallOption) (*pb.NewClientResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "NewClient", varargs...)
+	ret0, _ := ret[0].(*pb.NewClientResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NewClient indicates an expected call of NewClient
+func (mr *MockC2PbClientMockRecorder) NewClient(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewClient", reflect.TypeOf((*MockC2PbClient)(nil).NewClient), varargs...)
+}
+
+// NewClientKey mocks base method
+func (m *MockC2PbClient) NewClientKey(arg0 context.Context, arg1 *pb.NewClientKeyRequest, arg2 ...grpc.CallOption) (*pb.NewClientKeyResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "NewClientKey", varargs...)
+	ret0, _ := ret[0].(*pb.NewClientKeyResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NewClientKey indicates an expected call of NewClientKey
+func (mr *MockC2PbClientMockRecorder) NewClientKey(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewClientKey", reflect.TypeOf((*MockC2PbClient)(nil).NewClientKey), varargs...)
+}
+
+// NewTopic mocks base method
+func (m *MockC2PbClient) NewTopic(arg0 context.Context, arg1 *pb.NewTopicRequest, arg2 ...grpc.CallOption) (*pb.NewTopicResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "NewTopic", varargs...)
+	ret0, _ := ret[0].(*pb.NewTopicResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NewTopic indicates an expected call of NewTopic
+func (mr *MockC2PbClientMockRecorder) NewTopic(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewTopic", reflect.TypeOf((*MockC2PbClient)(nil).NewTopic), varargs...)
+}
+
+// NewTopicClient mocks base method
+func (m *MockC2PbClient) NewTopicClient(arg0 context.Context, arg1 *pb.NewTopicClientRequest, arg2 ...grpc.CallOption) (*pb.NewTopicClientResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "NewTopicClient", varargs...)
+	ret0, _ := ret[0].(*pb.NewTopicClientResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NewTopicClient indicates an expected call of NewTopicClient
+func (mr *MockC2PbClientMockRecorder) NewTopicClient(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewTopicClient", reflect.TypeOf((*MockC2PbClient)(nil).NewTopicClient), varargs...)
+}
+
+// RemoveClient mocks base method
+func (m *MockC2PbClient) RemoveClient(arg0 context.Context, arg1 *pb.RemoveClientRequest, arg2 ...grpc.CallOption) (*pb.RemoveClientResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "RemoveClient", varargs...)
+	ret0, _ := ret[0].(*pb.RemoveClientResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RemoveClient indicates an expected call of RemoveClient
+func (mr *MockC2PbClientMockRecorder) RemoveClient(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveClient", reflect.TypeOf((*MockC2PbClient)(nil).RemoveClient), varargs...)
+}
+
+// RemoveTopic mocks base method
+func (m *MockC2PbClient) RemoveTopic(arg0 context.Context, arg1 *pb.RemoveTopicRequest, arg2 ...grpc.CallOption) (*pb.RemoveTopicResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "RemoveTopic", varargs...)
+	ret0, _ := ret[0].(*pb.RemoveTopicResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RemoveTopic indicates an expected call of RemoveTopic
+func (mr *MockC2PbClientMockRecorder) RemoveTopic(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveTopic", reflect.TypeOf((*MockC2PbClient)(nil).RemoveTopic), varargs...)
+}
+
+// RemoveTopicClient mocks base method
+func (m *MockC2PbClient) RemoveTopicClient(arg0 context.Context, arg1 *pb.RemoveTopicClientRequest, arg2 ...grpc.CallOption) (*pb.RemoveTopicClientResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "RemoveTopicClient", varargs...)
+	ret0, _ := ret[0].(*pb.RemoveTopicClientResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RemoveTopicClient indicates an expected call of RemoveTopicClient
+func (mr *MockC2PbClientMockRecorder) RemoveTopicClient(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveTopicClient", reflect.TypeOf((*MockC2PbClient)(nil).RemoveTopicClient), varargs...)
+}
+
+// ResetClient mocks base method
+func (m *MockC2PbClient) ResetClient(arg0 context.Context, arg1 *pb.ResetClientRequest, arg2 ...grpc.CallOption) (*pb.ResetClientResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ResetClient", varargs...)
+	ret0, _ := ret[0].(*pb.ResetClientResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ResetClient indicates an expected call of ResetClient
+func (mr *MockC2PbClientMockRecorder) ResetClient(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetClient", reflect.TypeOf((*MockC2PbClient)(nil).ResetClient), varargs...)
+}
+
+// SendMessage mocks base method
+func (m *MockC2PbClient) SendMessage(arg0 context.Context, arg1 *pb.SendMessageRequest, arg2 ...grpc.CallOption) (*pb.SendMessageResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "SendMessage", varargs...)
+	ret0, _ := ret[0].(*pb.SendMessageResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SendMessage indicates an expected call of SendMessage
+func (mr *MockC2PbClientMockRecorder) SendMessage(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessage", reflect.TypeOf((*MockC2PbClient)(nil).SendMessage), varargs...)
 }
 
 // MockC2PbClientFactory is a mock of C2PbClientFactory interface

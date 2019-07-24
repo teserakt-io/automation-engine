@@ -3,19 +3,19 @@ package pb
 //go:generate mockgen -destination=c2client_mocks.go -package=pb -self_package gitlab.com/teserakt/c2ae/internal/pb gitlab.com/teserakt/c2ae/internal/pb C2PbClient,C2PbClientFactory
 
 import (
-	e4 "gitlab.com/teserakt/e4common"
+	c2pb "gitlab.com/teserakt/c2/pkg/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
 
 // C2PbClient wrap e4.C2Client in a local interface and provide a way to close its connection
 type C2PbClient interface {
-	e4.C2Client
+	c2pb.C2Client
 	Close() error
 }
 
 type c2PbClient struct {
-	e4.C2Client
+	c2pb.C2Client
 	cnx *grpc.ClientConn
 }
 
@@ -57,7 +57,7 @@ func (f *c2PbClientFactory) Create() (C2PbClient, error) {
 	}
 
 	return &c2PbClient{
-		C2Client: e4.NewC2Client(cnx),
+		C2Client: c2pb.NewC2Client(cnx),
 		cnx:      cnx,
 	}, nil
 }

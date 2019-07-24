@@ -11,7 +11,6 @@ import (
 	"github.com/golang/mock/gomock"
 
 	"gitlab.com/teserakt/c2ae/internal/engine/actions"
-	"gitlab.com/teserakt/c2ae/internal/events"
 	"gitlab.com/teserakt/c2ae/internal/models"
 	"gitlab.com/teserakt/c2ae/internal/services"
 )
@@ -42,7 +41,7 @@ func TestRuleWatcher(t *testing.T) {
 	mockActionFactory := actions.NewMockActionFactory(mockCtrl)
 	mockAction := actions.NewMockAction(mockCtrl)
 
-	triggeredChan := make(chan events.TriggerEvent)
+	triggeredChan := make(chan TriggerEvent)
 	errorChan := make(chan error)
 
 	watcher := &ruleWatcher{
@@ -162,7 +161,7 @@ func TestRuleWatcher(t *testing.T) {
 
 		go newRuleWatcher.Start(ctx)
 
-		triggeredChan <- events.TriggerEvent{Trigger: modifiedRule.Triggers[1], Time: expectedTime}
+		triggeredChan <- TriggerEvent{Trigger: modifiedRule.Triggers[1], Time: expectedTime}
 
 		select {
 		case err := <-errorChan:
@@ -208,7 +207,7 @@ func TestRuleWatcher(t *testing.T) {
 
 		go newRuleWatcher.Start(ctx)
 
-		triggeredChan <- events.TriggerEvent{Trigger: modifiedRule.Triggers[0], Time: time.Now()}
+		triggeredChan <- TriggerEvent{Trigger: modifiedRule.Triggers[0], Time: time.Now()}
 
 		select {
 		case err := <-errorChan:

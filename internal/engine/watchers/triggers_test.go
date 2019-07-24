@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-kit/kit/log"
 
-	"gitlab.com/teserakt/c2ae/internal/events"
 	"gitlab.com/teserakt/c2ae/internal/models"
 	"gitlab.com/teserakt/c2ae/internal/pb"
 )
@@ -18,7 +17,7 @@ func TestTriggerWatcherFactory(t *testing.T) {
 
 	expectedLastExecuted := time.Now()
 
-	triggeredChan := make(chan<- events.TriggerEvent)
+	triggeredChan := make(chan<- TriggerEvent)
 	errorChan := make(chan<- error)
 
 	t.Run("Factory creates schedulerWatcher", func(t *testing.T) {
@@ -165,7 +164,7 @@ func TestSchedulerTriggerWatcher(t *testing.T) {
 
 	trigger := models.Trigger{Settings: encodedSettings}
 
-	triggeredChan := make(chan events.TriggerEvent)
+	triggeredChan := make(chan TriggerEvent)
 	updateChan := make(chan time.Time)
 	errorChan := make(chan error)
 
@@ -186,7 +185,7 @@ func TestSchedulerTriggerWatcher(t *testing.T) {
 
 		go watcher.Start(ctx)
 
-		var triggerEvt events.TriggerEvent
+		var triggerEvt TriggerEvent
 
 		select {
 		case triggerEvt = <-triggeredChan:

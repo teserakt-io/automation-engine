@@ -8,12 +8,17 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/gorhill/cronexpr"
 
-	"gitlab.com/teserakt/c2ae/internal/events"
 	"gitlab.com/teserakt/c2ae/internal/models"
 	"gitlab.com/teserakt/c2ae/internal/pb"
 )
 
 //go:generate mockgen -destination=triggers_mocks.go -package watchers -self_package gitlab.com/teserakt/c2ae/internal/engine/watchers gitlab.com/teserakt/c2ae/internal/engine/watchers TriggerWatcherFactory,TriggerWatcher
+
+// TriggerEvent holds values transmitted when a trigger trigger
+type TriggerEvent struct {
+	Trigger models.Trigger
+	Time    time.Time
+}
 
 // TriggerWatcher defines an interface for types watching on a trigger
 type TriggerWatcher interface {
@@ -27,21 +32,21 @@ type TriggerWatcherFactory interface {
 	Create(
 		trigger models.Trigger,
 		lastExecuted time.Time,
-		triggeredChan chan<- events.TriggerEvent,
+		triggeredChan chan<- TriggerEvent,
 		errorChan chan<- error,
 	) (TriggerWatcher, error)
 }
 
 type triggerWatcherFactory struct {
 	logger        log.Logger
-	triggeredChan chan<- events.TriggerEvent
+	triggeredChan chan<- TriggerEvent
 	errorChan     chan<- error
 }
 
-var _ TriggerWatcherFactory = &triggerWatcherFactory{}
-var _ TriggerWatcher = &schedulerWatcher{}
-var _ TriggerWatcher = &clientSubscribedWatcher{}
-var _TriggerWatcher = &clientUnsubscribedWatcher{}
+var _ TriggerWatcherFactory = (*triggerWatcherFactory)(nil)
+var _ TriggerWatcher = (*schedulerWatcher)(nil)
+var _ TriggerWatcher = (*clientSubscribedWatcher)(nil)
+var _ TriggerWatcher = (*clientUnsubscribedWatcher)(nil)
 
 // NewTriggerWatcherFactory creates a new watcher factory for given trigger
 func NewTriggerWatcherFactory(logger log.Logger) TriggerWatcherFactory {
@@ -53,7 +58,7 @@ func NewTriggerWatcherFactory(logger log.Logger) TriggerWatcherFactory {
 func (f *triggerWatcherFactory) Create(
 	trigger models.Trigger,
 	lastExecuted time.Time,
-	triggeredChan chan<- events.TriggerEvent,
+	triggeredChan chan<- TriggerEvent,
 	errorChan chan<- error,
 ) (TriggerWatcher, error) {
 
@@ -117,7 +122,7 @@ func (e InvalidCronExpr) Error() string {
 
 type schedulerWatcher struct {
 	trigger       models.Trigger
-	triggeredChan chan<- events.TriggerEvent
+	triggeredChan chan<- TriggerEvent
 	errorChan     chan<- error
 	logger        log.Logger
 
@@ -154,7 +159,7 @@ func (w *schedulerWatcher) Start(ctx context.Context) {
 		case <-trigger:
 			now := time.Now()
 
-			w.triggeredChan <- events.TriggerEvent{
+			w.triggeredChan <- TriggerEvent{
 				Trigger: w.trigger,
 				Time:    now,
 			}
@@ -175,25 +180,27 @@ func (w *schedulerWatcher) UpdateLastExecuted(lastExecuted time.Time) error {
 
 type clientSubscribedWatcher struct {
 	trigger       models.Trigger
-	triggeredChan chan<- events.TriggerEvent
+	triggeredChan chan<- TriggerEvent
 	errorChan     chan<- error
-	updateChan    chan time.Time
-	lastExecuted  time.Time
 	logger        log.Logger
+
+	updateChan   chan time.Time
+	lastExecuted time.Time
 }
 
 func (w *clientSubscribedWatcher) Start(ctx context.Context) {
 	// TODO
 }
 
-func (w *clientSubscribedWatcher) UpdateLastExecuted(time.Time) error {
-	// TODO
+func (w *clientSubscribedWatcher) UpdateLastExecuted(lastExecuted time.Time) error {
+	w.updateChan <- lastExecuted
+
 	return nil
 }
 
 type clientUnsubscribedWatcher struct {
 	trigger       models.Trigger
-	triggeredChan chan<- events.TriggerEvent
+	triggeredChan chan<- TriggerEvent
 	errorChan     chan<- error
 	updateChan    chan time.Time
 	lastExecuted  time.Time
@@ -204,7 +211,8 @@ func (w *clientUnsubscribedWatcher) Start(ctx context.Context) {
 	// TODO
 }
 
-func (w *clientUnsubscribedWatcher) UpdateLastExecuted(time.Time) error {
-	// TODO
+func (w *clientUnsubscribedWatcher) UpdateLastExecuted(lastExecuted time.Time) error {
+	w.updateChan <- lastExecuted
+
 	return nil
 }

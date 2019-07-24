@@ -7,7 +7,6 @@ package watchers
 import (
 	context "context"
 	gomock "github.com/golang/mock/gomock"
-	events "gitlab.com/teserakt/c2ae/internal/events"
 	models "gitlab.com/teserakt/c2ae/internal/models"
 	reflect "reflect"
 	time "time"
@@ -37,7 +36,7 @@ func (m *MockTriggerWatcherFactory) EXPECT() *MockTriggerWatcherFactoryMockRecor
 }
 
 // Create mocks base method
-func (m *MockTriggerWatcherFactory) Create(arg0 models.Trigger, arg1 time.Time, arg2 chan<- events.TriggerEvent, arg3 chan<- error) (TriggerWatcher, error) {
+func (m *MockTriggerWatcherFactory) Create(arg0 models.Trigger, arg1 time.Time, arg2 chan<- TriggerEvent, arg3 chan<- error) (TriggerWatcher, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(TriggerWatcher)
