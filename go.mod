@@ -13,6 +13,7 @@ require (
 	github.com/jinzhu/now v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/olivere/elastic v6.2.21+incompatible
+	github.com/pierrec/lz4 v2.0.5+incompatible // indirect
 	github.com/rvflash/elapsed v0.2.0
 	github.com/spf13/cobra v0.0.5
 	gitlab.com/teserakt/c2 v0.0.0-20190724111259-340b746e2913
