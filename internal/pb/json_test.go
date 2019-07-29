@@ -30,26 +30,24 @@ func TestJson(t *testing.T) {
 	})
 
 	t.Run("Trigger MarshalJson properly marshall TriggerSettingsEvent", func(t *testing.T) {
-		triggerSettings := &TriggerSettingsEvent{EventType: EventTypeClientSubscribed}
+		triggerSettings := &TriggerSettingsEvent{MaxOccurence: 5, EventType: EventTypeClientSubscribed}
 		encodedSettings, err := triggerSettings.Encode()
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
 
-		for _, triggerType := range []TriggerType{TriggerType_CLIENT_SUBSCRIBED, TriggerType_CLIENT_UNSUBSCRIBED} {
-			trigger := &Trigger{
-				Type:     triggerType,
-				Settings: encodedSettings,
-			}
+		trigger := &Trigger{
+			Type:     TriggerType_EVENT,
+			Settings: encodedSettings,
+		}
 
-			json, err := trigger.MarshalJSON()
-			if err != nil {
-				t.Errorf("Expected err to be nil, got %s", err)
-			}
+		json, err := trigger.MarshalJSON()
+		if err != nil {
+			t.Errorf("Expected err to be nil, got %s", err)
+		}
 
-			if strings.Contains(string(json), string(EventTypeClientSubscribed)) == false {
-				t.Errorf("Expected json settings to contains '%s', but got '%s'", EventTypeClientSubscribed, string(json))
-			}
+		if strings.Contains(string(json), string(EventTypeClientSubscribed)) == false {
+			t.Errorf("Expected json settings to contains '%s', but got '%s'", EventTypeClientSubscribed, string(json))
 		}
 	})
 

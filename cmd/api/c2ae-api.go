@@ -6,6 +6,9 @@ import (
 	stdlog "log"
 	"os"
 	"os/signal"
+	"time"
+
+	"gitlab.com/teserakt/c2ae/internal/events"
 
 	"github.com/go-kit/kit/log"
 	"github.com/olivere/elastic"
@@ -34,6 +37,14 @@ func main() {
 	defer os.Exit(exitCode)
 
 	printVersion()
+
+	globalCtx, globalCancel := context.WithCancel(context.Background())
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt)
+	defer func() {
+		signal.Stop(sigChan)
+		globalCancel()
+	}()
 
 	// init logger
 	logFileName := fmt.Sprintf("/var/log/e4_c2ae.log")
@@ -116,8 +127,10 @@ func main() {
 		return
 	}
 	converter := models.NewConverter()
+	validator := models.NewValidator()
 
-	ruleService := services.NewRuleService(db, models.NewValidator())
+	ruleService := services.NewRuleService(db, validator)
+	triggerStateService := services.NewTriggerStateService(db)
 
 	globalErrorChan := make(chan error)
 
@@ -134,7 +147,14 @@ func main() {
 	// command, ie: when a rule trigger.
 	c2client := services.NewC2(c2ClientFactory)
 
-	triggerWatcherFactory := watchers.NewTriggerWatcherFactory(log.With(logger, "type", "triggerWatcher"))
+	eventStreamer := events.NewStreamer(c2client, log.With(logger, "type", "eventStreamer"))
+
+	triggerWatcherFactory := watchers.NewTriggerWatcherFactory(
+		events.NewStreamListenerFactory(eventStreamer),
+		triggerStateService,
+		validator,
+		log.With(logger, "type", "triggerWatcher"),
+	)
 	actionFactory := actions.NewActionFactory(c2client, globalErrorChan, log.With(logger, "type", "ruleAction"))
 
 	ruleWatcherFactory := watchers.NewRuleWatcherFactory(
@@ -158,14 +178,6 @@ func main() {
 		log.With(logger, "type", "apiServer"),
 	)
 
-	globalCtx, globalCancel := context.WithCancel(context.Background())
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, os.Interrupt)
-	defer func() {
-		signal.Stop(sigChan)
-		globalCancel()
-	}()
-
 	if err := monitoring.Setup(appConfig.OpencensusAddress, appConfig.OpencensusSampleAll); err != nil {
 		logger.Log("msg", "failed to setup monitoring", "error", err)
 		exitCode = 1
@@ -181,6 +193,8 @@ func main() {
 		}
 	}()
 
+	// Start automation engine. Will start a background routine for every rules
+	// and every rule's triggers until engineCtx or globalCtx get cancelled.
 	engineCtx, engineCancel := context.WithCancel(globalCtx)
 	if err := automationEngine.Start(engineCtx); err != nil {
 		logger.Log("msg", "error when starting automation engine", "error", err)
@@ -189,6 +203,7 @@ func main() {
 	}
 	logger.Log("msg", "started automation engine")
 
+	// Start C2AE api server
 	go func() {
 		err := server.ListenAndServe(globalCtx)
 		logger.Log("msg", "failed to listen and serve api", "error", err)
@@ -196,6 +211,26 @@ func main() {
 		return
 	}()
 
+	// Start event stream from C2 server.
+	// In case the C2 is not available, or crash after some time
+	// the event streamer will try to reconnect every seconds until it succeed
+	// or the context get canceled.
+	go func() {
+		for {
+			err := eventStreamer.StartStream(globalCtx)
+			logger.Log("msg", "event streamer stopped", "error", err)
+			select {
+			case <-globalCtx.Done():
+				return
+			default:
+				time.Sleep(1 * time.Second)
+			}
+		}
+	}()
+
+	// Listen for changes in the database and stop / restart the automation engine,
+	// creating a fresh engineCtx.
+	// Cancelling the globalCtx stop it from restarting indefinitively.
 	for {
 		select {
 		case <-server.RulesModifiedChan():

@@ -32,6 +32,13 @@ type Trigger struct {
 	Settings    []byte
 }
 
+// TriggerState holds data to be persisted by a trigger watcher
+type TriggerState struct {
+	ID        int `gorm:"primary_key"`
+	TriggerID int `gorm:"type:int REFERENCES triggers(id) ON DELETE CASCADE"`
+	Counter   int
+}
+
 // FilterNonExistingTriggers will returns a slice of Triggers
 // from `old` which does not exists in `new`
 func FilterNonExistingTriggers(old []Trigger, new []Trigger) []Trigger {

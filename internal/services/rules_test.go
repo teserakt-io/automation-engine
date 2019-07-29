@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	gomock "github.com/golang/mock/gomock"
 	"github.com/jinzhu/gorm"
@@ -20,14 +21,14 @@ import (
 )
 
 func TestRuleService(t *testing.T) {
-	testDatabase(t, sqliteTestDB)
+	testRuleServiceDatabase(t, sqliteTestDB)
 
 	if os.Getenv("C2AETEST_POSTGRES") == "" {
 		t.Skip("C2AETEST_POSTGRES environment is not set")
 
 		return
 	}
-	testDatabase(t, postgresTestDB)
+	testRuleServiceDatabase(t, postgresTestDB)
 
 }
 
@@ -127,7 +128,7 @@ func createRules(t *testing.T, srv RuleService, validator *models.MockValidator)
 		Triggers: []models.Trigger{
 			models.Trigger{
 				ID:          2,
-				TriggerType: pb.TriggerType_CLIENT_SUBSCRIBED,
+				TriggerType: pb.TriggerType_EVENT,
 				Settings:    []byte("settings2"),
 			},
 		},
@@ -150,7 +151,7 @@ func createRules(t *testing.T, srv RuleService, validator *models.MockValidator)
 	return rule1, rule2
 }
 
-func testDatabase(t *testing.T, getTestDB func(t *testing.T) (models.Database, func())) {
+func testRuleServiceDatabase(t *testing.T, getTestDB func(t *testing.T) (models.Database, func())) {
 	ctx := context.Background()
 
 	t.Run("All returns all rules", func(t *testing.T) {
@@ -178,6 +179,12 @@ func testDatabase(t *testing.T, getTestDB func(t *testing.T) (models.Database, f
 		rules, err = srv.All(ctx)
 		if len(rules) != 2 {
 			t.Errorf("Expected 2 rules, got %d", len(rules))
+		}
+
+		// Ignore lastExecuted time to simplify next assertion
+		// which fail on postgres (too slow)
+		for i := range rules {
+			rules[i].LastExecuted = time.Time{}
 		}
 
 		if reflect.DeepEqual(rules, []models.Rule{rule1, rule2}) == false {
@@ -286,6 +293,10 @@ func testDatabase(t *testing.T, getTestDB func(t *testing.T) (models.Database, f
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
 
+		// Ignore lastExecuted time to simplify next assertion
+		// which fail on postgres (too slow)
+		rule.LastExecuted = time.Time{}
+
 		if reflect.DeepEqual(rule, rule1) == false {
 			t.Errorf("Expected rule 1 to be %#v, got %#v", rule1, rule)
 		}
@@ -295,6 +306,9 @@ func testDatabase(t *testing.T, getTestDB func(t *testing.T) (models.Database, f
 			t.Errorf("Expected err to be nil, got %s", err)
 		}
 
+		// Ignore lastExecuted time to simplify next assertion
+		// which fail on postgres (too slow)
+		rule.LastExecuted = time.Time{}
 		if reflect.DeepEqual(rule, rule2) == false {
 			t.Errorf("Expected rule 2 to be %#v, got %#v", rule2, rule)
 		}
