@@ -97,8 +97,10 @@ func (s *streamer) StartStream(ctx context.Context) error {
 			return err
 		}
 
+		s.lock.Lock()
 		for _, lis := range s.listeners {
 			go lis.onEvent(*evt)
 		}
+		s.lock.Unlock()
 	}
 }
