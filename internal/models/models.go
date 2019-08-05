@@ -19,7 +19,7 @@ type Rule struct {
 // Target holds database informations for a rule target
 type Target struct {
 	ID     int `gorm:"primary_key"`
-	RuleID int `gorm:"type:int REFERENCES rules(id) ON DELETE CASCADE"`
+	RuleID int `gorm:"type:int REFERENCES rules(id) ON DELETE CASCADE; index;"`
 	Type   pb.TargetType
 	Expr   string
 }
@@ -27,7 +27,7 @@ type Target struct {
 // Trigger holds database informations for a rule trigger
 type Trigger struct {
 	ID          int `gorm:"primary_key"`
-	RuleID      int `gorm:"type:int REFERENCES rules(id) ON DELETE CASCADE"`
+	RuleID      int `gorm:"type:int REFERENCES rules(id) ON DELETE CASCADE; index;"`
 	TriggerType pb.TriggerType
 	Settings    []byte
 }
@@ -35,7 +35,7 @@ type Trigger struct {
 // TriggerState holds data to be persisted by a trigger watcher
 type TriggerState struct {
 	ID        int `gorm:"primary_key"`
-	TriggerID int `gorm:"type:int REFERENCES triggers(id) ON DELETE CASCADE"`
+	TriggerID int `gorm:"type:int REFERENCES triggers(id) ON DELETE CASCADE; unique_index; NOT NULL;"`
 	Counter   int
 }
 
