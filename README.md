@@ -79,6 +79,27 @@ c2ae-cli add-trigger --rule=1 --type=TIME_INTERVAL --setting expr="*/2 * * * *"
 # started a goroutine to make it execute at specified time interval.
 ```
 
+#### Rotating a topic keys every 5 clients subscribed
+
+
+```
+### First create a new rule:
+c2ae-cli create --action=KEY_ROTATION --description "Rotate topic /sensors/data every 5 clients subscriptions"
+# Rule #1 created!
+
+### Now add targets:
+c2ae-cli add-target --rule=1 --type=TOPIC --expr="/sensors/data"
+# New target successfully added on rule #1
+
+### And finally set the trigger:
+c2ae-cli add-trigger --rule=1 --type=EVENT --setting eventType=CLIENT_SUBSCRIBED --setting maxOccurence=5
+# New trigger successfully added on rule #1
+
+# And done ! Now the API will have auto loaded the newly created trigger and
+# started a goroutine to make it execute when it will have received 5 client subscribed events for the /sensors/data topic
+```
+
+
 ### Run from docker image
 
 The CI automatically push docker images of C2AE API and CLI after each successfull builds and for each branches.

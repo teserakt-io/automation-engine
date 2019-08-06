@@ -5,6 +5,8 @@ import (
 	"errors"
 	fmt "fmt"
 
+	c2pb "gitlab.com/teserakt/c2/pkg/pb"
+
 	"github.com/gorhill/cronexpr"
 )
 
@@ -13,9 +15,9 @@ type EventType string
 
 var (
 	// EventTypeClientSubscribed describes the event emitted when a client subscribe
-	EventTypeClientSubscribed EventType = "client_subscribed"
+	EventTypeClientSubscribed EventType = EventType(c2pb.EventType_CLIENT_SUBSCRIBED.String())
 	// EventTypeClientUnsubscribed describes the event emitted when a client unsubscribe
-	EventTypeClientUnsubscribed EventType = "client_unsubscribed"
+	EventTypeClientUnsubscribed EventType = EventType(c2pb.EventType_CLIENT_UNSUBSCRIBED.String())
 )
 
 // TriggerSettings defines a generic trigger settings structure
@@ -46,7 +48,7 @@ func Decode(t TriggerType, settings []byte) (TriggerSettings, error) {
 	switch t {
 	case TriggerType_TIME_INTERVAL:
 		triggerSettings = &TriggerSettingsTimeInterval{}
-	case TriggerType_CLIENT_UNSUBSCRIBED, TriggerType_CLIENT_SUBSCRIBED:
+	case TriggerType_EVENT:
 		triggerSettings = &TriggerSettingsEvent{}
 	default:
 		return nil, fmt.Errorf("trigger type %s is not supported", t)
@@ -83,14 +85,19 @@ func (t *TriggerSettingsTimeInterval) Decode(b []byte) error {
 
 // Validate implements TriggerSettings and returns an error when the settings are invalid
 func (t *TriggerSettingsEvent) Validate() error {
-	// TODO: re enabled validation once we have some real usage of this setting type
-	// if len(t.EventType) == 0 {
-	// 	return errors.New("EventType is required")
-	// }
+	if len(t.EventType) <= 0 {
+		return errors.New("EventType is required")
+	}
 
-	// if t.MaxOccurence <= 0 {
-	// 	return errors.New("MaxOccurence must be greater than 0")
-	// }
+	switch t.EventType {
+	case EventTypeClientSubscribed, EventTypeClientUnsubscribed:
+	default:
+		return fmt.Errorf("EventType must be one of %v", []EventType{EventTypeClientSubscribed, EventTypeClientUnsubscribed})
+	}
+
+	if t.MaxOccurence <= 0 {
+		return errors.New("MaxOccurence must be greater than 0")
+	}
 
 	return nil
 }

@@ -10,7 +10,7 @@ func TestTriggerSettings(t *testing.T) {
 
 		testData := map[TriggerSettings]TriggerSettings{
 			&TriggerSettingsTimeInterval{}: &TriggerSettingsTimeInterval{Expr: "something"},
-			&TriggerSettingsEvent{}:        &TriggerSettingsEvent{EventType: "something", MaxOccurence: 5},
+			&TriggerSettingsEvent{}:        &TriggerSettingsEvent{MaxOccurence: 5},
 		}
 
 		for settings, expectedSettings := range testData {
@@ -51,27 +51,28 @@ func TestTriggerSettingsTimeInterval(t *testing.T) {
 	})
 }
 
-// TODO: enable back this test when we'll have some real usage of TriggerSettingsEvent
+func TestTriggerSettingsEvent(t *testing.T) {
+	t.Run("Validate properly checks settings", func(t *testing.T) {
+		testData := map[*TriggerSettingsEvent]bool{
+			&TriggerSettingsEvent{EventType: ""}:                                       false,
+			&TriggerSettingsEvent{EventType: "CLIENT_SUBSCRIBED"}:                      false,
+			&TriggerSettingsEvent{EventType: "CLIENT_SUBSCRIBED", MaxOccurence: 0}:     false,
+			&TriggerSettingsEvent{EventType: "CLIENT_SUBSCRIBED", MaxOccurence: 0}:     false,
+			&TriggerSettingsEvent{EventType: "CLIENT_SUBSCRIBED", MaxOccurence: -1}:    false,
+			&TriggerSettingsEvent{EventType: "NOT_VALID_TYPE", MaxOccurence: 1}:        false,
+			&TriggerSettingsEvent{EventType: "CLIENT_SUBSCRIBED", MaxOccurence: 1}:     true,
+			&TriggerSettingsEvent{EventType: "CLIENT_SUBSCRIBED", MaxOccurence: 5}:     true,
+			&TriggerSettingsEvent{EventType: "CLIENT_UNSUBSCRIBED", MaxOccurence: 100}: true,
+		}
 
-// func TestTriggerSettingsEvent(t *testing.T) {
-// 	t.Run("Validate properly checks settings", func(t *testing.T) {
-// 		testData := map[*TriggerSettingsEvent]bool{
-// 			&TriggerSettingsEvent{EventType: EventType(""), MaxOccurence: 0}:                 false,
-// 			&TriggerSettingsEvent{EventType: EventType("something"), MaxOccurence: 0}:        false,
-// 			&TriggerSettingsEvent{EventType: EventType("something"), MaxOccurence: -1}:       false,
-// 			&TriggerSettingsEvent{EventType: EventType("something"), MaxOccurence: 1}:        true,
-// 			&TriggerSettingsEvent{EventType: EventTypeClientSubscribed, MaxOccurence: 5}:     true,
-// 			&TriggerSettingsEvent{EventType: EventTypeClientUnsubscribed, MaxOccurence: 100}: true,
-// 		}
+		for settings, valid := range testData {
+			err := settings.Validate()
 
-// 		for settings, valid := range testData {
-// 			err := settings.Validate()
-
-// 			if valid && err != nil {
-// 				t.Errorf("Expected err to be nil, got %s with settings: %#v", err, settings)
-// 			} else if !valid && err == nil {
-// 				t.Errorf("Expected err to be not nil with settings: %#v", settings)
-// 			}
-// 		}
-// 	})
-// }
+			if valid && err != nil {
+				t.Errorf("Expected err to be nil, got %s with settings: %#v", err, settings)
+			} else if !valid && err == nil {
+				t.Errorf("Expected err to be not nil with settings: %#v", settings)
+			}
+		}
+	})
+}

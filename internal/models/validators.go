@@ -1,6 +1,6 @@
 package models
 
-//go:generate mockgen -destination validators_mocks.go -package=models -self_package gitlab.com/teserakt/c2ae/internal/models gitlab.com/teserakt/c2ae/internal/models Validator
+//go:generate mockgen -destination validators_mocks.go -package=models -self_package gitlab.com/teserakt/c2ae/internal/models gitlab.com/teserakt/c2ae/internal/models Validator,TriggerValidator
 
 import (
 	"errors"
@@ -19,10 +19,15 @@ var (
 	ErrTargetExprRequired     = errors.New("target expr is required")
 )
 
+// TriggerValidator defines interface for trigger validators
+type TriggerValidator interface {
+	ValidateTrigger(trigger Trigger) error
+}
+
 // Validator defines an interface for models validation
 type Validator interface {
+	TriggerValidator
 	ValidateRule(rule Rule) error
-	ValidateTrigger(trigger Trigger) error
 	ValidateTarget(target Target) error
 }
 

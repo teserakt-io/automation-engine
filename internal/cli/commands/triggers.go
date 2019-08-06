@@ -127,17 +127,9 @@ func mapToTriggerSettings(userSettings map[string]string, triggerType pb.Trigger
 		decoderConfig = &mapstructure.DecoderConfig{
 			Result: &pb.TriggerSettingsTimeInterval{},
 		}
-	case pb.TriggerType_CLIENT_SUBSCRIBED:
+	case pb.TriggerType_EVENT:
 		decoderConfig = &mapstructure.DecoderConfig{
-			Result: &pb.TriggerSettingsEvent{
-				EventType: pb.EventTypeClientSubscribed,
-			},
-		}
-	case pb.TriggerType_CLIENT_UNSUBSCRIBED:
-		decoderConfig = &mapstructure.DecoderConfig{
-			Result: &pb.TriggerSettingsEvent{
-				EventType: pb.EventTypeClientUnsubscribed,
-			},
+			Result: &pb.TriggerSettingsEvent{},
 		}
 	}
 

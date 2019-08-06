@@ -50,8 +50,7 @@ enum TargetType {
 enum TriggerType {
     UNDEFINED_TRIGGER = 0;
     TIME_INTERVAL = 1;
-    CLIENT_SUBSCRIBED = 2;
-    CLIENT_UNSUBSCRIBED = 3;
+    EVENT = 2;
     // Extended as more triggers get added ...
 }
 

@@ -264,8 +264,7 @@
       "enum": [
         "UNDEFINED_TRIGGER",
         "TIME_INTERVAL",
-        "CLIENT_SUBSCRIBED",
-        "CLIENT_UNSUBSCRIBED"
+        "EVENT"
       ],
       "default": "UNDEFINED_TRIGGER"
     },
