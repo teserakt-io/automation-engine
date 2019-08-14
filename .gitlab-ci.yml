@@ -32,8 +32,10 @@ all:
     - go get github.com/jstemmer/go-junit-report
     # Run lint and tests
     - golint -set_exit_status ./...
-    - go test -v -coverprofile=cover.out -timeout 10s -race ./... | tee >(go-junit-report > report.xml)
-    - go tool cover -func cover.out
+    # Timeout need at least 30s when testing with C2AETEST_POSTGRES=1 to let it time to drop / create the schema between tests.
+    - go test -v -coverprofile=cover.out -timeout 30s -race ./... | tee >(go-junit-report > report.xml)
+    - cat cover.out | grep -v "_mocks.go" > cover_filtered.out
+    - go tool cover -func cover_filtered.out
     - ./scripts/build.sh
   coverage: '/^total:\t+\(statements\)\t+(\d+\.\d+)%/'
   artifacts:

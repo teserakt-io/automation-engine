@@ -87,6 +87,7 @@ func (gdb *gormDB) Migrate() error {
 	result := gdb.Connection().AutoMigrate(
 		Rule{},
 		Trigger{},
+		TriggerState{},
 		Target{},
 	)
 

@@ -1,5 +1,7 @@
 package watchers
 
+//go:generate mockgen -destination=rule_mocks.go -package watchers -self_package gitlab.com/teserakt/c2ae/internal/engine/watchers gitlab.com/teserakt/c2ae/internal/engine/watchers RuleWatcher
+
 import (
 	"context"
 
@@ -10,52 +12,6 @@ import (
 	"gitlab.com/teserakt/c2ae/internal/models"
 	"gitlab.com/teserakt/c2ae/internal/services"
 )
-
-//go:generate mockgen -destination=rules_mocks.go -package watchers -self_package gitlab.com/teserakt/c2ae/internal/engine/watchers gitlab.com/teserakt/c2ae/internal/engine/watchers RuleWatcherFactory,RuleWatcher
-
-// RuleWatcherFactory allows to create RuleWatchers
-type RuleWatcherFactory interface {
-	Create(models.Rule) RuleWatcher
-}
-
-type ruleWatcherFactory struct {
-	ruleWriter            services.RuleWriter
-	triggerWatcherFactory TriggerWatcherFactory
-	actionFactory         actions.ActionFactory
-	errorChan             chan<- error
-	logger                log.Logger
-}
-
-var _ RuleWatcherFactory = &ruleWatcherFactory{}
-
-// NewRuleWatcherFactory creates a new RuleWatcherFactory
-func NewRuleWatcherFactory(
-	ruleWriter services.RuleWriter,
-	triggerWatcherFactory TriggerWatcherFactory,
-	actionFactory actions.ActionFactory,
-	errorChan chan<- error,
-	logger log.Logger,
-) RuleWatcherFactory {
-	return &ruleWatcherFactory{
-		ruleWriter:            ruleWriter,
-		triggerWatcherFactory: triggerWatcherFactory,
-		actionFactory:         actionFactory,
-		errorChan:             errorChan,
-		logger:                logger,
-	}
-}
-
-func (f *ruleWatcherFactory) Create(rule models.Rule) RuleWatcher {
-	return &ruleWatcher{
-		rule:                  rule,
-		ruleWriter:            f.ruleWriter,
-		triggerWatcherFactory: f.triggerWatcherFactory,
-		actionFactory:         f.actionFactory,
-		triggeredChan:         make(chan TriggerEvent),
-		errorChan:             f.errorChan,
-		logger:                f.logger,
-	}
-}
 
 // RuleWatcher defines methods to implement a rule watcher.
 // It is responsible of monitoring the rule trigger(s), and execute the rule action
@@ -85,6 +41,7 @@ func (w *ruleWatcher) Start(ctx context.Context) {
 	for _, trigger := range w.rule.Triggers {
 		triggerWatcher, err := w.triggerWatcherFactory.Create(
 			trigger,
+			w.rule.Targets,
 			w.rule.LastExecuted,
 			w.triggeredChan,
 			w.errorChan,

@@ -17,7 +17,7 @@ func TestConverter(t *testing.T) {
 	trigger1 := Trigger{
 		ID:          1,
 		Settings:    []byte("settings1"),
-		TriggerType: pb.TriggerType_CLIENT_SUBSCRIBED,
+		TriggerType: pb.TriggerType_EVENT,
 	}
 	trigger2 := Trigger{
 		ID:          2,
@@ -27,7 +27,7 @@ func TestConverter(t *testing.T) {
 	trigger3 := Trigger{
 		ID:          3,
 		Settings:    []byte("settings3"),
-		TriggerType: pb.TriggerType_CLIENT_UNSUBSCRIBED,
+		TriggerType: pb.TriggerType_EVENT,
 	}
 
 	target1 := Target{

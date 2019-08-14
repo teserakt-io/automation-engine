@@ -27,7 +27,7 @@ build-api:
 .PHONY: test
 test: ## Run tests
 	@if ! test -z "$$C2AETEST_POSTGRES"; then echo "C2AETEST_POSTGRES => enabled"; else echo "C2AETEST_POSTGRES => disabled"; fi; \
-	go test -v -coverprofile=/tmp/go-code-cover -race -timeout 10s  ./...
+	go test -failfast -v -coverprofile=/tmp/go-code-cover -race -timeout 30s  ./...
 
 .PHONY: generate
 generate: ## Generate mocks and proto files

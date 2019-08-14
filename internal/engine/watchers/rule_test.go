@@ -3,7 +3,6 @@ package watchers
 import (
 	"context"
 	"errors"
-	"reflect"
 	"testing"
 	"time"
 
@@ -27,9 +26,13 @@ func TestRuleWatcher(t *testing.T) {
 	trigger1 := models.Trigger{ID: 1}
 	trigger2 := models.Trigger{ID: 2}
 
+	target1 := models.Target{ID: 1}
+	target2 := models.Target{ID: 2}
+
 	rule := models.Rule{
 		LastExecuted: time.Now(),
 		Triggers:     []models.Trigger{trigger1, trigger2},
+		Targets:      []models.Target{target1, target2},
 	}
 
 	logger := log.NewNopLogger()
@@ -56,12 +59,12 @@ func TestRuleWatcher(t *testing.T) {
 
 	t.Run("Start start a triggerWatcher for each trigger", func(t *testing.T) {
 		mockTriggerWatcherFactory.EXPECT().
-			Create(trigger1, rule.LastExecuted, gomock.Any(), gomock.Any()).
+			Create(trigger1, rule.Targets, rule.LastExecuted, gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(mockTriggerWatcher1, nil)
 
 		mockTriggerWatcherFactory.EXPECT().
-			Create(trigger2, rule.LastExecuted, gomock.Any(), gomock.Any()).
+			Create(trigger2, rule.Targets, rule.LastExecuted, gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(mockTriggerWatcher2, nil)
 
@@ -91,12 +94,12 @@ func TestRuleWatcher(t *testing.T) {
 		defer cancel()
 
 		mockTriggerWatcherFactory.EXPECT().
-			Create(trigger1, rule.LastExecuted, gomock.Any(), gomock.Any()).
+			Create(trigger1, rule.Targets, rule.LastExecuted, gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(nil, expectedError)
 
 		mockTriggerWatcherFactory.EXPECT().
-			Create(trigger2, rule.LastExecuted, gomock.Any(), gomock.Any()).
+			Create(trigger2, rule.Targets, rule.LastExecuted, gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(mockTriggerWatcher2, nil)
 
@@ -135,12 +138,12 @@ func TestRuleWatcher(t *testing.T) {
 		}
 
 		mockTriggerWatcherFactory.EXPECT().
-			Create(trigger1, modifiedRule.LastExecuted, gomock.Any(), gomock.Any()).
+			Create(trigger1, rule.Targets, modifiedRule.LastExecuted, gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(mockTriggerWatcher1, nil)
 
 		mockTriggerWatcherFactory.EXPECT().
-			Create(trigger2, modifiedRule.LastExecuted, gomock.Any(), gomock.Any()).
+			Create(trigger2, rule.Targets, modifiedRule.LastExecuted, gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(mockTriggerWatcher2, nil)
 
@@ -174,10 +177,11 @@ func TestRuleWatcher(t *testing.T) {
 		modifiedRule := models.Rule{
 			LastExecuted: time.Now(),
 			Triggers:     []models.Trigger{trigger1},
+			Targets:      []models.Target{target1, target2},
 		}
 
 		mockTriggerWatcherFactory.EXPECT().
-			Create(trigger1, modifiedRule.LastExecuted, gomock.Any(), gomock.Any()).
+			Create(trigger1, rule.Targets, modifiedRule.LastExecuted, gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(mockTriggerWatcher1, nil)
 
@@ -207,7 +211,11 @@ func TestRuleWatcher(t *testing.T) {
 
 		go newRuleWatcher.Start(ctx)
 
-		triggeredChan <- TriggerEvent{Trigger: modifiedRule.Triggers[0], Time: time.Now()}
+		select {
+		case triggeredChan <- TriggerEvent{Trigger: modifiedRule.Triggers[0], Time: time.Now()}:
+		case <-time.After(10 * time.Millisecond):
+			t.Errorf("Expected ruleWatcher triggeredChan to receive messages, but its blocking")
+		}
 
 		select {
 		case err := <-errorChan:
@@ -216,60 +224,6 @@ func TestRuleWatcher(t *testing.T) {
 			}
 		case <-time.After(100 * time.Millisecond):
 			t.Errorf("Expected an error when actionFactory failed to create action")
-		}
-	})
-}
-
-func TestRuleWatcherFactory(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	defer mockCtrl.Finish()
-
-	mockRuleWriter := services.NewMockRuleService(mockCtrl)
-	mockTriggerWatcherFactory := NewMockTriggerWatcherFactory(mockCtrl)
-	mockActionFactory := actions.NewMockActionFactory(mockCtrl)
-
-	errorChan := make(chan<- error)
-
-	factory := NewRuleWatcherFactory(
-		mockRuleWriter,
-		mockTriggerWatcherFactory,
-		mockActionFactory,
-		errorChan,
-		log.NewNopLogger(),
-	)
-
-	t.Run("Creates returns a properly initialized RuleWatcher", func(t *testing.T) {
-		rule := models.Rule{ID: 1}
-
-		watcher := factory.Create(rule)
-
-		typedWatcher, ok := watcher.(*ruleWatcher)
-		if !ok {
-			t.Errorf("Expected watcher type to be *ruleWatcher, got %T", watcher)
-		}
-
-		if reflect.DeepEqual(typedWatcher.rule, rule) == false {
-			t.Errorf("Expected rule to be %#v, got %#v", rule, typedWatcher.rule)
-		}
-
-		if reflect.DeepEqual(typedWatcher.ruleWriter, mockRuleWriter) == false {
-			t.Errorf("Expected ruleWriter to be %p, got %p", mockRuleWriter, typedWatcher.ruleWriter)
-		}
-
-		if reflect.DeepEqual(typedWatcher.triggerWatcherFactory, mockTriggerWatcherFactory) == false {
-			t.Errorf(
-				"Expected triggerWatcherFactory to be %p, got %p",
-				mockTriggerWatcherFactory,
-				typedWatcher.triggerWatcherFactory,
-			)
-		}
-
-		if reflect.DeepEqual(typedWatcher.errorChan, errorChan) == false {
-			t.Errorf("Expected errorChan to be %p, got %p", errorChan, typedWatcher.errorChan)
-		}
-
-		if reflect.DeepEqual(typedWatcher.actionFactory, mockActionFactory) == false {
-			t.Errorf("Expected action factory to be %p, got %p", mockActionFactory, typedWatcher.actionFactory)
 		}
 	})
 }

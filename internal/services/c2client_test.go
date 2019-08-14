@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
 
 	gomock "github.com/golang/mock/gomock"
@@ -33,7 +34,7 @@ func TestC2(t *testing.T) {
 
 		err := c2.NewClientKey(ctx, clientName)
 		if err != expectedError {
-			t.Errorf("Expected err to be %s, got %s", expectedError, err)
+			t.Errorf("Expected err to be %v, got %v", expectedError, err)
 		}
 	})
 
@@ -50,8 +51,26 @@ func TestC2(t *testing.T) {
 
 		err := c2.NewTopicKey(ctx, topicID)
 		if err != expectedError {
-			t.Errorf("Expected err to be %s, got %s", expectedError, err)
+			t.Errorf("Expected err to be %v, got %v", expectedError, err)
 		}
 	})
 
+	t.Run("SubscribeToClientStream creates expected request", func(t *testing.T) {
+		mockClient := pb.NewMockC2PbClient(mockCtrl)
+
+		expectedRequest := &c2pb.SubscribeToEventStreamRequest{}
+		expectedStream := NewMockC2EventStreamClient(mockCtrl)
+
+		mockClient.EXPECT().SubscribeToEventStream(gomock.Any(), expectedRequest).Return(expectedStream, nil)
+
+		mockClientFactory.EXPECT().Create().Return(mockClient, nil)
+		stream, err := c2.SubscribeToEventStream(ctx)
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+
+		if reflect.DeepEqual(stream, expectedStream) == false {
+			t.Errorf("Expected stream to be %#v, got %#v", expectedStream, stream)
+		}
+	})
 }
