@@ -6,9 +6,10 @@ go get -u github.com/golang/protobuf/protoc-gen-go
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-GOOGLEAPI=$(find $GOPATH/pkg/mod/github.com/grpc-ecosystem/ -path */grpc-gateway*/third_party/googleapis -type d | sort -r | head -1)
+# Retrieve path to grpc-gateway modules folder and grep its latest version path only
+GRPC_GATEWAY_SRC_PATH=$(find $GOPATH/pkg/mod/github.com/grpc-ecosystem/ -maxdepth 1 -type d -path *grpc-gateway* | sort -r | head -1)
 
-protoc -I ${DIR}/../ -I $GOOGLEAPI \
+protoc -I ${DIR}/../ -I $GRPC_GATEWAY_SRC_PATH/third_party/googleapis/ -I $GRPC_GATEWAY_SRC_PATH/ \
     --go_out=plugins=grpc:${DIR}/../internal/pb \
     --grpc-gateway_out=logtostderr=true:${DIR}/../internal/pb \
     --swagger_out=logtostderr=true:${DIR}/../doc/ \
