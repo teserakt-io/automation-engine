@@ -61,6 +61,8 @@ cp /path/to/c2/configs/c2-cert.pem configs/c2-cert.pem
 The c2ae engine is responsible of monitoring every existing rules, and trigger their actions when one of the rule's trigger condition is met.
 It is started on the background of the API server, and spawns a goroutine for each rules, and another one for each rule's trigger.
 
+On startup, the engine will also subscribe to an event stream over GRPC on the C2 server (`SubscribeToEventStream`). This connection will be kept open at all time to allow reception of C2 events. If the connection is lost, the engine will automatically retry to reconnect every seconds and will log an error until it succeed.
+
 ## Automation Engine CLI
 
 The cli client allow to define new rules and list currently defined ones by interacting with the api.
