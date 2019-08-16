@@ -6,18 +6,18 @@
 
 ## Introduction
 
-The automation engine aim to ease and automate the key management of E4 by providing a way to define policies (or rules) for key renewal, or any other operations, which need to be performed under certain events or conditions, to keep the system communications secure.
+The automation engine aims to ease and automate the key management of E4 by providing a way to define policies (or rules) for key renewal, or any other operations, which need to be performed under certain events or conditions, to keep the system communications secure.
 
 It defines 3 main components:
 
-- rules
+### rules
 
 A rule is a simple container entity. It holds an action type, a description, a list of targets, a list of triggers and a timestamp. It defines what has to be done when it get executed (from its action type), and when it was last executed (from its timestamp).
 The list of available actions is defined in the [proto file](./api.proto) (see `ActionType`). A current available action is, for example, a key rotation (`ActionType.KEY_ROTATION`).
 
 For more details, see [the rules documentation](./doc/rules.md)
 
-- targets
+### targets
 
 A target define who/what the rule action will be executed for. It has a type (see available types in [proto file](./api.proto) > `TargetType`) and an expression (the identifier of the target). When a rule is triggered, it will execute its action for each of its targets.
 For example, we can define a rule with the action `KEY_ROTATION`, and several targets, a `TOPIC` target type, with expression `/devices/groupA`, and another `CLIENT` target type, with expression `secure-thing-XYZ`. This means every time the rule get executed, the topic identified by `/devices/groupA` and the client identified by `secure-thing-XYZ` will have their key renewed.
@@ -26,7 +26,7 @@ A generic target can also be defined, to allow matching only by it's identifier,
 
 For more details, see [the targets documentation](./doc/targets.md)
 
-- triggers
+### triggers
 
 A trigger defines the condition to decide if the rule action must be executed. It holds a type, a settings map (content being type dependant), and an internal state map.
 The list of available trigger types is defined in the [proto file](./api.proto) (see `TriggerType`) and their respective settings definition is availabe [here](./internal/pb/triggerSettings.go).
@@ -34,9 +34,9 @@ For example, a trigger can be of type `TIME_INTERVAL`, meaning it require an `Ex
 
 For more details, see [the triggers documentation](./doc/triggers.md)
 
-## Automation Engine API
+## Automation engine API
 
-The c2ae-api is exposing http and grpc endpoints, allowing to create, read, update or delete rules.
+The c2ae-api is exposing HTTP and gRPC endpoints, allowing to create, read, update or delete rules.
 It also start the c2ae internal engine, which will monitor the existing triggers and launch their rule action if conditions are met.
 
 ### Usage
@@ -56,14 +56,14 @@ cp /path/to/c2/configs/c2-cert.pem configs/c2-cert.pem
 ./bin/c2ae-api
 ```
 
-### Automation Engine
+### Automation engine
 
 The c2ae engine is responsible of monitoring every existing rules, and trigger their actions when one of the rule's trigger condition is met.
 It is started on the background of the API server, and spawns a goroutine for each rules, and another one for each rule's trigger.
 
 On startup, the engine will also subscribe to an event stream over GRPC on the C2 server (`SubscribeToEventStream`). This connection will be kept open at all time to allow reception of C2 events. If the connection is lost, the engine will automatically retry to reconnect every seconds and will log an error until it succeed.
 
-## Automation Engine CLI
+## Automation engine CLI
 
 The cli client allow to define new rules and list currently defined ones by interacting with the api.
 
@@ -135,9 +135,9 @@ c2ae-cli add-trigger --rule=1 --type=EVENT --setting eventType=CLIENT_SUBSCRIBED
 ```
 
 
-### Run from docker image
+### Run from Docker image
 
-The CI automatically push docker images of C2AE API and CLI after each successfull builds and for each branches.
+The CI automatically push Docker images of C2AE API and CLI after each successfull builds and for each branches.
 
 List of available C2 images: https://gitlab.com/Teserakt/c2ae/container_registry
 
