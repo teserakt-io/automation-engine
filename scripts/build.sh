@@ -25,11 +25,12 @@ GOARCH=amd64
 fi
 
 RACEDETECTOR=$(if [[ "$RACE" -ne "" ]]; then echo "-race"; else echo ""; fi)
+CGO=$(if [[ "RACEDETECTOR" -eq "" ]]; then echo "0"; else echo "1"; fi)
 
 CMDS=($(find ${DIR}/../cmd/ -mindepth 1 -maxdepth 1  -type d -exec basename {} \;))
 for cmd in ${CMDS[@]}; do
     printf "Building ${PROJECT}-${cmd}:\n\tversion ${NOW}-${GIT_COMMIT}\n\tOS ${GOOS}\n\tarch: ${GOARCH}\n"
 
     printf "=> ${PROJECT}-${cmd}...\n"
-    GOOS=${GOOS} GOARCH=${GOARCH} go build $RACEDETECTOR -o ${OUTDIR}/${PROJECT}-${cmd} -ldflags "-X main.gitTag=${GIT_TAG} -X main.gitCommit=${GIT_COMMIT} -X main.buildDate=${NOW}" ${DIR}/../cmd/${cmd}
+    CGO_ENABLED=$CGO GOOS=${GOOS} GOARCH=${GOARCH} go build $RACEDETECTOR -o ${OUTDIR}/${PROJECT}-${cmd} -ldflags "-X main.gitTag=${GIT_TAG} -X main.gitCommit=${GIT_COMMIT} -X main.buildDate=${NOW}" ${DIR}/../cmd/${cmd}
 done
