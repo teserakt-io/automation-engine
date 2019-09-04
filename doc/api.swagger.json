@@ -1,11 +1,11 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "api.proto",
+    "title": "c2ae-api",
     "version": "version not set"
   },
+  "host": "127.0.0.1:8886",
   "schemes": [
-    "http",
     "https"
   ],
   "consumes": [
@@ -17,6 +17,7 @@
   "paths": {
     "/rules": {
       "get": {
+        "summary": "Retrieve list of existing rules",
         "operationId": "ListRules",
         "responses": {
           "200": {
@@ -31,6 +32,7 @@
         ]
       },
       "post": {
+        "summary": "Create a new rule",
         "operationId": "AddRule",
         "responses": {
           "200": {
@@ -55,6 +57,7 @@
         ]
       },
       "put": {
+        "summary": "Update an existing rule",
         "operationId": "UpdateRule",
         "responses": {
           "200": {
@@ -81,6 +84,7 @@
     },
     "/rules/{ruleId}": {
       "get": {
+        "summary": "Retrieve a single rule, by its ID",
         "operationId": "GetRule",
         "responses": {
           "200": {
@@ -104,6 +108,7 @@
         ]
       },
       "delete": {
+        "summary": "Remove a rule",
         "operationId": "DeleteRule",
         "responses": {
           "200": {
@@ -135,7 +140,8 @@
         "UNDEFINED_ACTION",
         "KEY_ROTATION"
       ],
-      "default": "UNDEFINED_ACTION"
+      "default": "UNDEFINED_ACTION",
+      "title": "List of supported ActionType"
     },
     "pbAddRuleRequest": {
       "type": "object",
@@ -241,7 +247,8 @@
         "TOPIC",
         "CLIENT"
       ],
-      "default": "ANY"
+      "default": "ANY",
+      "title": "List of supported TargetType"
     },
     "pbTrigger": {
       "type": "object",
@@ -266,7 +273,8 @@
         "TIME_INTERVAL",
         "EVENT"
       ],
-      "default": "UNDEFINED_TRIGGER"
+      "default": "UNDEFINED_TRIGGER",
+      "title": "List of supported TriggerType"
     },
     "pbUpdateRuleRequest": {
       "type": "object",
@@ -293,7 +301,8 @@
             "$ref": "#/definitions/pbTarget"
           }
         }
-      }
+      },
+      "description": "UpdateRuleRequest will fetch the rule identified by ruleId,\nand override its description, action, triggers and targets values\nwith those provided."
     }
   }
 }

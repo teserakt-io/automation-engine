@@ -4,30 +4,46 @@ package pb;
 
 import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
+import "protoc-gen-swagger/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+  host : "127.0.0.1:8886"
+  info : {title : "c2ae-api";};
+
+  schemes : HTTPS;
+  consumes : "application/json";
+  produces : "application/json";
+};
+
 
 service C2AutomationEngine {
+    // Retrieve list of existing rules
     rpc ListRules (ListRulesRequest) returns (RulesResponse) {
         option (google.api.http) = {
               get: "/rules"
         };
     }
+    // Retrieve a single rule, by its ID
     rpc GetRule(GetRuleRequest) returns (RuleResponse) {
         option (google.api.http) = {
             get: "/rules/{ruleId}"
         };
     }
+    // Create a new rule
     rpc AddRule (AddRuleRequest) returns (RuleResponse) {
         option (google.api.http) = {
             post: "/rules"
             body: "*"
         };
     }
+    // Update an existing rule
     rpc UpdateRule (UpdateRuleRequest) returns (RuleResponse) {
         option (google.api.http) = {
             put: "/rules"
             body: "*"
         };
     }
+    // Remove a rule
     rpc DeleteRule (DeleteRuleRequest) returns (DeleteRuleResponse) {
         option (google.api.http) = {
             delete: "/rules/{ruleId}"
@@ -35,35 +51,26 @@ service C2AutomationEngine {
     }
 }
 
+// List of supported ActionType
 enum ActionType {
     UNDEFINED_ACTION = 0;
     KEY_ROTATION = 1;
     // Extended as more actions get added ...
 }
 
+// List of supported TargetType
 enum TargetType {
     ANY = 0;
     TOPIC = 1;
     CLIENT = 2;
 }
 
+// List of supported TriggerType
 enum TriggerType {
     UNDEFINED_TRIGGER = 0;
     TIME_INTERVAL = 1;
     EVENT = 2;
     // Extended as more triggers get added ...
-}
-
-message Target {
-    int32 id = 1;
-    TargetType type = 2;
-    string expr = 3;
-}
-
-message Trigger {
-    int32 id = 1;
-    TriggerType type = 2;
-    bytes settings = 3;
 }
 
 message Rule {
@@ -73,6 +80,18 @@ message Rule {
     google.protobuf.Timestamp lastExecuted = 4;
     repeated Trigger triggers = 5;
     repeated Target targets = 6;
+}
+
+message Target {
+    int32 id = 1;
+    TargetType type = 2;
+    string expr = 3;
+}
+
+message  Trigger {
+    int32 id = 1;
+    TriggerType type = 2;
+    bytes settings = 3;
 }
 
 message RulesResponse {
@@ -98,6 +117,9 @@ message AddRuleRequest {
     repeated Target targets = 4;
 }
 
+// UpdateRuleRequest will fetch the rule identified by ruleId,
+// and override its description, action, triggers and targets values
+// with those provided.
 message UpdateRuleRequest {
     int32 ruleId = 1;
     string description = 2;
