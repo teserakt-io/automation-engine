@@ -1,8 +1,5 @@
 # c2ae
 
-[![pipeline status](https://gitlab.com/Teserakt/c2ae/badges/master/pipeline.svg)](https://gitlab.com/Teserakt/c2ae/commits/master)
-[![coverage report](https://gitlab.com/Teserakt/c2ae/badges/master/coverage.svg)](https://gitlab.com/Teserakt/c2ae/commits/master)
-
 
 ## Introduction
 
@@ -158,7 +155,7 @@ See `internal/config/config.go` `ViperCfgFields()` for the full list of availabl
 ```
 # Replace <BRANCH_NAME> with the actual branch you want to pull the image from, like master, or devel, or tag...
 # Replace <COMMAND> with the actual command to execute
-docker run -it  --rm --link c2ae-api -e C2AE_API_ENDPOINT="c2ae-api:5556" registry.gitlab.com/teserakt/c2ae/cli:<BRANCH_NAME> <COMMAND>
+docker run -it  --rm --link c2ae-api -e C2AE_API_ENDPOINT="c2ae-api:5556" registry.github.com/teserakt-io/automation-engine/cli:<BRANCH_NAME> <COMMAND>
 ```
 
 ## Development

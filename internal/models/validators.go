@@ -1,13 +1,13 @@
 package models
 
-//go:generate mockgen -destination validators_mocks.go -package=models -self_package gitlab.com/teserakt/c2ae/internal/models gitlab.com/teserakt/c2ae/internal/models Validator,TriggerValidator
+//go:generate mockgen -destination validators_mocks.go -package=models -self_package github.com/teserakt-io/automation-engine/internal/models github.com/teserakt-io/automation-engine/internal/models Validator,TriggerValidator
 
 import (
 	"errors"
 	"fmt"
 	"regexp"
 
-	"gitlab.com/teserakt/c2ae/internal/pb"
+	"github.com/teserakt-io/automation-engine/internal/pb"
 )
 
 // Validation errors

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"gitlab.com/teserakt/c2ae/internal/cli"
-	"gitlab.com/teserakt/c2ae/internal/cli/commands"
+	"github.com/teserakt-io/automation-engine/internal/cli"
+	"github.com/teserakt-io/automation-engine/internal/cli/commands"
 )
 
 // Provided by build script

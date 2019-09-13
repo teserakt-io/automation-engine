@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"gitlab.com/teserakt/c2ae/internal/cli"
-	"gitlab.com/teserakt/c2ae/internal/pb"
+
+	"github.com/teserakt-io/automation-engine/internal/cli"
+	"github.com/teserakt-io/automation-engine/internal/pb"
 )
 
 type deleteCommand struct {

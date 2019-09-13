@@ -1,9 +1,9 @@
 package pb
 
-//go:generate mockgen -destination=c2client_mocks.go -package=pb -self_package gitlab.com/teserakt/c2ae/internal/pb gitlab.com/teserakt/c2ae/internal/pb C2PbClient,C2PbClientFactory
+//go:generate mockgen -destination=c2client_mocks.go -package=pb -self_package github.com/teserakt-io/automation-engine/internal/pb github.com/teserakt-io/automation-engine/internal/pb C2PbClient,C2PbClientFactory
 
 import (
-	c2pb "gitlab.com/teserakt/c2/pkg/pb"
+	c2pb "github.com/teserakt-io/c2/pkg/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )

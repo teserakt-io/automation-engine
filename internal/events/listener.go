@@ -1,10 +1,11 @@
 package events
 
-//go:generate mockgen -destination=listener_mocks.go -package events -self_package gitlab.com/teserakt/c2ae/internal/events gitlab.com/teserakt/c2ae/internal/events StreamListenerFactory,StreamListener
+//go:generate mockgen -destination=listener_mocks.go -package events -self_package github.com/teserakt-io/automation-engine/internal/events github.com/teserakt-io/automation-engine/internal/events StreamListenerFactory,StreamListener
 
 import (
-	c2pb "gitlab.com/teserakt/c2/pkg/pb"
-	pb "gitlab.com/teserakt/c2ae/internal/pb"
+	c2pb "github.com/teserakt-io/c2/pkg/pb"
+
+	pb "github.com/teserakt-io/automation-engine/internal/pb"
 )
 
 var (

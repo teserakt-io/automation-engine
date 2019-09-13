@@ -3,7 +3,7 @@ package models
 import (
 	"testing"
 
-	"gitlab.com/teserakt/c2ae/internal/pb"
+	"github.com/teserakt-io/automation-engine/internal/pb"
 )
 
 func TestValidator(t *testing.T) {

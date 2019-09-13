@@ -3,7 +3,7 @@ package commands
 import (
 	"github.com/spf13/cobra"
 
-	"gitlab.com/teserakt/c2ae/internal/cli"
+	"github.com/teserakt-io/automation-engine/internal/cli"
 )
 
 // Command defines a cli Command

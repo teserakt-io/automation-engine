@@ -13,11 +13,11 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	"github.com/jinzhu/gorm"
+	slibcfg "github.com/teserakt-io/serverlib/config"
 
-	"gitlab.com/teserakt/c2ae/internal/config"
-	"gitlab.com/teserakt/c2ae/internal/models"
-	"gitlab.com/teserakt/c2ae/internal/pb"
-	slibcfg "gitlab.com/teserakt/serverlib/config"
+	"github.com/teserakt-io/automation-engine/internal/config"
+	"github.com/teserakt-io/automation-engine/internal/models"
+	"github.com/teserakt-io/automation-engine/internal/pb"
 )
 
 func TestRuleService(t *testing.T) {

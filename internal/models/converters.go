@@ -1,10 +1,11 @@
 package models
 
-//go:generate mockgen -destination converters_mocks.go -package=models -self_package gitlab.com/teserakt/c2ae/internal/models gitlab.com/teserakt/c2ae/internal/models Converter
+//go:generate mockgen -destination converters_mocks.go -package=models -self_package github.com/teserakt-io/automation-engine/internal/models github.com/teserakt-io/automation-engine/internal/models Converter
 
 import (
 	"github.com/golang/protobuf/ptypes"
-	"gitlab.com/teserakt/c2ae/internal/pb"
+
+	"github.com/teserakt-io/automation-engine/internal/pb"
 )
 
 // Converter interface defines methods to switch between protobuf and models types.

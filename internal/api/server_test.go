@@ -14,15 +14,15 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/teserakt/c2ae/internal/config"
-	"gitlab.com/teserakt/c2ae/internal/models"
-	"gitlab.com/teserakt/c2ae/internal/pb"
-	"gitlab.com/teserakt/c2ae/internal/services"
-
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+
+	"github.com/teserakt-io/automation-engine/internal/config"
+	"github.com/teserakt-io/automation-engine/internal/models"
+	"github.com/teserakt-io/automation-engine/internal/pb"
+	"github.com/teserakt-io/automation-engine/internal/services"
 )
 
 func assertRulesModified(t *testing.T, rulesModifiedChan <-chan bool, expectedModified bool) {

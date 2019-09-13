@@ -6,7 +6,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"gitlab.com/teserakt/c2ae/internal/pb"
+
+	"github.com/teserakt-io/automation-engine/internal/pb"
 )
 
 const (

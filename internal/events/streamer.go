@@ -1,6 +1,6 @@
 package events
 
-//go:generate mockgen -destination=streamer_mocks.go -package events -self_package gitlab.com/teserakt/c2ae/internal/events gitlab.com/teserakt/c2ae/internal/events Streamer
+//go:generate mockgen -destination=streamer_mocks.go -package events -self_package github.com/teserakt-io/automation-engine/internal/events github.com/teserakt-io/automation-engine/internal/events Streamer
 
 import (
 	"context"
@@ -10,8 +10,9 @@ import (
 
 	"github.com/go-kit/kit/log"
 
-	c2pb "gitlab.com/teserakt/c2/pkg/pb"
-	"gitlab.com/teserakt/c2ae/internal/services"
+	c2pb "github.com/teserakt-io/c2/pkg/pb"
+
+	"github.com/teserakt-io/automation-engine/internal/services"
 )
 
 // events errors

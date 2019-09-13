@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	slibcfg "gitlab.com/teserakt/serverlib/config"
+	slibcfg "github.com/teserakt-io/serverlib/config"
 )
 
 // API describes the configuration required for the API application

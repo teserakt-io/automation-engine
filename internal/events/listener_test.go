@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	c2pb "github.com/teserakt-io/c2/pkg/pb"
 
-	c2pb "gitlab.com/teserakt/c2/pkg/pb"
-	pb "gitlab.com/teserakt/c2ae/internal/pb"
+	pb "github.com/teserakt-io/automation-engine/internal/pb"
 )
 
 func TestStreamListenerFactory(t *testing.T) {

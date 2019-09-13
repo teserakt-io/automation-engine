@@ -1,15 +1,14 @@
 package services
 
-//go:generate mockgen -destination=c2client_mocks.go -package=services -self_package gitlab.com/teserakt/c2ae/internal/services gitlab.com/teserakt/c2ae/internal/services C2,C2EventStreamClient
+//go:generate mockgen -destination=c2client_mocks.go -package=services -self_package github.com/teserakt-io/automation-engine/internal/services github.com/teserakt-io/automation-engine/internal/services C2,C2EventStreamClient
 
 import (
 	"context"
 
+	c2pb "github.com/teserakt-io/c2/pkg/pb"
 	"go.opencensus.io/trace"
 
-	c2pb "gitlab.com/teserakt/c2/pkg/pb"
-
-	"gitlab.com/teserakt/c2ae/internal/pb"
+	"github.com/teserakt-io/automation-engine/internal/pb"
 )
 
 // C2EventStreamClient wrap around the c2pb.C2_SubscribeToEventStreamClient definition

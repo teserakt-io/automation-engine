@@ -5,9 +5,8 @@ import (
 	"errors"
 	fmt "fmt"
 
-	c2pb "gitlab.com/teserakt/c2/pkg/pb"
-
 	"github.com/gorhill/cronexpr"
+	c2pb "github.com/teserakt-io/c2/pkg/pb"
 )
 
 // EventType  is a custom type for all available Trigger Events

@@ -1,17 +1,18 @@
 package watchers
 
-//go:generate mockgen -destination=factory_mocks.go -package watchers -self_package gitlab.com/teserakt/c2ae/internal/engine/watchers gitlab.com/teserakt/c2ae/internal/engine/watchers TriggerWatcherFactory,RuleWatcherFactory
+//go:generate mockgen -destination=factory_mocks.go -package watchers -self_package github.com/teserakt-io/automation-engine/internal/engine/watchers github.com/teserakt-io/automation-engine/internal/engine/watchers TriggerWatcherFactory,RuleWatcherFactory
 
 import (
 	"fmt"
 	"time"
 
 	"github.com/go-kit/kit/log"
-	"gitlab.com/teserakt/c2ae/internal/engine/actions"
-	"gitlab.com/teserakt/c2ae/internal/events"
-	"gitlab.com/teserakt/c2ae/internal/models"
-	"gitlab.com/teserakt/c2ae/internal/pb"
-	"gitlab.com/teserakt/c2ae/internal/services"
+
+	"github.com/teserakt-io/automation-engine/internal/engine/actions"
+	"github.com/teserakt-io/automation-engine/internal/events"
+	"github.com/teserakt-io/automation-engine/internal/models"
+	"github.com/teserakt-io/automation-engine/internal/pb"
+	"github.com/teserakt-io/automation-engine/internal/services"
 )
 
 // RuleWatcherFactory allows to create RuleWatchers

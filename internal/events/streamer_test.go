@@ -10,8 +10,9 @@ import (
 
 	"github.com/go-kit/kit/log"
 
-	c2pb "gitlab.com/teserakt/c2/pkg/pb"
-	"gitlab.com/teserakt/c2ae/internal/services"
+	c2pb "github.com/teserakt-io/c2/pkg/pb"
+
+	"github.com/teserakt-io/automation-engine/internal/services"
 )
 
 func TestStreamer(t *testing.T) {

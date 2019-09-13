@@ -7,17 +7,14 @@ import (
 	"testing"
 	"time"
 
-	c2pb "gitlab.com/teserakt/c2/pkg/pb"
-	"gitlab.com/teserakt/c2ae/internal/services"
-
-	"gitlab.com/teserakt/c2ae/internal/events"
-
-	"github.com/golang/mock/gomock"
-
 	"github.com/go-kit/kit/log"
+	"github.com/golang/mock/gomock"
+	c2pb "github.com/teserakt-io/c2/pkg/pb"
 
-	"gitlab.com/teserakt/c2ae/internal/models"
-	"gitlab.com/teserakt/c2ae/internal/pb"
+	"github.com/teserakt-io/automation-engine/internal/events"
+	"github.com/teserakt-io/automation-engine/internal/models"
+	"github.com/teserakt-io/automation-engine/internal/pb"
+	"github.com/teserakt-io/automation-engine/internal/services"
 )
 
 func TestSchedulerTriggerWatcher(t *testing.T) {

@@ -7,8 +7,9 @@ import (
 	"google.golang.org/grpc/credentials"
 
 	"github.com/spf13/cobra"
-	"gitlab.com/teserakt/c2ae/internal/pb"
 	"google.golang.org/grpc"
+
+	"github.com/teserakt-io/automation-engine/internal/pb"
 )
 
 const (

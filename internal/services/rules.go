@@ -1,6 +1,6 @@
 package services
 
-//go:generate mockgen -destination=rules_mocks.go -package=services -self_package gitlab.com/teserakt/c2ae/internal/services gitlab.com/teserakt/c2ae/internal/services RuleService
+//go:generate mockgen -destination=rules_mocks.go -package=services -self_package github.com/teserakt-io/automation-engine/internal/services github.com/teserakt-io/automation-engine/internal/services RuleService
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"go.opencensus.io/trace"
 
-	"gitlab.com/teserakt/c2ae/internal/models"
+	"github.com/teserakt-io/automation-engine/internal/models"
 )
 
 // TriggerReader defines methods to read triggers

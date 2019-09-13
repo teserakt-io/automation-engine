@@ -1,13 +1,14 @@
 package services
 
-//go:generate mockgen -destination=triggerState_mocks.go -package=services -self_package gitlab.com/teserakt/c2ae/internal/services gitlab.com/teserakt/c2ae/internal/services TriggerStateService
+//go:generate mockgen -destination=triggerState_mocks.go -package=services -self_package github.com/teserakt-io/automation-engine/internal/services github.com/teserakt-io/automation-engine/internal/services TriggerStateService
 
 import (
 	"context"
 
 	"github.com/jinzhu/gorm"
-	"gitlab.com/teserakt/c2ae/internal/models"
 	"go.opencensus.io/trace"
+
+	"github.com/teserakt-io/automation-engine/internal/models"
 )
 
 // TriggerStateService defines a service for managing triggerState models.

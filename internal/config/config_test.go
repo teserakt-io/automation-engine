@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	slibcfg "gitlab.com/teserakt/serverlib/config"
+	slibcfg "github.com/teserakt-io/serverlib/config"
 )
 
 func TestConfig(t *testing.T) {

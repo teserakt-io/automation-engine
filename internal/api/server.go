@@ -12,10 +12,10 @@ import (
 	grpc "google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	"gitlab.com/teserakt/c2ae/internal/config"
-	"gitlab.com/teserakt/c2ae/internal/models"
-	"gitlab.com/teserakt/c2ae/internal/pb"
-	"gitlab.com/teserakt/c2ae/internal/services"
+	"github.com/teserakt-io/automation-engine/internal/config"
+	"github.com/teserakt-io/automation-engine/internal/models"
+	"github.com/teserakt-io/automation-engine/internal/pb"
+	"github.com/teserakt-io/automation-engine/internal/services"
 )
 
 // Server interface

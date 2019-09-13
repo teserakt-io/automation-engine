@@ -8,23 +8,22 @@ import (
 	"os/signal"
 	"time"
 
-	"gitlab.com/teserakt/c2ae/internal/events"
-
 	"github.com/go-kit/kit/log"
 	"github.com/olivere/elastic"
+	slibcfg "github.com/teserakt-io/serverlib/config"
+	sliblog "github.com/teserakt-io/serverlib/log"
+	slibpath "github.com/teserakt-io/serverlib/path"
 
-	"gitlab.com/teserakt/c2ae/internal/api"
-	"gitlab.com/teserakt/c2ae/internal/config"
-	"gitlab.com/teserakt/c2ae/internal/engine"
-	"gitlab.com/teserakt/c2ae/internal/engine/actions"
-	"gitlab.com/teserakt/c2ae/internal/engine/watchers"
-	"gitlab.com/teserakt/c2ae/internal/models"
-	"gitlab.com/teserakt/c2ae/internal/monitoring"
-	"gitlab.com/teserakt/c2ae/internal/pb"
-	"gitlab.com/teserakt/c2ae/internal/services"
-	slibcfg "gitlab.com/teserakt/serverlib/config"
-	sliblog "gitlab.com/teserakt/serverlib/log"
-	slibpath "gitlab.com/teserakt/serverlib/path"
+	"github.com/teserakt-io/automation-engine/internal/api"
+	"github.com/teserakt-io/automation-engine/internal/config"
+	"github.com/teserakt-io/automation-engine/internal/engine"
+	"github.com/teserakt-io/automation-engine/internal/engine/actions"
+	"github.com/teserakt-io/automation-engine/internal/engine/watchers"
+	"github.com/teserakt-io/automation-engine/internal/events"
+	"github.com/teserakt-io/automation-engine/internal/models"
+	"github.com/teserakt-io/automation-engine/internal/monitoring"
+	"github.com/teserakt-io/automation-engine/internal/pb"
+	"github.com/teserakt-io/automation-engine/internal/services"
 )
 
 // Provided by build script
