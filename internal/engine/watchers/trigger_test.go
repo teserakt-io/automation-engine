@@ -283,8 +283,8 @@ func TestEventTriggerWatcher(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 
 		triggerSettings := pb.TriggerSettingsEvent{
-			EventType:    pb.EventTypeClientSubscribed,
-			MaxOccurence: 2,
+			EventType:     pb.EventTypeClientSubscribed,
+			MaxOccurrence: 2,
 		}
 
 		triggeredChan := make(chan TriggerEvent)
@@ -340,8 +340,8 @@ func TestEventTriggerWatcher(t *testing.T) {
 
 		go watcher.Start(ctx)
 
-		//  Unknow target
-		eventChan <- c2pb.Event{Type: c2pb.EventType_CLIENT_SUBSCRIBED, Source: "client1", Target: "unknow"}
+		//  Unknown target
+		eventChan <- c2pb.Event{Type: c2pb.EventType_CLIENT_SUBSCRIBED, Source: "client1", Target: "unknown"}
 		select {
 		case err := <-errorChan:
 			t.Errorf("Expected no error, got %v", err)
@@ -396,8 +396,8 @@ func TestEventTriggerWatcher(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 
 		triggerSettings := pb.TriggerSettingsEvent{
-			EventType:    pb.EventTypeClientSubscribed,
-			MaxOccurence: 1,
+			EventType:     pb.EventTypeClientSubscribed,
+			MaxOccurrence: 1,
 		}
 
 		triggeredChan := make(chan TriggerEvent)
@@ -453,7 +453,7 @@ func TestEventTriggerWatcher(t *testing.T) {
 
 		go watcher.Start(ctx)
 
-		eventChan <- c2pb.Event{Type: c2pb.EventType_CLIENT_SUBSCRIBED, Source: target, Target: "unknow"}
+		eventChan <- c2pb.Event{Type: c2pb.EventType_CLIENT_SUBSCRIBED, Source: target, Target: "unknown"}
 		select {
 		case err := <-errorChan:
 			t.Errorf("Expected no error, got %v", err)
@@ -487,8 +487,8 @@ func TestEventTriggerWatcher(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 
 		triggerSettings := pb.TriggerSettingsEvent{
-			EventType:    pb.EventTypeClientSubscribed,
-			MaxOccurence: 1,
+			EventType:     pb.EventTypeClientSubscribed,
+			MaxOccurrence: 1,
 		}
 
 		triggeredChan := make(chan TriggerEvent)
@@ -544,7 +544,7 @@ func TestEventTriggerWatcher(t *testing.T) {
 
 		go watcher.Start(ctx)
 
-		eventChan <- c2pb.Event{Type: c2pb.EventType_CLIENT_SUBSCRIBED, Source: target, Target: "unknow"}
+		eventChan <- c2pb.Event{Type: c2pb.EventType_CLIENT_SUBSCRIBED, Source: target, Target: "unknown"}
 		select {
 		case err := <-errorChan:
 			t.Errorf("Expected no error, got %v", err)
@@ -578,8 +578,8 @@ func TestEventTriggerWatcher(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 
 		triggerSettings := pb.TriggerSettingsEvent{
-			EventType:    pb.EventTypeClientSubscribed,
-			MaxOccurence: 1,
+			EventType:     pb.EventTypeClientSubscribed,
+			MaxOccurrence: 1,
 		}
 
 		triggeredChan := make(chan TriggerEvent)

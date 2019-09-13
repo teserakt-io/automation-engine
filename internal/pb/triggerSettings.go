@@ -33,8 +33,8 @@ type TriggerSettingsTimeInterval struct {
 
 // TriggerSettingsEvent holds settings for event driven trigger types
 type TriggerSettingsEvent struct {
-	EventType    EventType `json:"eventType,omitempty"`
-	MaxOccurence int       `json:"maxOccurence,omitempty"`
+	EventType     EventType `json:"eventType,omitempty"`
+	MaxOccurrence int       `json:"maxOccurrence,omitempty"`
 }
 
 var _ TriggerSettings = &TriggerSettingsTimeInterval{}
@@ -61,7 +61,7 @@ func Decode(t TriggerType, settings []byte) (TriggerSettings, error) {
 // Validate implements TriggerSettings and returns an error when the settings are invalid
 func (t *TriggerSettingsTimeInterval) Validate() error {
 	if len(t.Expr) == 0 {
-		return errors.New("Expr field is required and must be a valid cron expression")
+		return errors.New("expr field is required and must be a valid cron expression")
 	}
 
 	_, err := cronexpr.Parse(t.Expr)
@@ -94,8 +94,8 @@ func (t *TriggerSettingsEvent) Validate() error {
 		return fmt.Errorf("EventType must be one of %v", []EventType{EventTypeClientSubscribed, EventTypeClientUnsubscribed})
 	}
 
-	if t.MaxOccurence <= 0 {
-		return errors.New("MaxOccurence must be greater than 0")
+	if t.MaxOccurrence <= 0 {
+		return errors.New("MaxOccurrence must be greater than 0")
 	}
 
 	return nil

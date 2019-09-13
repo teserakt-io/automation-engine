@@ -31,7 +31,7 @@ func NewTriggerStateService(db models.Database) TriggerStateService {
 }
 
 func (s *triggerStateService) Save(ctx context.Context, state *models.TriggerState) error {
-	ctx, span := trace.StartSpan(ctx, "TriggerStateService.Save")
+	_, span := trace.StartSpan(ctx, "TriggerStateService.Save")
 	defer span.End()
 
 	if result := s.gorm().Save(state); result.Error != nil {
@@ -42,7 +42,7 @@ func (s *triggerStateService) Save(ctx context.Context, state *models.TriggerSta
 }
 
 func (s *triggerStateService) ByTriggerID(ctx context.Context, triggerID int) (models.TriggerState, error) {
-	ctx, span := trace.StartSpan(ctx, "TriggerStateService.ByTriggerID")
+	_, span := trace.StartSpan(ctx, "TriggerStateService.ByTriggerID")
 	defer span.End()
 
 	t := models.TriggerState{

@@ -73,7 +73,7 @@ func (c *addTargetCommand) run(cmd *cobra.Command, args []string) error {
 
 	_, err := regexp.Compile(c.flags.Expr)
 	if err != nil {
-		return fmt.Errorf("Invalid expr: %s", err)
+		return fmt.Errorf("invalid expr: %s", err)
 	}
 
 	client, err := c.c2aeClientFactory.NewClient(cmd)
@@ -100,7 +100,7 @@ func (c *addTargetCommand) run(cmd *cobra.Command, args []string) error {
 		Triggers:    resp.Rule.Triggers,
 	}
 
-	resp, err = client.UpdateRule(ctx, updateReq)
+	_, err = client.UpdateRule(ctx, updateReq)
 	if err != nil {
 		return fmt.Errorf("cannot update rule #%d: %s", c.flags.RuleID, err)
 	}

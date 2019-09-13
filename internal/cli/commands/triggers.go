@@ -109,7 +109,7 @@ func (c *addTriggerCommand) run(cmd *cobra.Command, args []string) error {
 		Triggers:    append(resp.Rule.Triggers, newTrigger),
 	}
 
-	resp, err = client.UpdateRule(ctx, updateReq)
+	_, err = client.UpdateRule(ctx, updateReq)
 	if err != nil {
 		return fmt.Errorf("cannot update rule #%d: %s", c.flags.RuleID, err)
 	}

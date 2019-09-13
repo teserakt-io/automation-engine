@@ -161,7 +161,7 @@ func (w *eventWatcher) Start(ctx context.Context) {
 				state.Counter++
 			}
 
-			if state.Counter >= settings.MaxOccurence {
+			if state.Counter >= settings.MaxOccurrence {
 				//Trigger the rule action and reset the counter
 				now := time.Now()
 				w.triggeredChan <- TriggerEvent{
@@ -207,7 +207,7 @@ func (w *eventWatcher) matchTargets(evt c2pb.Event) bool {
 				return true
 			}
 		default:
-			w.logger.Log("msg", "unknow target type", "type", target.Type)
+			w.logger.Log("msg", "unknown target type", "type", target.Type)
 		}
 	}
 

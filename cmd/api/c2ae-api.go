@@ -207,7 +207,6 @@ func main() {
 		err := server.ListenAndServe(globalCtx)
 		logger.Log("msg", "failed to listen and serve api", "error", err)
 		globalCancel()
-		return
 	}()
 
 	// Start event stream from C2 server.
@@ -229,7 +228,7 @@ func main() {
 
 	// Listen for changes in the database and stop / restart the automation engine,
 	// creating a fresh engineCtx.
-	// Cancelling the globalCtx stop it from restarting indefinitively.
+	// Cancelling the globalCtx stop it from restarting indefinitely.
 	for {
 		select {
 		case <-server.RulesModifiedChan():

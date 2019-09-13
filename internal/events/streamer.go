@@ -10,8 +10,6 @@ import (
 
 	"github.com/go-kit/kit/log"
 
-	c2pb "github.com/teserakt-io/c2/pkg/pb"
-
 	"github.com/teserakt-io/automation-engine/internal/services"
 )
 
@@ -33,7 +31,6 @@ type streamer struct {
 	logger   log.Logger
 
 	listeners []StreamListener
-	stream    c2pb.C2_SubscribeToEventStreamClient
 	lock      sync.RWMutex
 }
 

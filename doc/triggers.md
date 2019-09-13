@@ -35,10 +35,10 @@ This trigger type doesn't persist any state.
 | **Field** | **Type** | **Description** | **Example** |
 | --- | --- | --- | --- |
 | EventType | string | A C2 event type (one of CLIENT_SUBSCRIBED or CLIENT_UNSUBSCRIBED, see C2 api.proto `EventType` definition for complete list) | CLIENT_SUBSCRIBED |
-| MaxOccurence | int | A positive number of matching events to be received before the rule action get executed. Those event must match both the EventType and at least one of the rule defined targets, | 5 |
+| MaxOccurrence | int | A positive number of matching events to be received before the rule action get executed. Those event must match both the EventType and at least one of the rule defined targets, | 5 |
 
 ### State
 
-This trigger will old a counter in its *State* field, which get incremented upon receiving events matching its settings. This internal counter is persisted in database every time it changes, and is compared with the MaxOccurence setting on each events. When it match or exceed the MaxOccurence value, the rule action get triggered, and the counter reset to 0.
+This trigger will old a counter in its *State* field, which get incremented upon receiving events matching its settings. This internal counter is persisted in database every time it changes, and is compared with the MaxOccurrence setting on each events. When it match or exceed the MaxOccurrence value, the rule action get triggered, and the counter reset to 0.
 
-> A rule modification does not reset the internal counter. So if the actual counter hold, let's say, the value 5, and the MaxOccurence setting is modified from 10 to 3, the rule will trigger as soon as the next matching event is received as `Counter(6) >= MaxOccurence(3)`. The counter is then reset to 0, and it will need 3 more matching events to trigger again.
+> A rule modification does not reset the internal counter. So if the actual counter hold, let's say, the value 5, and the MaxOccurrence setting is modified from 10 to 3, the rule will trigger as soon as the next matching event is received as `Counter(6) >= MaxOccurrence(3)`. The counter is then reset to 0, and it will need 3 more matching events to trigger again.

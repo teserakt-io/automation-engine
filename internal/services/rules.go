@@ -32,7 +32,7 @@ type TargetWriter interface {
 	DeleteTargets(ctx context.Context, targets ...models.Target) error
 }
 
-// RuleReader defines methods availble to read rules from database
+// RuleReader defines methods available to read rules from database
 type RuleReader interface {
 	All(ctx context.Context) ([]models.Rule, error)
 	ByID(ctx context.Context, ruleID int) (models.Rule, error)
@@ -73,7 +73,7 @@ func NewRuleService(db models.Database, validator models.Validator) RuleService 
 
 // All retrieves all rules from database
 func (s *ruleService) All(ctx context.Context) ([]models.Rule, error) {
-	ctx, span := trace.StartSpan(ctx, "RuleService.All")
+	_, span := trace.StartSpan(ctx, "RuleService.All")
 	defer span.End()
 
 	rules := []models.Rule{}
@@ -86,7 +86,7 @@ func (s *ruleService) All(ctx context.Context) ([]models.Rule, error) {
 
 // Save either creates or updates given rule in database
 func (s *ruleService) Save(ctx context.Context, rule *models.Rule) error {
-	ctx, span := trace.StartSpan(ctx, "RuleService.Save")
+	_, span := trace.StartSpan(ctx, "RuleService.Save")
 	defer span.End()
 
 	if err := s.validator.ValidateRule(*rule); err != nil {
@@ -102,7 +102,7 @@ func (s *ruleService) Save(ctx context.Context, rule *models.Rule) error {
 
 // ByID retrieves a rule by its ID
 func (s *ruleService) ByID(ctx context.Context, ruleID int) (models.Rule, error) {
-	ctx, span := trace.StartSpan(ctx, "RuleService.ByID")
+	_, span := trace.StartSpan(ctx, "RuleService.ByID")
 	defer span.End()
 
 	r := models.Rule{}
@@ -115,7 +115,7 @@ func (s *ruleService) ByID(ctx context.Context, ruleID int) (models.Rule, error)
 
 // TriggerByID retrieves a trigger by its ID
 func (s *ruleService) TriggerByID(ctx context.Context, triggerID int) (models.Trigger, error) {
-	ctx, span := trace.StartSpan(ctx, "RuleService.TriggerByID")
+	_, span := trace.StartSpan(ctx, "RuleService.TriggerByID")
 	defer span.End()
 
 	t := models.Trigger{}
@@ -128,7 +128,7 @@ func (s *ruleService) TriggerByID(ctx context.Context, triggerID int) (models.Tr
 
 // TargetByID retrieves a target by its ID
 func (s *ruleService) TargetByID(ctx context.Context, targetID int) (models.Target, error) {
-	ctx, span := trace.StartSpan(ctx, "RuleService.TargetByID")
+	_, span := trace.StartSpan(ctx, "RuleService.TargetByID")
 	defer span.End()
 
 	t := models.Target{}
@@ -141,7 +141,7 @@ func (s *ruleService) TargetByID(ctx context.Context, targetID int) (models.Targ
 
 // Delete removes given rule and associated triggers / targets from database
 func (s *ruleService) Delete(ctx context.Context, rule models.Rule) error {
-	ctx, span := trace.StartSpan(ctx, "RuleService.Delete")
+	_, span := trace.StartSpan(ctx, "RuleService.Delete")
 	defer span.End()
 
 	if result := s.gorm().Delete(rule); result.Error != nil {
@@ -153,7 +153,7 @@ func (s *ruleService) Delete(ctx context.Context, rule models.Rule) error {
 
 // DeleteTriggers will delete all given triggers in a single batch
 func (s *ruleService) DeleteTriggers(ctx context.Context, triggers ...models.Trigger) error {
-	ctx, span := trace.StartSpan(ctx, "RuleService.DeleteTriggers")
+	_, span := trace.StartSpan(ctx, "RuleService.DeleteTriggers")
 	defer span.End()
 
 	var triggerIds []int
@@ -172,7 +172,7 @@ func (s *ruleService) DeleteTriggers(ctx context.Context, triggers ...models.Tri
 
 // DeleteTargets will delete all given targets in a single batch
 func (s *ruleService) DeleteTargets(ctx context.Context, targets ...models.Target) error {
-	ctx, span := trace.StartSpan(ctx, "RuleService.DeleteTargets")
+	_, span := trace.StartSpan(ctx, "RuleService.DeleteTargets")
 	defer span.End()
 
 	var targetIds []int

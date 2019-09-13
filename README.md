@@ -26,7 +26,7 @@ For more details, see [the targets documentation](./doc/targets.md)
 ### triggers
 
 A trigger defines the condition to decide if the rule action must be executed. It holds a type, a settings map (content being type dependant), and an internal state map.
-The list of available trigger types is defined in the [proto file](./api.proto) (see `TriggerType`) and their respective settings definition is availabe [here](./internal/pb/triggerSettings.go).
+The list of available trigger types is defined in the [proto file](./api.proto) (see `TriggerType`) and their respective settings definition is available [here](./internal/pb/triggerSettings.go).
 For example, a trigger can be of type `TIME_INTERVAL`, meaning it require an `Expr` setting to be defined to a cron expression. This trigger will then monitor the rule *last executed* timestamp against the cron expression, and notify the rule to execute when its due to.
 
 For more details, see [the triggers documentation](./doc/triggers.md)
@@ -124,7 +124,7 @@ c2ae-cli add-target --rule=1 --type=TOPIC --expr="/sensors/data"
 # New target successfully added on rule #1
 
 ### And finally set the trigger:
-c2ae-cli add-trigger --rule=1 --type=EVENT --setting eventType=CLIENT_SUBSCRIBED --setting maxOccurence=5
+c2ae-cli add-trigger --rule=1 --type=EVENT --setting eventType=CLIENT_SUBSCRIBED --setting maxOccurrence=5
 # New trigger successfully added on rule #1
 
 # And done ! Now the API will have auto loaded the newly created trigger and
@@ -134,7 +134,7 @@ c2ae-cli add-trigger --rule=1 --type=EVENT --setting eventType=CLIENT_SUBSCRIBED
 
 ### Run from Docker image
 
-The CI automatically push Docker images of C2AE API and CLI after each successfull builds and for each branches.
+The CI automatically push Docker images of C2AE API and CLI after each successful builds and for each branches.
 
 List of available C2 images: https://gitlab.com/Teserakt/c2ae/container_registry
 
@@ -155,7 +155,7 @@ See `internal/config/config.go` `ViperCfgFields()` for the full list of availabl
 ```
 # Replace <BRANCH_NAME> with the actual branch you want to pull the image from, like master, or devel, or tag...
 # Replace <COMMAND> with the actual command to execute
-docker run -it  --rm --link c2ae-api -e C2AE_API_ENDPOINT="c2ae-api:5556" registry.github.com/teserakt-io/automation-engine/cli:<BRANCH_NAME> <COMMAND>
+docker run -it  --rm --link c2ae-api -e C2AE_API_ENDPOINT="c2ae-api:5556" registry.gitlab.com/teserakt/c2ae/cli:<BRANCH_NAME> <COMMAND>
 ```
 
 ## Development

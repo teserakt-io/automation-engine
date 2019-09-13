@@ -13,7 +13,7 @@ import (
 // Validation errors
 var (
 	ErrUndefinedAction        = errors.New("rule action is undefined")
-	ErrUnknowActionType       = errors.New("rule action type is unknown")
+	ErrUnknownActionType      = errors.New("rule action type is unknown")
 	ErrUndefinedTriggerType   = errors.New("trigger type is undefined")
 	ErrUnsupportedTriggerType = errors.New("trigger type is not supported")
 	ErrTargetExprRequired     = errors.New("target expr is required")
@@ -48,7 +48,7 @@ func (v *validator) ValidateRule(rule Rule) error {
 	}
 
 	if _, ok := pb.ActionType_name[int32(rule.ActionType)]; !ok {
-		return ErrUnknowActionType
+		return ErrUnknownActionType
 	}
 
 	for _, trigger := range rule.Triggers {

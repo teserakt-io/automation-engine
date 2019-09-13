@@ -23,11 +23,11 @@ func TestValidator(t *testing.T) {
 			{Trigger: Trigger{TriggerType: pb.TriggerType_TIME_INTERVAL, Settings: []byte(`{"expr":"bad"}`)}},
 			{Trigger: Trigger{TriggerType: pb.TriggerType_TIME_INTERVAL, Settings: []byte(`{"expr":"* * *"}`)}},
 			{Trigger: Trigger{TriggerType: pb.TriggerType_EVENT, Settings: []byte(`{"bad":"json"}`)}},
-			{Trigger: Trigger{TriggerType: pb.TriggerType_EVENT, Settings: []byte(`{"maxOccurence": 0}`)}},
-			{Trigger: Trigger{TriggerType: pb.TriggerType_EVENT, Settings: []byte(`{"maxOccurence": -1}`)}},
-			{Trigger: Trigger{TriggerType: pb.TriggerType_EVENT, Settings: []byte(`{"maxOccurence": -1}`)}},
-			{Trigger: Trigger{TriggerType: pb.TriggerType_EVENT, Settings: []byte(`{"eventType", "", maxOccurence": 1}`)}},
-			{Trigger: Trigger{TriggerType: pb.TriggerType_EVENT, Settings: []byte(`{"eventType", "NOT_VALID", maxOccurence": 1}`)}},
+			{Trigger: Trigger{TriggerType: pb.TriggerType_EVENT, Settings: []byte(`{"maxOccurrence": 0}`)}},
+			{Trigger: Trigger{TriggerType: pb.TriggerType_EVENT, Settings: []byte(`{"maxOccurrence": -1}`)}},
+			{Trigger: Trigger{TriggerType: pb.TriggerType_EVENT, Settings: []byte(`{"maxOccurrence": -1}`)}},
+			{Trigger: Trigger{TriggerType: pb.TriggerType_EVENT, Settings: []byte(`{"eventType", "", maxOccurrence": 1}`)}},
+			{Trigger: Trigger{TriggerType: pb.TriggerType_EVENT, Settings: []byte(`{"eventType", "NOT_VALID", maxOccurrence": 1}`)}},
 		}
 
 		for _, testData := range badTriggerDataset {
@@ -44,7 +44,7 @@ func TestValidator(t *testing.T) {
 
 	t.Run("ValidateTrigger does not returns error with valid triggers", func(t *testing.T) {
 		validTriggers := []Trigger{
-			Trigger{TriggerType: pb.TriggerType_EVENT, Settings: []byte(`{"eventType": "CLIENT_UNSUBSCRIBED", "maxOccurence": 1}`)},
+			Trigger{TriggerType: pb.TriggerType_EVENT, Settings: []byte(`{"eventType": "CLIENT_UNSUBSCRIBED", "maxOccurrence": 1}`)},
 			Trigger{TriggerType: pb.TriggerType_TIME_INTERVAL, Settings: []byte(`{"expr":"* * * * * *"}`)},
 			Trigger{TriggerType: pb.TriggerType_TIME_INTERVAL, Settings: []byte(`{"expr":"* 0/3 * * * *"}`)},
 		}
@@ -100,7 +100,7 @@ func TestValidator(t *testing.T) {
 		}{
 			{Rule: Rule{}, ExpectedError: ErrUndefinedAction},
 			{Rule: Rule{ActionType: pb.ActionType_UNDEFINED_ACTION}, ExpectedError: ErrUndefinedAction},
-			{Rule: Rule{ActionType: pb.ActionType(-1)}, ExpectedError: ErrUnknowActionType},
+			{Rule: Rule{ActionType: pb.ActionType(-1)}, ExpectedError: ErrUnknownActionType},
 			{Rule: Rule{ActionType: pb.ActionType_KEY_ROTATION, Triggers: []Trigger{Trigger{}}}},
 			{Rule: Rule{ActionType: pb.ActionType_KEY_ROTATION, Targets: []Target{Target{}}}},
 		}
@@ -120,11 +120,11 @@ func TestValidator(t *testing.T) {
 	t.Run("ValidateRule does not returns error with valid rules", func(t *testing.T) {
 		validRules := []Rule{
 			Rule{ActionType: pb.ActionType_KEY_ROTATION},
-			Rule{ActionType: pb.ActionType_KEY_ROTATION, Triggers: []Trigger{Trigger{TriggerType: pb.TriggerType_EVENT, Settings: []byte(`{"eventType": "CLIENT_SUBSCRIBED", "maxOccurence": 1}`)}}},
+			Rule{ActionType: pb.ActionType_KEY_ROTATION, Triggers: []Trigger{Trigger{TriggerType: pb.TriggerType_EVENT, Settings: []byte(`{"eventType": "CLIENT_SUBSCRIBED", "maxOccurrence": 1}`)}}},
 			Rule{ActionType: pb.ActionType_KEY_ROTATION, Targets: []Target{Target{Expr: "abc"}}},
 			Rule{
 				ActionType: pb.ActionType_KEY_ROTATION,
-				Triggers:   []Trigger{Trigger{TriggerType: pb.TriggerType_EVENT, Settings: []byte(`{"eventType": "CLIENT_SUBSCRIBED", "maxOccurence": 1}`)}},
+				Triggers:   []Trigger{Trigger{TriggerType: pb.TriggerType_EVENT, Settings: []byte(`{"eventType": "CLIENT_SUBSCRIBED", "maxOccurrence": 1}`)}},
 				Targets:    []Target{Target{Expr: "abc"}},
 			},
 		}

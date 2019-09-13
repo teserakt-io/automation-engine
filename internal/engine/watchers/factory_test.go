@@ -173,7 +173,7 @@ func TestTriggerWatcherFactory(t *testing.T) {
 		}
 	})
 
-	t.Run("Factory returns error on unknow trigger type", func(t *testing.T) {
+	t.Run("Factory returns error on unknown trigger type", func(t *testing.T) {
 		trigger := models.Trigger{
 			TriggerType: pb.TriggerType_UNDEFINED_TRIGGER,
 		}
