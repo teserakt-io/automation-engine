@@ -1,4 +1,4 @@
-# C2 Automation Engine WebUI
+# Automation Engine WebUI
 
 ## Goal
 
@@ -6,9 +6,9 @@ Providing a web interface to the automation engine, allowing to visualize and up
 This interface should integrate on the existing C2 web UI (as an additionnal `Automation Engine` tab in the menu)
 Ideally, this new tab visibility should be toggleable from a configuration option so we could expose a 'Automation engine enabled' web UI, as well as others with just the C2 features.
 
-## C2AE Overview
+## Automation Engine Overview
 
-The C2AE goal is to allow definition of *rules*, defining an action to be triggered under given *conditions* on given *targets*
+The Automation Engine goal is to allow definition of *rules*, defining an action to be triggered under given *conditions* on given *targets*
 
 Thus we've defined 3 entities:
  - `Rule`: defines an action to be performed (based on the rule `type`)
