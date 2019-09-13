@@ -25,8 +25,7 @@ GOARCH=amd64
 fi
 
 RACEDETECTOR=$(if [[ "$RACE" -ne "" ]]; then echo "-race"; else echo ""; fi)
-CGO=$(if [[ "RACEDETECTOR" -eq "" ]]; then echo "0"; else echo "1"; fi)
-
+CGO=$(if [[ "$RACE" -eq "" ]]; then echo "0"; else echo "1"; fi)
 CMDS=($(find ${DIR}/../cmd/ -mindepth 1 -maxdepth 1  -type d -exec basename {} \;))
 for cmd in ${CMDS[@]}; do
     printf "Building ${PROJECT}-${cmd}:\n\tversion ${NOW}-${GIT_COMMIT}\n\tOS ${GOOS}\n\tarch: ${GOARCH}\n"
