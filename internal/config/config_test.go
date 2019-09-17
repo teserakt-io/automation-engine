@@ -11,7 +11,6 @@ import (
 
 func TestConfig(t *testing.T) {
 	t.Run("Validate properly checks all configuration fields", func(t *testing.T) {
-
 		validFile, err := ioutil.TempFile("", "")
 		if err != nil {
 			t.Fatalf("failed to create temp file: %v", err)

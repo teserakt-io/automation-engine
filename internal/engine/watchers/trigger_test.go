@@ -116,7 +116,6 @@ func TestSchedulerTriggerWatcher(t *testing.T) {
 	})
 
 	t.Run("Start handles triggers with invalid cron expressions", func(t *testing.T) {
-
 		invalidExprSettings := pb.TriggerSettingsTimeInterval{
 			Expr: "invalid",
 		}
@@ -229,7 +228,6 @@ func TestEventTriggerWatcher(t *testing.T) {
 	mockTriggerStateService := services.NewMockTriggerStateService(mockCtrl)
 
 	t.Run("Start properly return errors with invalid trigger", func(t *testing.T) {
-
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 

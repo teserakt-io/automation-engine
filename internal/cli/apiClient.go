@@ -45,7 +45,6 @@ var _ APIClientFactory = &apiClientFactory{}
 
 // NewAPIClientFactory creates a new C2AutomationEngineClient factory
 func NewAPIClientFactory() APIClientFactory {
-
 	return &apiClientFactory{}
 }
 

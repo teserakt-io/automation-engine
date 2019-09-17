@@ -104,7 +104,6 @@ func (f *triggerWatcherFactory) Create(
 	triggeredChan chan<- TriggerEvent,
 	errorChan chan<- error,
 ) (TriggerWatcher, error) {
-
 	var watcher TriggerWatcher
 
 	switch trigger.TriggerType {

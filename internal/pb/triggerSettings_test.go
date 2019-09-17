@@ -7,7 +7,6 @@ import (
 
 func TestTriggerSettings(t *testing.T) {
 	t.Run("TriggerSettings encode / decode properly works", func(t *testing.T) {
-
 		testData := map[TriggerSettings]TriggerSettings{
 			&TriggerSettingsTimeInterval{}: &TriggerSettingsTimeInterval{Expr: "something"},
 			&TriggerSettingsEvent{}:        &TriggerSettingsEvent{MaxOccurrence: 5},

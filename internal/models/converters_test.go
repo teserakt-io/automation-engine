@@ -12,7 +12,6 @@ import (
 )
 
 func TestConverter(t *testing.T) {
-
 	converter := NewConverter()
 
 	trigger1 := Trigger{

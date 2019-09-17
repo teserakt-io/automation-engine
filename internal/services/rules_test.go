@@ -33,7 +33,6 @@ func TestRuleService(t *testing.T) {
 }
 
 func sqliteTestDB(t *testing.T) (models.Database, func()) {
-
 	f, err := ioutil.TempFile(os.TempDir(), "ruleServiceTestDb-")
 	if err != nil {
 		t.Fatalf("Cannot create temporary file: %s", err)

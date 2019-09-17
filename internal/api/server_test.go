@@ -113,7 +113,6 @@ func TestServer(t *testing.T) {
 	})
 
 	t.Run("AddRule creates a new rule", func(t *testing.T) {
-
 		pbTargets := []*pb.Target{
 			&pb.Target{Id: 1},
 			&pb.Target{Id: 2},
@@ -230,7 +229,6 @@ func TestServer(t *testing.T) {
 	})
 
 	t.Run("DeleteRule deletes given rule", func(t *testing.T) {
-
 		req := &pb.DeleteRuleRequest{
 			RuleId: 1,
 		}

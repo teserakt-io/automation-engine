@@ -14,7 +14,6 @@ var gitTag string
 var buildDate string
 
 func main() {
-
 	log.SetFlags(0)
 
 	clientFactory := cli.NewAPIClientFactory()

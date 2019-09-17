@@ -25,7 +25,6 @@ var _ Command = &rootCommand{}
 
 // NewRootCommand creates and configure a new cli root command
 func NewRootCommand(c2aeClientFactory cli.APIClientFactory, version string) Command {
-
 	rootCmd := &rootCommand{}
 
 	listCmd := NewListCommand(c2aeClientFactory)
