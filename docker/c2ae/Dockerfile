@@ -3,8 +3,7 @@
 # c2ae-api stage
 #
 ###########################################################
-FROM debian:stable AS c2ae-api
-# Alpine doesn't work even with libc6-compat
+FROM alpine AS c2ae-api
 
 # Redirect log file to stdout
 RUN ln -s /dev/stdout /var/log/e4_c2ae.log
@@ -28,8 +27,7 @@ COPY ./configs/ /opt/e4/configs
 # c2ae-cli stage
 #
 ###########################################################
-FROM debian:stable AS c2ae-cli
-# Alpine doesn't work even with libc6-compat
+FROM alpine AS c2ae-cli
 
 COPY ./docker/c2ae/cli-entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
