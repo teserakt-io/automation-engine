@@ -17,7 +17,13 @@ import (
 
 func TestStreamer(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
-	defer mockCtrl.Finish()
+	defer func() {
+		// Give some time to the goroutine to switch to running state
+		// before letting the mockCtrl to check its expectations.
+		time.Sleep(100 * time.Millisecond)
+
+		mockCtrl.Finish()
+	}()
 
 	c2ClientMock := services.NewMockC2(mockCtrl)
 	logger := log.NewNopLogger()
