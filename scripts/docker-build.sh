@@ -26,6 +26,7 @@ fi
 printf "=> c2ae-api"
 docker build \
     --target c2ae-api \
+    --build-arg binary_path=./bin/c2ae-api \
     --tag "c2ae-api:$E4_VERSION" \
     --tag "c2ae-api:$E4_GIT_COMMIT" \
     -f "${DIR}/../docker/c2ae/Dockerfile" \
@@ -40,6 +41,7 @@ fi
 printf "=> c2ae-cli"
 docker build \
     --target c2ae-cli \
+    --build-arg binary_path=./bin/c2ae-cli \
     --tag "c2ae-cli:$E4_VERSION" \
     --tag "c2ae-cli:$E4_GIT_COMMIT" \
     -f "${DIR}/../docker/c2ae/Dockerfile" \
