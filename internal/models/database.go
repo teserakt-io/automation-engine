@@ -13,9 +13,9 @@ import (
 
 	// import _ "github.com/jinzhu/gorm/dialects/mysql"
 	// import _ "github.com/jinzhu/gorm/dialects/mssql"
-	slibcfg "gitlab.com/teserakt/serverlib/config"
 
-	"gitlab.com/teserakt/c2ae/internal/config"
+	"github.com/teserakt-io/automation-engine/internal/config"
+	slibcfg "github.com/teserakt-io/serverlib/config"
 )
 
 var (

@@ -6,7 +6,7 @@ import (
 	reflect "reflect"
 	"testing"
 
-	"gitlab.com/teserakt/c2ae/internal/models"
+	"github.com/teserakt-io/automation-engine/internal/models"
 )
 
 func TestTriggerStateService(t *testing.T) {

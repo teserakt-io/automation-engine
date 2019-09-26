@@ -8,8 +8,8 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
 
-	"gitlab.com/teserakt/c2ae/internal/cli"
-	"gitlab.com/teserakt/c2ae/internal/pb"
+	"github.com/teserakt-io/automation-engine/internal/cli"
+	"github.com/teserakt-io/automation-engine/internal/pb"
 )
 
 type addTriggerCommand struct {
@@ -109,7 +109,7 @@ func (c *addTriggerCommand) run(cmd *cobra.Command, args []string) error {
 		Triggers:    append(resp.Rule.Triggers, newTrigger),
 	}
 
-	resp, err = client.UpdateRule(ctx, updateReq)
+	_, err = client.UpdateRule(ctx, updateReq)
 	if err != nil {
 		return fmt.Errorf("cannot update rule #%d: %s", c.flags.RuleID, err)
 	}

@@ -30,7 +30,7 @@ func TestJson(t *testing.T) {
 	})
 
 	t.Run("Trigger MarshalJson properly marshall TriggerSettingsEvent", func(t *testing.T) {
-		triggerSettings := &TriggerSettingsEvent{MaxOccurence: 5, EventType: EventTypeClientSubscribed}
+		triggerSettings := &TriggerSettingsEvent{MaxOccurrence: 5, EventType: EventTypeClientSubscribed}
 		encodedSettings, err := triggerSettings.Encode()
 		if err != nil {
 			t.Errorf("Expected err to be nil, got %s", err)

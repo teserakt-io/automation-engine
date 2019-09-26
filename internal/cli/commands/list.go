@@ -12,8 +12,8 @@ import (
 	"github.com/rvflash/elapsed"
 	"github.com/spf13/cobra"
 
-	"gitlab.com/teserakt/c2ae/internal/cli"
-	"gitlab.com/teserakt/c2ae/internal/pb"
+	"github.com/teserakt-io/automation-engine/internal/cli"
+	"github.com/teserakt-io/automation-engine/internal/pb"
 )
 
 type listCommand struct {
@@ -25,7 +25,6 @@ var _ Command = &listCommand{}
 
 // NewListCommand creates a new command to list all the rules
 func NewListCommand(c2aeClientFactory cli.APIClientFactory) Command {
-
 	listCmd := &listCommand{
 		c2aeClientFactory: c2aeClientFactory,
 	}
@@ -73,7 +72,6 @@ func (c *listCommand) run(cmd *cobra.Command, args []string) error {
 	fmt.Fprintln(w, " ---\t -----------\t --------\t -------\t -------------")
 
 	for _, rule := range resp.Rules {
-
 		t, err := ptypes.Timestamp(rule.LastExecuted)
 		if err != nil {
 			log.Fatal(err)

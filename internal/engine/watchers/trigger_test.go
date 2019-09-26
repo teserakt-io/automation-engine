@@ -7,17 +7,14 @@ import (
 	"testing"
 	"time"
 
-	c2pb "gitlab.com/teserakt/c2/pkg/pb"
-	"gitlab.com/teserakt/c2ae/internal/services"
-
-	"gitlab.com/teserakt/c2ae/internal/events"
-
-	"github.com/golang/mock/gomock"
-
 	"github.com/go-kit/kit/log"
+	"github.com/golang/mock/gomock"
+	c2pb "github.com/teserakt-io/c2/pkg/pb"
 
-	"gitlab.com/teserakt/c2ae/internal/models"
-	"gitlab.com/teserakt/c2ae/internal/pb"
+	"github.com/teserakt-io/automation-engine/internal/events"
+	"github.com/teserakt-io/automation-engine/internal/models"
+	"github.com/teserakt-io/automation-engine/internal/pb"
+	"github.com/teserakt-io/automation-engine/internal/services"
 )
 
 func TestSchedulerTriggerWatcher(t *testing.T) {
@@ -119,7 +116,6 @@ func TestSchedulerTriggerWatcher(t *testing.T) {
 	})
 
 	t.Run("Start handles triggers with invalid cron expressions", func(t *testing.T) {
-
 		invalidExprSettings := pb.TriggerSettingsTimeInterval{
 			Expr: "invalid",
 		}
@@ -232,7 +228,6 @@ func TestEventTriggerWatcher(t *testing.T) {
 	mockTriggerStateService := services.NewMockTriggerStateService(mockCtrl)
 
 	t.Run("Start properly return errors with invalid trigger", func(t *testing.T) {
-
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
@@ -286,8 +281,8 @@ func TestEventTriggerWatcher(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 
 		triggerSettings := pb.TriggerSettingsEvent{
-			EventType:    pb.EventTypeClientSubscribed,
-			MaxOccurence: 2,
+			EventType:     pb.EventTypeClientSubscribed,
+			MaxOccurrence: 2,
 		}
 
 		triggeredChan := make(chan TriggerEvent)
@@ -343,8 +338,8 @@ func TestEventTriggerWatcher(t *testing.T) {
 
 		go watcher.Start(ctx)
 
-		//  Unknow target
-		eventChan <- c2pb.Event{Type: c2pb.EventType_CLIENT_SUBSCRIBED, Source: "client1", Target: "unknow"}
+		//  Unknown target
+		eventChan <- c2pb.Event{Type: c2pb.EventType_CLIENT_SUBSCRIBED, Source: "client1", Target: "unknown"}
 		select {
 		case err := <-errorChan:
 			t.Errorf("Expected no error, got %v", err)
@@ -399,8 +394,8 @@ func TestEventTriggerWatcher(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 
 		triggerSettings := pb.TriggerSettingsEvent{
-			EventType:    pb.EventTypeClientSubscribed,
-			MaxOccurence: 1,
+			EventType:     pb.EventTypeClientSubscribed,
+			MaxOccurrence: 1,
 		}
 
 		triggeredChan := make(chan TriggerEvent)
@@ -456,7 +451,7 @@ func TestEventTriggerWatcher(t *testing.T) {
 
 		go watcher.Start(ctx)
 
-		eventChan <- c2pb.Event{Type: c2pb.EventType_CLIENT_SUBSCRIBED, Source: target, Target: "unknow"}
+		eventChan <- c2pb.Event{Type: c2pb.EventType_CLIENT_SUBSCRIBED, Source: target, Target: "unknown"}
 		select {
 		case err := <-errorChan:
 			t.Errorf("Expected no error, got %v", err)
@@ -490,8 +485,8 @@ func TestEventTriggerWatcher(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 
 		triggerSettings := pb.TriggerSettingsEvent{
-			EventType:    pb.EventTypeClientSubscribed,
-			MaxOccurence: 1,
+			EventType:     pb.EventTypeClientSubscribed,
+			MaxOccurrence: 1,
 		}
 
 		triggeredChan := make(chan TriggerEvent)
@@ -547,7 +542,7 @@ func TestEventTriggerWatcher(t *testing.T) {
 
 		go watcher.Start(ctx)
 
-		eventChan <- c2pb.Event{Type: c2pb.EventType_CLIENT_SUBSCRIBED, Source: target, Target: "unknow"}
+		eventChan <- c2pb.Event{Type: c2pb.EventType_CLIENT_SUBSCRIBED, Source: target, Target: "unknown"}
 		select {
 		case err := <-errorChan:
 			t.Errorf("Expected no error, got %v", err)
@@ -581,8 +576,8 @@ func TestEventTriggerWatcher(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 
 		triggerSettings := pb.TriggerSettingsEvent{
-			EventType:    pb.EventTypeClientSubscribed,
-			MaxOccurence: 1,
+			EventType:     pb.EventTypeClientSubscribed,
+			MaxOccurrence: 1,
 		}
 
 		triggeredChan := make(chan TriggerEvent)

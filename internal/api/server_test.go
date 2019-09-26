@@ -14,15 +14,15 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/teserakt/c2ae/internal/config"
-	"gitlab.com/teserakt/c2ae/internal/models"
-	"gitlab.com/teserakt/c2ae/internal/pb"
-	"gitlab.com/teserakt/c2ae/internal/services"
-
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+
+	"github.com/teserakt-io/automation-engine/internal/config"
+	"github.com/teserakt-io/automation-engine/internal/models"
+	"github.com/teserakt-io/automation-engine/internal/pb"
+	"github.com/teserakt-io/automation-engine/internal/services"
 )
 
 func assertRulesModified(t *testing.T, rulesModifiedChan <-chan bool, expectedModified bool) {
@@ -113,7 +113,6 @@ func TestServer(t *testing.T) {
 	})
 
 	t.Run("AddRule creates a new rule", func(t *testing.T) {
-
 		pbTargets := []*pb.Target{
 			&pb.Target{Id: 1},
 			&pb.Target{Id: 2},
@@ -230,7 +229,6 @@ func TestServer(t *testing.T) {
 	})
 
 	t.Run("DeleteRule deletes given rule", func(t *testing.T) {
-
 		req := &pb.DeleteRuleRequest{
 			RuleId: 1,
 		}

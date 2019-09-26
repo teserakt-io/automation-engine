@@ -1,7 +1,4 @@
-# c2ae
-
-[![pipeline status](https://gitlab.com/Teserakt/c2ae/badges/master/pipeline.svg)](https://gitlab.com/Teserakt/c2ae/commits/master)
-[![coverage report](https://gitlab.com/Teserakt/c2ae/badges/master/coverage.svg)](https://gitlab.com/Teserakt/c2ae/commits/master)
+# Automation Engine
 
 
 ## Introduction
@@ -29,15 +26,15 @@ For more details, see [the targets documentation](./doc/targets.md)
 ### triggers
 
 A trigger defines the condition to decide if the rule action must be executed. It holds a type, a settings map (content being type dependant), and an internal state map.
-The list of available trigger types is defined in the [proto file](./api.proto) (see `TriggerType`) and their respective settings definition is availabe [here](./internal/pb/triggerSettings.go).
+The list of available trigger types is defined in the [proto file](./api.proto) (see `TriggerType`) and their respective settings definition is available [here](./internal/pb/triggerSettings.go).
 For example, a trigger can be of type `TIME_INTERVAL`, meaning it require an `Expr` setting to be defined to a cron expression. This trigger will then monitor the rule *last executed* timestamp against the cron expression, and notify the rule to execute when its due to.
 
 For more details, see [the triggers documentation](./doc/triggers.md)
 
 ## Automation engine API
 
-The c2ae-api is exposing HTTP and gRPC endpoints, allowing to create, read, update or delete rules.
-It also start the c2ae internal engine, which will monitor the existing triggers and launch their rule action if conditions are met.
+The api is exposing HTTP and gRPC endpoints, allowing to create, read, update or delete rules.
+It also start the internal engine, which will monitor the existing triggers and launch their rule action if conditions are met.
 
 ### Usage
 
@@ -58,7 +55,7 @@ cp /path/to/c2/configs/c2-cert.pem configs/c2-cert.pem
 
 ### Automation engine
 
-The c2ae engine is responsible of monitoring every existing rules, and trigger their actions when one of the rule's trigger condition is met.
+The automation engine is responsible of monitoring every existing rules, and trigger their actions when one of the rule's trigger condition is met.
 It is started on the background of the API server, and spawns a goroutine for each rules, and another one for each rule's trigger.
 
 On startup, the engine will also subscribe to an event stream over GRPC on the C2 server (`SubscribeToEventStream`). This connection will be kept open at all time to allow reception of C2 events. If the connection is lost, the engine will automatically retry to reconnect every seconds and will log an error until it succeed.
@@ -127,7 +124,7 @@ c2ae-cli add-target --rule=1 --type=TOPIC --expr="/sensors/data"
 # New target successfully added on rule #1
 
 ### And finally set the trigger:
-c2ae-cli add-trigger --rule=1 --type=EVENT --setting eventType=CLIENT_SUBSCRIBED --setting maxOccurence=5
+c2ae-cli add-trigger --rule=1 --type=EVENT --setting eventType=CLIENT_SUBSCRIBED --setting maxOccurrence=5
 # New trigger successfully added on rule #1
 
 # And done ! Now the API will have auto loaded the newly created trigger and
@@ -137,13 +134,13 @@ c2ae-cli add-trigger --rule=1 --type=EVENT --setting eventType=CLIENT_SUBSCRIBED
 
 ### Run from Docker image
 
-The CI automatically push Docker images of C2AE API and CLI after each successfull builds and for each branches.
+The CI automatically push Docker images of the API and CLI after each successful builds and for each branches.
 
 List of available C2 images: https://gitlab.com/Teserakt/c2ae/container_registry
 
 #### API
 
-The c2ae-api server can be started like so:
+The api server can be started like so:
 ```
 # Replace <BRANCH_NAME> with the actual branch you want to pull the image from, like master, or devel, or tag...
 docker run -it --name c2ae-api --rm -v $(pwd)/configs:/opt/e4/configs -e C2AE_LISTEN_ADDR=0.0.0.0:5556 -p 5556:5556 registry.gitlab.com/teserakt/c2ae/api:<BRANCH_NAME>

@@ -5,8 +5,8 @@ import (
 
 	"github.com/go-kit/kit/log"
 
-	"gitlab.com/teserakt/c2ae/internal/engine/watchers"
-	"gitlab.com/teserakt/c2ae/internal/services"
+	"github.com/teserakt-io/automation-engine/internal/engine/watchers"
+	"github.com/teserakt-io/automation-engine/internal/services"
 )
 
 // AutomationEngine interface describe the public methods available on the automation engine

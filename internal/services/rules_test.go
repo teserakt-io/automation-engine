@@ -13,11 +13,11 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	"github.com/jinzhu/gorm"
+	slibcfg "github.com/teserakt-io/serverlib/config"
 
-	"gitlab.com/teserakt/c2ae/internal/config"
-	"gitlab.com/teserakt/c2ae/internal/models"
-	"gitlab.com/teserakt/c2ae/internal/pb"
-	slibcfg "gitlab.com/teserakt/serverlib/config"
+	"github.com/teserakt-io/automation-engine/internal/config"
+	"github.com/teserakt-io/automation-engine/internal/models"
+	"github.com/teserakt-io/automation-engine/internal/pb"
 )
 
 func TestRuleService(t *testing.T) {
@@ -33,7 +33,6 @@ func TestRuleService(t *testing.T) {
 }
 
 func sqliteTestDB(t *testing.T) (models.Database, func()) {
-
 	f, err := ioutil.TempFile(os.TempDir(), "ruleServiceTestDb-")
 	if err != nil {
 		t.Fatalf("Cannot create temporary file: %s", err)
@@ -177,6 +176,9 @@ func testRuleServiceDatabase(t *testing.T, getTestDB func(t *testing.T) (models.
 		rule1, rule2 := createRules(t, srv, validator)
 
 		rules, err = srv.All(ctx)
+		if err != nil {
+			t.Fatalf("failed to get all: %v", err)
+		}
 		if len(rules) != 2 {
 			t.Errorf("Expected 2 rules, got %d", len(rules))
 		}
@@ -319,7 +321,7 @@ func testRuleServiceDatabase(t *testing.T, getTestDB func(t *testing.T) (models.
 		}
 	})
 
-	t.Run("Delete removes the rule and dependancies from database", func(t *testing.T) {
+	t.Run("Delete removes the rule and dependencies from database", func(t *testing.T) {
 		db, closeFunc := getTestDB(t)
 		defer closeFunc()
 

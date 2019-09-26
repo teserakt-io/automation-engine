@@ -1,13 +1,14 @@
 package services
 
-//go:generate mockgen -destination=triggerState_mocks.go -package=services -self_package gitlab.com/teserakt/c2ae/internal/services gitlab.com/teserakt/c2ae/internal/services TriggerStateService
+//go:generate mockgen -destination=triggerState_mocks.go -package=services -self_package github.com/teserakt-io/automation-engine/internal/services github.com/teserakt-io/automation-engine/internal/services TriggerStateService
 
 import (
 	"context"
 
 	"github.com/jinzhu/gorm"
-	"gitlab.com/teserakt/c2ae/internal/models"
 	"go.opencensus.io/trace"
+
+	"github.com/teserakt-io/automation-engine/internal/models"
 )
 
 // TriggerStateService defines a service for managing triggerState models.
@@ -30,7 +31,7 @@ func NewTriggerStateService(db models.Database) TriggerStateService {
 }
 
 func (s *triggerStateService) Save(ctx context.Context, state *models.TriggerState) error {
-	ctx, span := trace.StartSpan(ctx, "TriggerStateService.Save")
+	_, span := trace.StartSpan(ctx, "TriggerStateService.Save")
 	defer span.End()
 
 	if result := s.gorm().Save(state); result.Error != nil {
@@ -41,7 +42,7 @@ func (s *triggerStateService) Save(ctx context.Context, state *models.TriggerSta
 }
 
 func (s *triggerStateService) ByTriggerID(ctx context.Context, triggerID int) (models.TriggerState, error) {
-	ctx, span := trace.StartSpan(ctx, "TriggerStateService.ByTriggerID")
+	_, span := trace.StartSpan(ctx, "TriggerStateService.ByTriggerID")
 	defer span.End()
 
 	t := models.TriggerState{

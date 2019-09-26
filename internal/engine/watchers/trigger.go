@@ -1,22 +1,20 @@
 package watchers
 
-//go:generate mockgen -destination=trigger_mocks.go -package watchers -self_package gitlab.com/teserakt/c2ae/internal/engine/watchers gitlab.com/teserakt/c2ae/internal/engine/watchers TriggerWatcher
+//go:generate mockgen -destination=trigger_mocks.go -package watchers -self_package github.com/teserakt-io/automation-engine/internal/engine/watchers github.com/teserakt-io/automation-engine/internal/engine/watchers TriggerWatcher
 
 import (
 	"context"
 	"fmt"
 	"time"
 
-	"gitlab.com/teserakt/c2ae/internal/services"
-
 	"github.com/go-kit/kit/log"
 	"github.com/gorhill/cronexpr"
+	c2pb "github.com/teserakt-io/c2/pkg/pb"
 
-	c2pb "gitlab.com/teserakt/c2/pkg/pb"
-
-	"gitlab.com/teserakt/c2ae/internal/events"
-	"gitlab.com/teserakt/c2ae/internal/models"
-	"gitlab.com/teserakt/c2ae/internal/pb"
+	"github.com/teserakt-io/automation-engine/internal/events"
+	"github.com/teserakt-io/automation-engine/internal/models"
+	"github.com/teserakt-io/automation-engine/internal/pb"
+	"github.com/teserakt-io/automation-engine/internal/services"
 )
 
 // TriggerEvent holds values transmitted when a trigger trigger
@@ -163,7 +161,7 @@ func (w *eventWatcher) Start(ctx context.Context) {
 				state.Counter++
 			}
 
-			if state.Counter >= settings.MaxOccurence {
+			if state.Counter >= settings.MaxOccurrence {
 				//Trigger the rule action and reset the counter
 				now := time.Now()
 				w.triggeredChan <- TriggerEvent{
@@ -209,7 +207,7 @@ func (w *eventWatcher) matchTargets(evt c2pb.Event) bool {
 				return true
 			}
 		default:
-			w.logger.Log("msg", "unknow target type", "type", target.Type)
+			w.logger.Log("msg", "unknown target type", "type", target.Type)
 		}
 	}
 

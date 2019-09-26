@@ -3,7 +3,7 @@ package commands
 import (
 	"github.com/spf13/cobra"
 
-	"gitlab.com/teserakt/c2ae/internal/cli"
+	"github.com/teserakt-io/automation-engine/internal/cli"
 )
 
 // Command defines a cli Command
@@ -25,7 +25,6 @@ var _ Command = &rootCommand{}
 
 // NewRootCommand creates and configure a new cli root command
 func NewRootCommand(c2aeClientFactory cli.APIClientFactory, version string) Command {
-
 	rootCmd := &rootCommand{}
 
 	listCmd := NewListCommand(c2aeClientFactory)

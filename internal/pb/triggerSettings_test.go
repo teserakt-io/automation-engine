@@ -7,10 +7,9 @@ import (
 
 func TestTriggerSettings(t *testing.T) {
 	t.Run("TriggerSettings encode / decode properly works", func(t *testing.T) {
-
 		testData := map[TriggerSettings]TriggerSettings{
 			&TriggerSettingsTimeInterval{}: &TriggerSettingsTimeInterval{Expr: "something"},
-			&TriggerSettingsEvent{}:        &TriggerSettingsEvent{MaxOccurence: 5},
+			&TriggerSettingsEvent{}:        &TriggerSettingsEvent{MaxOccurrence: 5},
 		}
 
 		for settings, expectedSettings := range testData {
@@ -54,15 +53,15 @@ func TestTriggerSettingsTimeInterval(t *testing.T) {
 func TestTriggerSettingsEvent(t *testing.T) {
 	t.Run("Validate properly checks settings", func(t *testing.T) {
 		testData := map[*TriggerSettingsEvent]bool{
-			&TriggerSettingsEvent{EventType: ""}:                                       false,
-			&TriggerSettingsEvent{EventType: "CLIENT_SUBSCRIBED"}:                      false,
-			&TriggerSettingsEvent{EventType: "CLIENT_SUBSCRIBED", MaxOccurence: 0}:     false,
-			&TriggerSettingsEvent{EventType: "CLIENT_SUBSCRIBED", MaxOccurence: 0}:     false,
-			&TriggerSettingsEvent{EventType: "CLIENT_SUBSCRIBED", MaxOccurence: -1}:    false,
-			&TriggerSettingsEvent{EventType: "NOT_VALID_TYPE", MaxOccurence: 1}:        false,
-			&TriggerSettingsEvent{EventType: "CLIENT_SUBSCRIBED", MaxOccurence: 1}:     true,
-			&TriggerSettingsEvent{EventType: "CLIENT_SUBSCRIBED", MaxOccurence: 5}:     true,
-			&TriggerSettingsEvent{EventType: "CLIENT_UNSUBSCRIBED", MaxOccurence: 100}: true,
+			&TriggerSettingsEvent{EventType: ""}:                                        false,
+			&TriggerSettingsEvent{EventType: "CLIENT_SUBSCRIBED"}:                       false,
+			&TriggerSettingsEvent{EventType: "CLIENT_SUBSCRIBED", MaxOccurrence: 0}:     false,
+			&TriggerSettingsEvent{EventType: "CLIENT_SUBSCRIBED", MaxOccurrence: 0}:     false,
+			&TriggerSettingsEvent{EventType: "CLIENT_SUBSCRIBED", MaxOccurrence: -1}:    false,
+			&TriggerSettingsEvent{EventType: "NOT_VALID_TYPE", MaxOccurrence: 1}:        false,
+			&TriggerSettingsEvent{EventType: "CLIENT_SUBSCRIBED", MaxOccurrence: 1}:     true,
+			&TriggerSettingsEvent{EventType: "CLIENT_SUBSCRIBED", MaxOccurrence: 5}:     true,
+			&TriggerSettingsEvent{EventType: "CLIENT_UNSUBSCRIBED", MaxOccurrence: 100}: true,
 		}
 
 		for settings, valid := range testData {

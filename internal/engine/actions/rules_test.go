@@ -10,9 +10,9 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 
-	"gitlab.com/teserakt/c2ae/internal/models"
-	"gitlab.com/teserakt/c2ae/internal/pb"
-	"gitlab.com/teserakt/c2ae/internal/services"
+	"github.com/teserakt-io/automation-engine/internal/models"
+	"github.com/teserakt-io/automation-engine/internal/pb"
+	"github.com/teserakt-io/automation-engine/internal/services"
 )
 
 func TestKeyRotationAction(t *testing.T) {

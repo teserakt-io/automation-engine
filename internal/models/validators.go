@@ -1,19 +1,19 @@
 package models
 
-//go:generate mockgen -destination validators_mocks.go -package=models -self_package gitlab.com/teserakt/c2ae/internal/models gitlab.com/teserakt/c2ae/internal/models Validator,TriggerValidator
+//go:generate mockgen -destination validators_mocks.go -package=models -self_package github.com/teserakt-io/automation-engine/internal/models github.com/teserakt-io/automation-engine/internal/models Validator,TriggerValidator
 
 import (
 	"errors"
 	"fmt"
 	"regexp"
 
-	"gitlab.com/teserakt/c2ae/internal/pb"
+	"github.com/teserakt-io/automation-engine/internal/pb"
 )
 
 // Validation errors
 var (
 	ErrUndefinedAction        = errors.New("rule action is undefined")
-	ErrUnknowActionType       = errors.New("rule action type is unknown")
+	ErrUnknownActionType      = errors.New("rule action type is unknown")
 	ErrUndefinedTriggerType   = errors.New("trigger type is undefined")
 	ErrUnsupportedTriggerType = errors.New("trigger type is not supported")
 	ErrTargetExprRequired     = errors.New("target expr is required")
@@ -48,7 +48,7 @@ func (v *validator) ValidateRule(rule Rule) error {
 	}
 
 	if _, ok := pb.ActionType_name[int32(rule.ActionType)]; !ok {
-		return ErrUnknowActionType
+		return ErrUnknownActionType
 	}
 
 	for _, trigger := range rule.Triggers {

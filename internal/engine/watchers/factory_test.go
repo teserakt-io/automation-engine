@@ -7,11 +7,12 @@ import (
 
 	"github.com/go-kit/kit/log"
 	gomock "github.com/golang/mock/gomock"
-	"gitlab.com/teserakt/c2ae/internal/engine/actions"
-	"gitlab.com/teserakt/c2ae/internal/events"
-	"gitlab.com/teserakt/c2ae/internal/models"
-	"gitlab.com/teserakt/c2ae/internal/pb"
-	"gitlab.com/teserakt/c2ae/internal/services"
+
+	"github.com/teserakt-io/automation-engine/internal/engine/actions"
+	"github.com/teserakt-io/automation-engine/internal/events"
+	"github.com/teserakt-io/automation-engine/internal/models"
+	"github.com/teserakt-io/automation-engine/internal/pb"
+	"github.com/teserakt-io/automation-engine/internal/services"
 )
 
 func TestRuleWatcherFactory(t *testing.T) {
@@ -172,7 +173,7 @@ func TestTriggerWatcherFactory(t *testing.T) {
 		}
 	})
 
-	t.Run("Factory returns error on unknow trigger type", func(t *testing.T) {
+	t.Run("Factory returns error on unknown trigger type", func(t *testing.T) {
 		trigger := models.Trigger{
 			TriggerType: pb.TriggerType_UNDEFINED_TRIGGER,
 		}

@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
-	"gitlab.com/teserakt/c2ae/internal/pb"
+
+	"github.com/teserakt-io/automation-engine/internal/pb"
 )
 
 func TestConverter(t *testing.T) {
-
 	converter := NewConverter()
 
 	trigger1 := Trigger{
