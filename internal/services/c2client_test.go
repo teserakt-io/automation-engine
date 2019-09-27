@@ -28,6 +28,7 @@ func TestC2(t *testing.T) {
 
 		mockClient := pb.NewMockC2PbClient(mockCtrl)
 		mockClient.EXPECT().NewClientKey(gomock.Any(), expectedRequest).Return(nil, expectedError)
+		mockClient.EXPECT().Close()
 
 		mockClientFactory.EXPECT().Create().Return(mockClient, nil)
 
@@ -45,6 +46,7 @@ func TestC2(t *testing.T) {
 
 		mockClient := pb.NewMockC2PbClient(mockCtrl)
 		mockClient.EXPECT().NewTopic(gomock.Any(), expectedRequest).Return(nil, expectedError)
+		mockClient.EXPECT().Close()
 
 		mockClientFactory.EXPECT().Create().Return(mockClient, nil)
 
