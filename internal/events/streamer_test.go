@@ -19,7 +19,7 @@ func TestStreamer(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer func() {
 		// Give some time to the goroutine to switch to running state
-		// before letting the mockCtrl to check its expectations.
+		// before letting mockCtrl check its expectations.
 		time.Sleep(100 * time.Millisecond)
 
 		mockCtrl.Finish()
