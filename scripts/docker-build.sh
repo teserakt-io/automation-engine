@@ -18,18 +18,31 @@ fi
 
 echo "Building version $E4_VERSION, commit $E4_GIT_COMMIT\n"
 
+if [ -z $(ldd ${DIR}/../bin/c2ae-api | grep "not a dynamic executable") ]; then
+    echo "c2ae-api is not a static binary, please rebuild it with CGO_ENABLED=0"
+    exit 1
+fi
+
 printf "=> c2ae-api"
 docker build \
     --target c2ae-api \
-    --tag "registry.gitlab.com/teserakt/c2ae/api:$E4_VERSION" \
-    --tag "registry.gitlab.com/teserakt/c2ae/api:$E4_GIT_COMMIT" \
+    --build-arg binary_path=./bin/c2ae-api \
+    --tag "c2ae-api:$E4_VERSION" \
+    --tag "c2ae-api:$E4_GIT_COMMIT" \
     -f "${DIR}/../docker/c2ae/Dockerfile" \
     "${DIR}/../"
+
+
+if [ -z $(ldd ${DIR}/../bin/c2ae-cli | grep "not a dynamic executable") ]; then
+    echo "c2ae-cli is not a static binary, please rebuild it with CGO_ENABLED=0"
+    exit 1
+fi
 
 printf "=> c2ae-cli"
 docker build \
     --target c2ae-cli \
-    --tag "registry.gitlab.com/teserakt/c2ae/cli:$E4_VERSION" \
-    --tag "registry.gitlab.com/teserakt/c2ae/cli:$E4_GIT_COMMIT" \
+    --build-arg binary_path=./bin/c2ae-cli \
+    --tag "c2ae-cli:$E4_VERSION" \
+    --tag "c2ae-cli:$E4_GIT_COMMIT" \
     -f "${DIR}/../docker/c2ae/Dockerfile" \
     "${DIR}/../"
