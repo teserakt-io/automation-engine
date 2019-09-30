@@ -44,6 +44,7 @@ func (c *c2) NewClientKey(ctx context.Context, clientName string) error {
 	if err != nil {
 		return err
 	}
+	defer client.Close()
 
 	_, err = client.NewClientKey(ctx, &c2pb.NewClientKeyRequest{Client: &c2pb.Client{Name: clientName}})
 
@@ -58,6 +59,7 @@ func (c *c2) NewTopicKey(ctx context.Context, topic string) error {
 	if err != nil {
 		return err
 	}
+	defer client.Close()
 
 	_, err = client.NewTopic(ctx, &c2pb.NewTopicRequest{Topic: topic})
 
