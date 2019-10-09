@@ -5,6 +5,8 @@
 ###########################################################
 FROM alpine AS c2ae-api
 
+ARG binary_path
+
 # Redirect log file to stdout
 RUN ln -s /dev/stdout /var/log/e4_c2ae.log
 
@@ -28,6 +30,8 @@ ENTRYPOINT /opt/e4/bin/c2ae-api
 #
 ###########################################################
 FROM alpine AS c2ae-cli
+
+ARG binary_path
 
 WORKDIR /opt/e4
 
