@@ -3,12 +3,13 @@ package watchers
 import (
 	"context"
 	"errors"
+	"io/ioutil"
 	reflect "reflect"
 	"testing"
 	"time"
 
-	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
+	log "github.com/sirupsen/logrus"
 	c2pb "github.com/teserakt-io/c2/pkg/pb"
 
 	"github.com/teserakt-io/automation-engine/internal/events"
@@ -20,6 +21,9 @@ import (
 func TestSchedulerTriggerWatcher(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
+
+	logger := log.New()
+	logger.SetOutput(ioutil.Discard)
 
 	mockValidator := models.NewMockTriggerValidator(mockCtrl)
 
@@ -41,7 +45,7 @@ func TestSchedulerTriggerWatcher(t *testing.T) {
 		validator:     mockValidator,
 		trigger:       trigger,
 		triggeredChan: triggeredChan,
-		logger:        log.NewNopLogger(),
+		logger:        logger,
 
 		updateChan: updateChan,
 		errorChan:  errorChan,
@@ -91,7 +95,7 @@ func TestSchedulerTriggerWatcher(t *testing.T) {
 
 			trigger:       invalidTrigger,
 			triggeredChan: triggeredChan,
-			logger:        log.NewNopLogger(),
+			logger:        logger,
 
 			updateChan: updateChan,
 			errorChan:  errorChan,
@@ -134,7 +138,7 @@ func TestSchedulerTriggerWatcher(t *testing.T) {
 
 			trigger:       invalidTrigger,
 			triggeredChan: triggeredChan,
-			logger:        log.NewNopLogger(),
+			logger:        logger,
 
 			updateChan: updateChan,
 			errorChan:  errorChan,
@@ -227,6 +231,9 @@ func TestEventTriggerWatcher(t *testing.T) {
 	mockStreamListenerFactory := events.NewMockStreamListenerFactory(mockCtrl)
 	mockTriggerStateService := services.NewMockTriggerStateService(mockCtrl)
 
+	logger := log.New()
+	logger.SetOutput(ioutil.Discard)
+
 	t.Run("Start properly return errors with invalid trigger", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
@@ -256,7 +263,7 @@ func TestEventTriggerWatcher(t *testing.T) {
 				models.Target{Type: pb.TargetType_TOPIC, Expr: "testTopic"},
 			},
 			triggeredChan: triggeredChan,
-			logger:        log.NewNopLogger(),
+			logger:        logger,
 
 			updateChan: updateChan,
 			errorChan:  errorChan,
@@ -316,7 +323,7 @@ func TestEventTriggerWatcher(t *testing.T) {
 				models.Target{Type: pb.TargetType_TOPIC, Expr: targetTopic},
 			},
 			triggeredChan: triggeredChan,
-			logger:        log.NewNopLogger(),
+			logger:        logger,
 
 			updateChan: updateChan,
 			errorChan:  errorChan,
@@ -429,7 +436,7 @@ func TestEventTriggerWatcher(t *testing.T) {
 				models.Target{Type: pb.TargetType_ANY, Expr: target},
 			},
 			triggeredChan: triggeredChan,
-			logger:        log.NewNopLogger(),
+			logger:        logger,
 
 			updateChan: updateChan,
 			errorChan:  errorChan,
@@ -520,7 +527,7 @@ func TestEventTriggerWatcher(t *testing.T) {
 				models.Target{Type: pb.TargetType_CLIENT, Expr: target},
 			},
 			triggeredChan: triggeredChan,
-			logger:        log.NewNopLogger(),
+			logger:        logger,
 
 			updateChan: updateChan,
 			errorChan:  errorChan,
@@ -612,7 +619,7 @@ func TestEventTriggerWatcher(t *testing.T) {
 				models.Target{Type: pb.TargetType_CLIENT, Expr: target},
 			},
 			triggeredChan: triggeredChan,
-			logger:        log.NewNopLogger(),
+			logger:        logger,
 
 			updateChan: updateChan,
 			errorChan:  errorChan,

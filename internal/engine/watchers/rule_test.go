@@ -3,11 +3,12 @@ package watchers
 import (
 	"context"
 	"errors"
+	"io/ioutil"
 	"testing"
 	"time"
 
-	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/teserakt-io/automation-engine/internal/engine/actions"
 	"github.com/teserakt-io/automation-engine/internal/models"
@@ -35,7 +36,8 @@ func TestRuleWatcher(t *testing.T) {
 		Targets:      []models.Target{target1, target2},
 	}
 
-	logger := log.NewNopLogger()
+	logger := log.New()
+	logger.SetOutput(ioutil.Discard)
 
 	mockRuleWriter := services.NewMockRuleService(mockCtrl)
 	mockTriggerWatcherFactory := NewMockTriggerWatcherFactory(mockCtrl)

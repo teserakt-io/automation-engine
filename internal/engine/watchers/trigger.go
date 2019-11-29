@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-kit/kit/log"
 	"github.com/gorhill/cronexpr"
+	log "github.com/sirupsen/logrus"
 	c2pb "github.com/teserakt-io/c2/pkg/pb"
 
 	"github.com/teserakt-io/automation-engine/internal/events"
@@ -44,14 +44,20 @@ type schedulerWatcher struct {
 	trigger       models.Trigger
 	triggeredChan chan<- TriggerEvent
 	errorChan     chan<- error
-	logger        log.Logger
+	logger        log.FieldLogger
 
 	updateChan   chan time.Time
 	lastExecuted time.Time
 }
 
 func (w *schedulerWatcher) Start(ctx context.Context) {
-	w.logger.Log("msg", "started trigger schedulerWatcher", "trigger", w.trigger.ID, "rule", w.trigger.RuleID)
+
+	logger := w.logger.WithFields(log.Fields{
+		"trigger": w.trigger.ID,
+		"rule":    w.trigger.RuleID,
+	})
+
+	logger.Info("started trigger schedulerWatcher")
 	// Validate trigger
 	if err := w.validator.ValidateTrigger(w.trigger); err != nil {
 		w.errorChan <- InvalidTrigger{fmt.Errorf("failed to validate trigger: %v", err)}
@@ -83,7 +89,7 @@ func (w *schedulerWatcher) Start(ctx context.Context) {
 		trigger := time.After(delay)
 		select {
 		case <-ctx.Done():
-			w.logger.Log("msg", "stopping trigger schedulerWatcher", "trigger", w.trigger.ID, "rule", w.trigger.RuleID, "reason", ctx.Err())
+			logger.WithError(ctx.Err()).Warn("stopping trigger schedulerWatcher")
 			return
 
 		case <-trigger:
@@ -115,7 +121,7 @@ type eventWatcher struct {
 	targets       []models.Target
 	triggeredChan chan<- TriggerEvent
 	errorChan     chan<- error
-	logger        log.Logger
+	logger        log.FieldLogger
 
 	updateChan   chan time.Time
 	lastExecuted time.Time
@@ -145,12 +151,18 @@ func (w *eventWatcher) Start(ctx context.Context) {
 		return
 	}
 
-	w.logger.Log("msg", "started trigger eventWatcher", "trigger", w.trigger.ID, "rule", w.trigger.RuleID, "event", settings.EventType)
+	logger := w.logger.WithFields(log.Fields{
+		"trigger": w.trigger.ID,
+		"rule":    w.trigger.RuleID,
+		"event":   settings.EventType,
+	})
+
+	logger.Info("started trigger eventWatcher")
 
 	for {
 		select {
 		case <-ctx.Done():
-			w.logger.Log("msg", "stopping trigger eventWatcher", "trigger", w.trigger.ID, "rule", w.trigger.RuleID, "reason", ctx.Err())
+			logger.WithError(ctx.Err()).Warn("stopping trigger eventWatcher")
 			return
 
 		case evt := <-lis.C():
@@ -174,7 +186,7 @@ func (w *eventWatcher) Start(ctx context.Context) {
 
 			// Save state when counter has been modified
 			if state.Counter != origCounter {
-				w.logger.Log("msg", "saving trigger state", "state", state, "trigger", w.trigger.ID)
+				logger.WithField("state", state).Info("saving trigger state")
 				if err := w.triggerStateService.Save(ctx, &state); err != nil {
 					w.errorChan <- fmt.Errorf("failed to save trigger state: %v", err)
 				}
@@ -207,7 +219,7 @@ func (w *eventWatcher) matchTargets(evt c2pb.Event) bool {
 				return true
 			}
 		default:
-			w.logger.Log("msg", "unknown target type", "type", target.Type)
+			w.logger.WithField("type", target.Type).Warn("unknown target type")
 		}
 	}
 

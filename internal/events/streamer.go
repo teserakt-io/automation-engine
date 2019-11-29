@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/go-kit/kit/log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/teserakt-io/automation-engine/internal/services"
 )
@@ -28,7 +28,7 @@ type Streamer interface {
 
 type streamer struct {
 	c2Client services.C2
-	logger   log.Logger
+	logger   log.FieldLogger
 
 	listeners []StreamListener
 	lock      sync.RWMutex
@@ -37,7 +37,7 @@ type streamer struct {
 var _ Streamer = (*streamer)(nil)
 
 // NewStreamer creates a new streamer factory
-func NewStreamer(c2Client services.C2, logger log.Logger) Streamer {
+func NewStreamer(c2Client services.C2, logger log.FieldLogger) Streamer {
 	return &streamer{
 		c2Client:  c2Client,
 		logger:    logger,
@@ -49,7 +49,7 @@ func (s *streamer) AddListener(listener StreamListener) {
 	s.lock.Lock()
 	s.listeners = append(s.listeners, listener)
 	s.lock.Unlock()
-	s.logger.Log("msg", "added listener to event streamer")
+	s.logger.Info("added listener to event streamer")
 }
 
 func (s *streamer) RemoveListener(listener StreamListener) error {
@@ -59,7 +59,7 @@ func (s *streamer) RemoveListener(listener StreamListener) error {
 	for i, lis := range s.listeners {
 		if lis == listener {
 			s.listeners = append(s.listeners[:i], s.listeners[i+1:]...)
-			s.logger.Log("msg", "removed listener to event streamer")
+			s.logger.Info("removed listener to event streamer")
 
 			return nil
 		}
@@ -80,12 +80,12 @@ func (s *streamer) StartStream(ctx context.Context) error {
 		return fmt.Errorf("failed to start event stream: %v", err)
 	}
 
-	s.logger.Log("msg", "started event streamer")
+	s.logger.Info("started event streamer")
 
 	for {
 		select {
 		case <-ctx.Done():
-			s.logger.Log("msg", "stopped event stream", "reason", ctx.Err())
+			s.logger.WithError(ctx.Err()).Warn("stopped event stream")
 			return ctx.Err()
 		default:
 		}

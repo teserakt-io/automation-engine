@@ -5,7 +5,7 @@ package watchers
 import (
 	"context"
 
-	"github.com/go-kit/kit/log"
+	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
 
 	"github.com/teserakt-io/automation-engine/internal/engine/actions"
@@ -27,14 +27,14 @@ type ruleWatcher struct {
 	ruleWriter            services.RuleWriter
 	errorChan             chan<- error
 	triggeredChan         chan TriggerEvent
-	logger                log.Logger
+	logger                log.FieldLogger
 }
 
 func (w *ruleWatcher) Start(ctx context.Context) {
 	var triggerWatchers []TriggerWatcher
 
 	if len(w.rule.Triggers) == 0 {
-		w.logger.Log("msg", "rule has no triggers", "rule", w.rule.ID)
+		w.logger.WithField("rule", w.rule.ID).Warn("rule has no triggers")
 		return
 	}
 
@@ -67,7 +67,11 @@ func (w *ruleWatcher) Start(ctx context.Context) {
 				trace.Int64Attribute("triggerID", int64(triggerEvt.Trigger.ID)),
 			}, "Rule triggered")
 
-			w.logger.Log("msg", "rule triggered", "rule", w.rule.ID, "trigger", triggerEvt.Trigger.ID)
+			w.logger.WithFields(log.Fields{
+				"rule":    w.rule.ID,
+				"trigger": triggerEvt.Trigger.ID,
+			}).Info("rule triggered")
+
 			w.rule.LastExecuted = triggerEvt.Time
 			w.ruleWriter.Save(ctx, &w.rule)
 
@@ -89,7 +93,7 @@ func (w *ruleWatcher) Start(ctx context.Context) {
 			action.Execute(ctx)
 			span.End()
 		case <-ctx.Done():
-			w.logger.Log("msg", "stopping ruleWatcher", "rule", w.rule.ID, "reason", ctx.Err())
+			w.logger.WithError(ctx.Err()).WithField("rule", w.rule.ID).Warn("stopping ruleWatcher")
 
 			return
 		}

@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/jinzhu/gorm"
@@ -77,11 +76,6 @@ func (gdb *gormDB) Migrate() error {
 	case slibcfg.DBTypeSQLite:
 		// Enable foreign key support for sqlite3
 		gdb.Connection().Exec("PRAGMA foreign_keys = ON")
-	case slibcfg.DBTypePostgres:
-		result := gdb.Connection().Exec(fmt.Sprintf("SET search_path TO %s;", gdb.config.Schema))
-		if result.Error != nil {
-			return result.Error
-		}
 	}
 
 	result := gdb.Connection().AutoMigrate(

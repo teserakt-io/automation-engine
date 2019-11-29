@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
@@ -70,7 +70,10 @@ func TestServer(t *testing.T) {
 	grpcLis.Close()
 	httpLis.Close()
 
-	server := NewServer(serverCfg, mockRuleService, mockConverter, log.NewNopLogger())
+	logger := log.New()
+	logger.SetOutput(ioutil.Discard)
+
+	server := NewServer(serverCfg, mockRuleService, mockConverter, logger)
 
 	rulesModifiedChan := make(chan bool)
 	go func() {

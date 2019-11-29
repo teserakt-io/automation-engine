@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-kit/kit/log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/teserakt-io/automation-engine/internal/engine/actions"
 	"github.com/teserakt-io/automation-engine/internal/events"
@@ -25,7 +25,7 @@ type ruleWatcherFactory struct {
 	triggerWatcherFactory TriggerWatcherFactory
 	actionFactory         actions.ActionFactory
 	errorChan             chan<- error
-	logger                log.Logger
+	logger                log.FieldLogger
 }
 
 var _ RuleWatcherFactory = &ruleWatcherFactory{}
@@ -36,7 +36,7 @@ func NewRuleWatcherFactory(
 	triggerWatcherFactory TriggerWatcherFactory,
 	actionFactory actions.ActionFactory,
 	errorChan chan<- error,
-	logger log.Logger,
+	logger log.FieldLogger,
 ) RuleWatcherFactory {
 	return &ruleWatcherFactory{
 		ruleWriter:            ruleWriter,
@@ -72,7 +72,7 @@ type TriggerWatcherFactory interface {
 }
 
 type triggerWatcherFactory struct {
-	logger                log.Logger
+	logger                log.FieldLogger
 	streamListenerFactory events.StreamListenerFactory
 	triggerStateService   services.TriggerStateService
 	validator             models.TriggerValidator
@@ -87,7 +87,7 @@ func NewTriggerWatcherFactory(
 	streamListenerFactory events.StreamListenerFactory,
 	triggerStateService services.TriggerStateService,
 	validator models.TriggerValidator,
-	logger log.Logger,
+	logger log.FieldLogger,
 ) TriggerWatcherFactory {
 	return &triggerWatcherFactory{
 		logger:                logger,

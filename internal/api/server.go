@@ -6,8 +6,8 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/go-kit/kit/log"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
 	grpc "google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -29,7 +29,7 @@ type apiServer struct {
 	cfg         config.ServerCfg
 	ruleService services.RuleService
 	converter   models.Converter
-	logger      log.Logger
+	logger      log.FieldLogger
 
 	rulesModified chan bool
 }
@@ -41,7 +41,7 @@ func NewServer(
 	cfg config.ServerCfg,
 	ruleService services.RuleService,
 	converter models.Converter,
-	logger log.Logger,
+	logger log.FieldLogger,
 ) Server {
 	return &apiServer{
 		cfg:         cfg,
@@ -61,14 +61,14 @@ func (s *apiServer) ListenAndServe(ctx context.Context) error {
 	var lc net.ListenConfig
 	grpcLis, err := lc.Listen(ctx, "tcp", s.cfg.GRPCAddr)
 	if err != nil {
-		s.logger.Log("msg", "failed to listen", "addr", s.cfg.GRPCAddr, "error", err)
+		s.logger.WithField("grcpAddr", s.cfg.GRPCAddr).WithError(err).Error("failed to listen")
 		return err
 	}
 	defer grpcLis.Close()
 
 	httpLis, err := lc.Listen(ctx, "tcp", s.cfg.HTTPAddr)
 	if err != nil {
-		s.logger.Log("msg", "failed to listen", "addr", s.cfg.HTTPAddr, "error", err)
+		s.logger.WithField("httpAddr", s.cfg.HTTPAddr).WithError(err).Error("failed to listen")
 		return err
 	}
 	defer httpLis.Close()
@@ -81,7 +81,7 @@ func (s *apiServer) ListenAndServe(ctx context.Context) error {
 		errChan <- s.listenAndServeHTTP(ctx, httpLis)
 	}()
 
-	s.logger.Log("msg", "api server ready to accept connexions")
+	s.logger.Info("api server ready to accept connections")
 
 	select {
 	case err := <-errChan:
@@ -92,25 +92,37 @@ func (s *apiServer) ListenAndServe(ctx context.Context) error {
 }
 
 func (s *apiServer) listenAndServeGRPC(ctx context.Context, lis net.Listener) error {
+
+	logFields := log.Fields{
+		"cert": s.cfg.GRPCCert,
+		"key":  s.cfg.GRPCKey,
+	}
+
 	creds, err := credentials.NewServerTLSFromFile(s.cfg.GRPCCert, s.cfg.GRPCKey)
 	if err != nil {
-		s.logger.Log("msg", "failed to get credentials", "cert", s.cfg.GRPCCert, "key", s.cfg.GRPCKey, "error", err)
+		s.logger.WithFields(logFields).WithError(err).Error("failed to get credentials")
 		return err
 	}
 
-	s.logger.Log("msg", "using TLS for gRPC", "cert", s.cfg.GRPCCert, "key", s.cfg.GRPCKey)
+	s.logger.WithFields(logFields).Info("using TLS for gRPC")
 
 	grpcServer := grpc.NewServer(grpc.Creds(creds))
 	pb.RegisterC2AutomationEngineServer(grpcServer, s)
 
-	s.logger.Log("msg", "starting grpc listener", "addr", lis.Addr().String())
+	s.logger.WithField("addr", lis.Addr().String()).Info("starting grpc listener")
 	return grpcServer.Serve(lis)
 }
 
 func (s *apiServer) listenAndServeHTTP(ctx context.Context, lis net.Listener) error {
-	creds, err := credentials.NewClientTLSFromFile(s.cfg.GRPCCert, "")
+	logFields := log.Fields{
+		"cert": s.cfg.HTTPCert,
+		"key":  s.cfg.HTTPKey,
+	}
+
+	creds, err := credentials.NewClientTLSFromFile(s.cfg.HTTPCert, "")
 	if err != nil {
-		return fmt.Errorf("failed to create TLS credentials from %v: %v", s.cfg.GRPCCert, err)
+		s.logger.WithFields(logFields).WithError(err).Error("failed to get credentials")
+		return err
 	}
 
 	httpMux := runtime.NewServeMux()
@@ -120,7 +132,7 @@ func (s *apiServer) listenAndServeHTTP(ctx context.Context, lis net.Listener) er
 		return fmt.Errorf("failed to register http listener : %v", err)
 	}
 
-	s.logger.Log("msg", "starting http listener", "addr", lis.Addr().String())
+	s.logger.WithField("addr", lis.Addr().String()).Info("starting http listener")
 	return http.ServeTLS(lis, httpMux, s.cfg.HTTPCert, s.cfg.HTTPKey)
 }
 
@@ -230,7 +242,7 @@ func (s *apiServer) UpdateRule(ctx context.Context, req *pb.UpdateRuleRequest) (
 
 	deletedTriggers := models.FilterNonExistingTriggers(rule.Triggers, triggers)
 	if len(deletedTriggers) > 0 {
-		s.logger.Log("msg", "deleting removed triggers", "count", len(deletedTriggers))
+		s.logger.WithField("count", len(deletedTriggers)).Info("deleting removed triggers")
 		err := s.ruleService.DeleteTriggers(ctx, deletedTriggers...)
 		if err != nil {
 			return nil, err
@@ -239,7 +251,7 @@ func (s *apiServer) UpdateRule(ctx context.Context, req *pb.UpdateRuleRequest) (
 
 	deletedTargets := models.FilterNonExistingTargets(rule.Targets, targets)
 	if len(deletedTargets) > 0 {
-		s.logger.Log("msg", "deleting removed targets", "count", len(deletedTargets))
+		s.logger.WithField("count", len(deletedTargets)).Info("deleting removed targets")
 		err := s.ruleService.DeleteTargets(ctx, deletedTargets...)
 		if err != nil {
 			return nil, err
@@ -289,6 +301,6 @@ func (s *apiServer) notifyRulesModified() {
 	select {
 	case s.rulesModified <- true:
 	default:
-		s.logger.Log("msg", "skipped writting ruleModified event, channel is busy")
+		s.logger.Warn("skipped writting ruleModified event, channel is busy")
 	}
 }
