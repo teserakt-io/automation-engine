@@ -89,7 +89,12 @@ func (a *keyRotationAction) Execute(ctx context.Context) {
 	defer span.End()
 
 	for _, target := range a.targets {
-		a.logger.WithFields(log.Fields{"action": "keyRotation", "target": target.Expr}).Info("executing action")
+		a.logger.WithFields(log.Fields{
+			"action":     "keyRotation",
+			"target":     target.Expr,
+			"targetType": pb.TargetType_name[int32(target.Type)],
+		}).Info("executing action")
+
 		switch target.Type {
 		case pb.TargetType_CLIENT:
 			// TODO: for now we expect target to be defined with exact names of client.
