@@ -17,6 +17,7 @@ type API struct {
 	C2Certificate       string
 	OpencensusSampleAll bool
 	OpencensusAddress   string
+	LoggerLevel         string
 }
 
 // ServerCfg holds configuration for api server
@@ -100,6 +101,8 @@ func (c *API) ViperCfgFields() []slibcfg.ViperCfgField {
 
 		{&c.OpencensusSampleAll, "oc-sample-all", slibcfg.ViperBool, true, ""},
 		{&c.OpencensusAddress, "oc-agent-addr", slibcfg.ViperString, "localhost:55678", "C2AE_OC_ENDPOINT"},
+
+		{&c.LoggerLevel, "log-level", slibcfg.ViperString, "debug", "C2AE_LOG_LEVEL"},
 	}
 }
 

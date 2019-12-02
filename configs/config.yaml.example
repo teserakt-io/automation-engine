@@ -48,3 +48,8 @@ c2-cert: c2-cert.pem
 ###############################################################
 oc-agent-addr: localhost:55678
 oc-sample-all: true
+
+# Logging config
+###############################################################
+# Available levels: trace | debug | info | warn | error | fatal | panic
+log-level: debug

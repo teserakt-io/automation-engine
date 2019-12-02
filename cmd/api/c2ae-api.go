@@ -88,6 +88,13 @@ func main() {
 
 	logger.Info("successfully loaded configuration")
 
+	level, err := log.ParseLevel(appConfig.LoggerLevel)
+	if err != nil {
+		logger.WithError(err).Warn("invalid logger level from configuration, falling back to debug")
+		level = log.DebugLevel
+	}
+	logger.Logger.SetLevel(level)
+
 	dbLogger := stdlog.New(logger.WithField("protocol", "db").WriterLevel(log.DebugLevel), "", 0)
 	db, err := models.NewDB(appConfig.DB, dbLogger)
 	if err != nil {
