@@ -2,7 +2,6 @@ package actions
 
 import (
 	"context"
-	"errors"
 	"io/ioutil"
 	"reflect"
 	"testing"
@@ -77,54 +76,6 @@ func TestKeyRotationAction(t *testing.T) {
 		select {
 		case err := <-errorChan:
 			t.Errorf("Expected only 1 error, got more: %s", err)
-		case <-time.After(10 * time.Millisecond):
-		}
-	})
-
-	t.Run("Execute forward the C2 client errors to the errorChan", func(t *testing.T) {
-		targets := []models.Target{
-			models.Target{Type: pb.TargetType_CLIENT, Expr: "client1"},
-			models.Target{Type: pb.TargetType_TOPIC, Expr: "topic1"},
-		}
-
-		action := &keyRotationAction{
-			targets:   targets,
-			c2Client:  mockC2Client,
-			errorChan: errorChan,
-			logger:    logger,
-		}
-
-		client1Err := errors.New("client1 error")
-		topic1Err := errors.New("topic1 error")
-
-		gomock.InOrder(
-			mockC2Client.EXPECT().NewClientKey(gomock.Any(), "client1").Return(client1Err),
-			mockC2Client.EXPECT().NewTopicKey(gomock.Any(), "topic1").Return(topic1Err),
-		)
-
-		go action.Execute(context.Background())
-
-		select {
-		case err := <-errorChan:
-			if err != client1Err {
-				t.Errorf("Expected error to be %s, got %s", client1Err, err)
-			}
-		case <-time.After(10 * time.Millisecond):
-			t.Errorf("Expected %s error", client1Err)
-		}
-
-		select {
-		case err := <-errorChan:
-			if err != topic1Err {
-				t.Errorf("Expected error to be %s, got %s", topic1Err, err)
-			}
-		case <-time.After(10 * time.Millisecond):
-			t.Errorf("Expected %s error", topic1Err)
-		}
-
-		select {
-		case err := <-errorChan:
-			t.Errorf("Expected no error, got %s", err)
 		case <-time.After(10 * time.Millisecond):
 		}
 	})

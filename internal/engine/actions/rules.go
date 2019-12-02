@@ -89,11 +89,11 @@ func (a *keyRotationAction) Execute(ctx context.Context) {
 	defer span.End()
 
 	for _, target := range a.targets {
-		a.logger.WithFields(log.Fields{
+		logger := a.logger.WithFields(log.Fields{
 			"action":     "keyRotation",
 			"target":     target.Expr,
 			"targetType": pb.TargetType_name[int32(target.Type)],
-		}).Info("executing action")
+		})
 
 		switch target.Type {
 		case pb.TargetType_CLIENT:
@@ -105,21 +105,24 @@ func (a *keyRotationAction) Execute(ctx context.Context) {
 			// match the clients directly from a DB query.
 			err := a.c2Client.NewClientKey(ctx, target.Expr)
 			if err != nil {
-				a.errorChan <- err
-
+				logger.WithError(err).Error("failed to execute action")
 				continue
 			}
 		case pb.TargetType_TOPIC:
 			err := a.c2Client.NewTopicKey(ctx, target.Expr)
 			if err != nil {
-				a.errorChan <- err
+				logger.WithError(err).Error("failed to execute action")
 
 				continue
 			}
 		default:
-			a.errorChan <- UnsupportedTargetType{Action: a, TargetTypeName: pb.TargetType_name[int32(target.Type)]}
+			err := UnsupportedTargetType{Action: a, TargetTypeName: pb.TargetType_name[int32(target.Type)]}
+			a.errorChan <- err
+			logger.WithError(err).Error("failed to execute action")
 
 			continue
 		}
+
+		logger.Info("successfully executed action")
 	}
 }
