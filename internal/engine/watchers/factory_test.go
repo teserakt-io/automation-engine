@@ -1,12 +1,13 @@
 package watchers
 
 import (
+	"io/ioutil"
 	reflect "reflect"
 	"testing"
 	"time"
 
-	"github.com/go-kit/kit/log"
 	gomock "github.com/golang/mock/gomock"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/teserakt-io/automation-engine/internal/engine/actions"
 	"github.com/teserakt-io/automation-engine/internal/events"
@@ -25,12 +26,15 @@ func TestRuleWatcherFactory(t *testing.T) {
 
 	errorChan := make(chan<- error)
 
+	logger := log.New()
+	logger.SetOutput(ioutil.Discard)
+
 	factory := NewRuleWatcherFactory(
 		mockRuleWriter,
 		mockTriggerWatcherFactory,
 		mockActionFactory,
 		errorChan,
-		log.NewNopLogger(),
+		logger,
 	)
 
 	t.Run("Creates returns a properly initialized RuleWatcher", func(t *testing.T) {
@@ -77,7 +81,10 @@ func TestTriggerWatcherFactory(t *testing.T) {
 	mockTriggerStateService := services.NewMockTriggerStateService(mockCtrl)
 	mockValidator := models.NewMockValidator(mockCtrl)
 
-	factory := NewTriggerWatcherFactory(mockStreamListenerFactory, mockTriggerStateService, mockValidator, log.NewNopLogger())
+	logger := log.New()
+	logger.SetOutput(ioutil.Discard)
+
+	factory := NewTriggerWatcherFactory(mockStreamListenerFactory, mockTriggerStateService, mockValidator, logger)
 
 	expectedLastExecuted := time.Now()
 

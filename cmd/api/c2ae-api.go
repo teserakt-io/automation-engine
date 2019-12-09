@@ -8,10 +8,8 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/go-kit/kit/log"
-	"github.com/olivere/elastic"
+	log "github.com/sirupsen/logrus"
 	slibcfg "github.com/teserakt-io/serverlib/config"
-	sliblog "github.com/teserakt-io/serverlib/log"
 	slibpath "github.com/teserakt-io/serverlib/path"
 
 	"github.com/teserakt-io/automation-engine/internal/api"
@@ -46,26 +44,29 @@ func main() {
 	}()
 
 	// init logger
+	logger := log.NewEntry(log.New())
+	logger.Logger.SetLevel(log.DebugLevel)
+
+	logger.Logger.SetReportCaller(true)
+	logger.Logger.SetFormatter(&log.JSONFormatter{})
+
 	logFileName := fmt.Sprintf("/var/log/e4_c2ae.log")
 	logFile, err := os.OpenFile(logFileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0660)
 	if err != nil {
 		fmt.Printf("[ERROR] logs: unable to open file '%v' to write logs: %v\n", logFileName, err)
 		fmt.Print("[WARN] logs: falling back to standard output only\n")
-		logFile = os.Stdout
+		logger.Logger.SetOutput(os.Stdout)
+	} else {
+		logger.Logger.SetOutput(logFile)
+		defer logFile.Close()
 	}
 
-	defer logFile.Close()
-
-	logger := log.NewJSONLogger(logFile)
-	logger = log.With(logger, "ts", log.DefaultTimestampUTC, "caller", log.DefaultCaller)
-	defer logger.Log("msg", "goodbye")
-
-	// compatibility for packages that do not understand go-kit logger:
-	stdLogger := stdlog.New(log.NewStdlibAdapter(logger), "", 0)
+	logger = logger.WithField("application", "automation-engine")
+	defer logger.Info("goodbye")
 
 	configResolver, err := slibpath.NewAppPathResolver(os.Args[0])
 	if err != nil {
-		logger.Log("msg", "failed to create configuration resolver", "error", err)
+		logger.WithError(err).Error("failed to create configuration resolver")
 		exitCode = 1
 		return
 	}
@@ -74,54 +75,38 @@ func main() {
 
 	appConfig := config.NewAPI()
 	if err := configLoader.Load(appConfig.ViperCfgFields()); err != nil {
-		logger.Log("msg", "failed to load configuration", "error", err)
+		logger.WithError(err).Error("failed to load configuration")
 		exitCode = 1
 		return
 	}
 
 	if err := appConfig.Validate(); err != nil {
-		logger.Log("msg", "failed to validate configuration", "error", err)
+		logger.WithError(err).Error("failed to validate configuration")
 		exitCode = 1
 		return
 	}
 
-	logger.Log("msg", "successfully loaded configuration")
+	logger.Info("successfully loaded configuration")
 
-	// extend logger to forward log to ES
-	if appConfig.ES.LoggingEnabled {
-		esClient, err := elastic.NewClient(
-			elastic.SetURL(appConfig.ES.URLs...),
-			elastic.SetSniff(false),
-		)
-
-		if err != nil {
-			logger.Log("msg", "failed to create elastic client", "error", err)
-			exitCode = 1
-			return
-		}
-
-		esLogger, err := sliblog.WithElasticSearch(logger, esClient, appConfig.ES.LoggingIndex)
-		logger = log.With(esLogger)
-		if err != nil {
-			logger.Log("msg", "failed to initialize elastic log forwarding", "error", err)
-			exitCode = 1
-			return
-		}
-
-		logger.Log("msg", "elasticsearch log forwarding enabled")
-	}
-
-	db, err := models.NewDB(appConfig.DB, stdLogger)
+	level, err := log.ParseLevel(appConfig.LoggerLevel)
 	if err != nil {
-		logger.Log("msg", "database creation failed", "error", err)
+		logger.WithError(err).Warn("invalid logger level from configuration, falling back to debug")
+		level = log.DebugLevel
+	}
+	logger.Logger.SetLevel(level)
+
+	dbLogger := stdlog.New(logger.WithField("protocol", "db").WriterLevel(log.DebugLevel), "", 0)
+	db, err := models.NewDB(appConfig.DB, dbLogger)
+	if err != nil {
+		logger.WithError(err).Error("database creation failed")
 		exitCode = 1
 		return
 	}
 	defer db.Close()
-	logger.Log(append(appConfig.DB.Log(), "msg", "successfully connected to database")...)
+	logger.WithFields(appConfig.DB.LogFields()).Info("successfully connected to database")
 
 	if err := db.Migrate(); err != nil {
-		logger.Log("msg", "database migration failed", "error", err)
+		logger.WithError(err).Error("database migration failed")
 		exitCode = 1
 		return
 	}
@@ -135,7 +120,7 @@ func main() {
 
 	c2ClientFactory, err := pb.NewC2PbClientFactory(appConfig.C2Endpoint, appConfig.C2Certificate)
 	if err != nil {
-		logger.Log("msg", "cannot create C2 client factory", "error", err)
+		logger.WithError(err).Error("cannot create C2 client factory")
 		exitCode = 1
 		return
 	}
@@ -146,39 +131,39 @@ func main() {
 	// command, ie: when a rule trigger.
 	c2client := services.NewC2(c2ClientFactory)
 
-	eventStreamer := events.NewStreamer(c2client, log.With(logger, "type", "eventStreamer"))
+	eventStreamer := events.NewStreamer(c2client, logger.WithField("type", "eventStreamer"))
 
 	triggerWatcherFactory := watchers.NewTriggerWatcherFactory(
 		events.NewStreamListenerFactory(eventStreamer),
 		triggerStateService,
 		validator,
-		log.With(logger, "type", "triggerWatcher"),
+		logger.WithField("type", "triggerWatcher"),
 	)
-	actionFactory := actions.NewActionFactory(c2client, globalErrorChan, log.With(logger, "type", "ruleAction"))
+	actionFactory := actions.NewActionFactory(c2client, globalErrorChan, logger.WithField("type", "ruleAction"))
 
 	ruleWatcherFactory := watchers.NewRuleWatcherFactory(
 		ruleService,
 		triggerWatcherFactory,
 		actionFactory,
 		globalErrorChan,
-		log.With(logger, "type", "ruleWatcher"),
+		logger.WithField("type", "ruleWatcher"),
 	)
 
 	automationEngine := engine.NewAutomationEngine(
 		ruleService,
 		ruleWatcherFactory,
-		log.With(logger, "type", "automationEngine"),
+		logger.WithField("type", "automationEngine"),
 	)
 
 	server := api.NewServer(
 		appConfig.Server,
 		ruleService,
 		converter,
-		log.With(logger, "type", "apiServer"),
+		logger.WithField("type", "apiServer"),
 	)
 
 	if err := monitoring.Setup(appConfig.OpencensusAddress, appConfig.OpencensusSampleAll); err != nil {
-		logger.Log("msg", "failed to setup monitoring", "error", err)
+		logger.WithError(err).Error("failed to setup monitoring")
 		exitCode = 1
 		return
 	}
@@ -186,7 +171,7 @@ func main() {
 	go func() {
 		select {
 		case <-sigChan:
-			logger.Log("msg", "shutdown requested, cancelling context")
+			logger.Warn("shutdown requested, cancelling context")
 			globalCancel()
 		case <-globalCtx.Done():
 		}
@@ -196,16 +181,16 @@ func main() {
 	// and every rule's triggers until engineCtx or globalCtx get cancelled.
 	engineCtx, engineCancel := context.WithCancel(globalCtx)
 	if err := automationEngine.Start(engineCtx); err != nil {
-		logger.Log("msg", "error when starting automation engine", "error", err)
+		logger.WithError(err).Error("error when starting automation engine")
 		exitCode = 1
 		return
 	}
-	logger.Log("msg", "started automation engine")
+	logger.Info("started automation engine")
 
 	// Start C2AE api server
 	go func() {
 		err := server.ListenAndServe(globalCtx)
-		logger.Log("msg", "failed to listen and serve api", "error", err)
+		logger.WithError(err).Error("failed to listen and serve api")
 		globalCancel()
 	}()
 
@@ -216,7 +201,7 @@ func main() {
 	go func() {
 		for {
 			err := eventStreamer.StartStream(globalCtx)
-			logger.Log("msg", "event streamer stopped", "error", err)
+			logger.WithError(err).Error("event streamer stopped")
 			select {
 			case <-globalCtx.Done():
 				return
@@ -232,17 +217,17 @@ func main() {
 	for {
 		select {
 		case <-server.RulesModifiedChan():
-			logger.Log("msg", "rules modified, restarting automation engine!")
+			logger.Info("rules modified, restarting automation engine!")
 
 			engineCancel()
 
 			engineCtx, engineCancel = context.WithCancel(globalCtx)
 			if err := automationEngine.Start(engineCtx); err != nil {
-				logger.Log("msg", "failed to restart automation engine", "error", err)
+				logger.WithError(err).Error("failed to restart automation engine")
 			}
-			logger.Log("msg", "restarted automation engine")
+			logger.Info("restarted automation engine")
 		case err := <-globalErrorChan:
-			logger.Log("msg", "a goroutine emitted an error", "error", err)
+			logger.WithError(err).Error("a goroutine emitted an error")
 
 		case <-globalCtx.Done():
 			engineCancel()

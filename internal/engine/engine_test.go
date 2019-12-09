@@ -3,11 +3,12 @@ package engine
 import (
 	"context"
 	"errors"
+	"io/ioutil"
 	"testing"
 	"time"
 
-	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/teserakt-io/automation-engine/internal/engine/watchers"
 	"github.com/teserakt-io/automation-engine/internal/models"
@@ -27,7 +28,10 @@ func TestAutomationEngine(t *testing.T) {
 	mockRuleService := services.NewMockRuleService(mockCtrl)
 	mockRuleWatcherFactory := watchers.NewMockRuleWatcherFactory(mockCtrl)
 
-	engine := NewAutomationEngine(mockRuleService, mockRuleWatcherFactory, log.NewNopLogger())
+	logger := log.New()
+	logger.SetOutput(ioutil.Discard)
+
+	engine := NewAutomationEngine(mockRuleService, mockRuleWatcherFactory, logger)
 
 	rules := []models.Rule{
 		models.Rule{ID: 1},

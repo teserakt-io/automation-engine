@@ -2,13 +2,14 @@ package events
 
 import (
 	"context"
+	"io/ioutil"
 	"reflect"
 	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/go-kit/kit/log"
+	log "github.com/sirupsen/logrus"
 
 	c2pb "github.com/teserakt-io/c2/pkg/pb"
 
@@ -26,7 +27,8 @@ func TestStreamer(t *testing.T) {
 	}()
 
 	c2ClientMock := services.NewMockC2(mockCtrl)
-	logger := log.NewNopLogger()
+	logger := log.New()
+	logger.SetOutput(ioutil.Discard)
 
 	t.Run("Add / Remove listeners properly update the streamer", func(t *testing.T) {
 		streamer := NewStreamer(c2ClientMock, logger)

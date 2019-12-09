@@ -2,13 +2,13 @@ package actions
 
 import (
 	"context"
-	"errors"
+	"io/ioutil"
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/teserakt-io/automation-engine/internal/models"
 	"github.com/teserakt-io/automation-engine/internal/pb"
@@ -22,6 +22,9 @@ func TestKeyRotationAction(t *testing.T) {
 	mockC2Client := services.NewMockC2(mockCtrl)
 
 	errorChan := make(chan error)
+
+	logger := log.New()
+	logger.SetOutput(ioutil.Discard)
 
 	t.Run("Execute calls the expected C2 client method", func(t *testing.T) {
 		targets := []models.Target{
@@ -43,7 +46,7 @@ func TestKeyRotationAction(t *testing.T) {
 			targets:   targets,
 			c2Client:  mockC2Client,
 			errorChan: errorChan,
-			logger:    log.NewNopLogger(),
+			logger:    logger,
 		}
 
 		go action.Execute(context.Background())
@@ -76,54 +79,6 @@ func TestKeyRotationAction(t *testing.T) {
 		case <-time.After(10 * time.Millisecond):
 		}
 	})
-
-	t.Run("Execute forward the C2 client errors to the errorChan", func(t *testing.T) {
-		targets := []models.Target{
-			models.Target{Type: pb.TargetType_CLIENT, Expr: "client1"},
-			models.Target{Type: pb.TargetType_TOPIC, Expr: "topic1"},
-		}
-
-		action := &keyRotationAction{
-			targets:   targets,
-			c2Client:  mockC2Client,
-			errorChan: errorChan,
-			logger:    log.NewNopLogger(),
-		}
-
-		client1Err := errors.New("client1 error")
-		topic1Err := errors.New("topic1 error")
-
-		gomock.InOrder(
-			mockC2Client.EXPECT().NewClientKey(gomock.Any(), "client1").Return(client1Err),
-			mockC2Client.EXPECT().NewTopicKey(gomock.Any(), "topic1").Return(topic1Err),
-		)
-
-		go action.Execute(context.Background())
-
-		select {
-		case err := <-errorChan:
-			if err != client1Err {
-				t.Errorf("Expected error to be %s, got %s", client1Err, err)
-			}
-		case <-time.After(10 * time.Millisecond):
-			t.Errorf("Expected %s error", client1Err)
-		}
-
-		select {
-		case err := <-errorChan:
-			if err != topic1Err {
-				t.Errorf("Expected error to be %s, got %s", topic1Err, err)
-			}
-		case <-time.After(10 * time.Millisecond):
-			t.Errorf("Expected %s error", topic1Err)
-		}
-
-		select {
-		case err := <-errorChan:
-			t.Errorf("Expected no error, got %s", err)
-		case <-time.After(10 * time.Millisecond):
-		}
-	})
 }
 
 func TestActionFactory(t *testing.T) {
@@ -134,7 +89,10 @@ func TestActionFactory(t *testing.T) {
 
 	errorChan := make(chan error)
 
-	factory := NewActionFactory(mockC2Client, errorChan, log.NewNopLogger())
+	logger := log.New()
+	logger.SetOutput(ioutil.Discard)
+
+	factory := NewActionFactory(mockC2Client, errorChan, logger)
 	t.Run("Create keyRotationAction returns expected struct", func(t *testing.T) {
 		rule := models.Rule{
 			ActionType: pb.ActionType_KEY_ROTATION,

@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/go-kit/kit/log"
+	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
 
 	"github.com/teserakt-io/automation-engine/internal/models"
@@ -27,13 +27,13 @@ type Action interface {
 type actionFactory struct {
 	c2Client  services.C2
 	errorChan chan<- error
-	logger    log.Logger
+	logger    log.FieldLogger
 }
 
 var _ ActionFactory = &actionFactory{}
 
 // NewActionFactory creates a new ActionFactory
-func NewActionFactory(c2Client services.C2, errorChan chan<- error, logger log.Logger) ActionFactory {
+func NewActionFactory(c2Client services.C2, errorChan chan<- error, logger log.FieldLogger) ActionFactory {
 	return &actionFactory{
 		c2Client:  c2Client,
 		errorChan: errorChan,
@@ -53,7 +53,7 @@ func (f *actionFactory) Create(rule models.Rule) (Action, error) {
 			logger:    f.logger,
 		}
 	default:
-		return nil, fmt.Errorf("unknow action type %d", rule.ActionType)
+		return nil, fmt.Errorf("unknown action type %d", rule.ActionType)
 	}
 
 	return action, nil
@@ -77,7 +77,7 @@ func (e UnsupportedTargetType) Error() string {
 type keyRotationAction struct {
 	targets  []models.Target
 	c2Client services.C2
-	logger   log.Logger
+	logger   log.FieldLogger
 
 	errorChan chan<- error
 }
@@ -89,7 +89,12 @@ func (a *keyRotationAction) Execute(ctx context.Context) {
 	defer span.End()
 
 	for _, target := range a.targets {
-		a.logger.Log("msg", "executing action", "action", "keyRotation", "target", target.Expr)
+		logger := a.logger.WithFields(log.Fields{
+			"action":     "keyRotation",
+			"target":     target.Expr,
+			"targetType": pb.TargetType_name[int32(target.Type)],
+		})
+
 		switch target.Type {
 		case pb.TargetType_CLIENT:
 			// TODO: for now we expect target to be defined with exact names of client.
@@ -100,21 +105,24 @@ func (a *keyRotationAction) Execute(ctx context.Context) {
 			// match the clients directly from a DB query.
 			err := a.c2Client.NewClientKey(ctx, target.Expr)
 			if err != nil {
-				a.errorChan <- err
-
+				logger.WithError(err).Error("failed to execute action")
 				continue
 			}
 		case pb.TargetType_TOPIC:
 			err := a.c2Client.NewTopicKey(ctx, target.Expr)
 			if err != nil {
-				a.errorChan <- err
+				logger.WithError(err).Error("failed to execute action")
 
 				continue
 			}
 		default:
-			a.errorChan <- UnsupportedTargetType{Action: a, TargetTypeName: pb.TargetType_name[int32(target.Type)]}
+			err := UnsupportedTargetType{Action: a, TargetTypeName: pb.TargetType_name[int32(target.Type)]}
+			a.errorChan <- err
+			logger.WithError(err).Error("failed to execute action")
 
 			continue
 		}
+
+		logger.Info("successfully executed action")
 	}
 }

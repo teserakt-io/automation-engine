@@ -3,7 +3,7 @@ package engine
 import (
 	"context"
 
-	"github.com/go-kit/kit/log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/teserakt-io/automation-engine/internal/engine/watchers"
 	"github.com/teserakt-io/automation-engine/internal/services"
@@ -17,7 +17,7 @@ type AutomationEngine interface {
 type automationEngine struct {
 	ruleService        services.RuleService
 	ruleWatcherFactory watchers.RuleWatcherFactory
-	logger             log.Logger
+	logger             log.FieldLogger
 }
 
 var _ AutomationEngine = &automationEngine{}
@@ -26,7 +26,7 @@ var _ AutomationEngine = &automationEngine{}
 func NewAutomationEngine(
 	ruleService services.RuleService,
 	ruleWatcherFactory watchers.RuleWatcherFactory,
-	logger log.Logger,
+	logger log.FieldLogger,
 ) AutomationEngine {
 	return &automationEngine{
 		ruleService:        ruleService,
@@ -43,7 +43,7 @@ func (e *automationEngine) Start(ctx context.Context) error {
 
 	for _, rule := range rules {
 		ruleWatcher := e.ruleWatcherFactory.Create(rule)
-		e.logger.Log("msg", "started ruleWatcher", "rule", rule.ID)
+		e.logger.WithField("rule", rule.ID).Info("started ruleWatcher")
 		go ruleWatcher.Start(ctx)
 	}
 
