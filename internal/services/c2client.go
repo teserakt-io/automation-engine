@@ -1,6 +1,6 @@
 package services
 
-//go:generate mockgen -destination=c2client_mocks.go -package=services -self_package github.com/teserakt-io/automation-engine/internal/services github.com/teserakt-io/automation-engine/internal/services C2,C2EventStreamClient
+//go:generate mockgen -copyright_file ../../doc/COPYRIGHT_TEMPLATE.txt -destination=c2client_mocks.go -package=services -self_package github.com/teserakt-io/automation-engine/internal/services github.com/teserakt-io/automation-engine/internal/services C2,C2EventStreamClient
 
 import (
 	"context"

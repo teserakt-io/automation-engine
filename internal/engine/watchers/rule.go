@@ -1,6 +1,6 @@
 package watchers
 
-//go:generate mockgen -destination=rule_mocks.go -package watchers -self_package github.com/teserakt-io/automation-engine/internal/engine/watchers github.com/teserakt-io/automation-engine/internal/engine/watchers RuleWatcher
+//go:generate mockgen -copyright_file ../../../doc/COPYRIGHT_TEMPLATE.txt -destination=rule_mocks.go -package watchers -self_package github.com/teserakt-io/automation-engine/internal/engine/watchers github.com/teserakt-io/automation-engine/internal/engine/watchers RuleWatcher
 
 import (
 	"context"

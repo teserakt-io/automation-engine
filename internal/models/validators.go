@@ -1,6 +1,6 @@
 package models
 
-//go:generate mockgen -destination validators_mocks.go -package=models -self_package github.com/teserakt-io/automation-engine/internal/models github.com/teserakt-io/automation-engine/internal/models Validator,TriggerValidator
+//go:generate mockgen -copyright_file ../../doc/COPYRIGHT_TEMPLATE.txt -destination validators_mocks.go -package=models -self_package github.com/teserakt-io/automation-engine/internal/models github.com/teserakt-io/automation-engine/internal/models Validator,TriggerValidator
 
 import (
 	"errors"

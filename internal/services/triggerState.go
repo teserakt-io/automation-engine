@@ -1,6 +1,6 @@
 package services
 
-//go:generate mockgen -destination=triggerState_mocks.go -package=services -self_package github.com/teserakt-io/automation-engine/internal/services github.com/teserakt-io/automation-engine/internal/services TriggerStateService
+//go:generate mockgen -copyright_file ../../doc/COPYRIGHT_TEMPLATE.txt -destination=triggerState_mocks.go -package=services -self_package github.com/teserakt-io/automation-engine/internal/services github.com/teserakt-io/automation-engine/internal/services TriggerStateService
 
 import (
 	"context"

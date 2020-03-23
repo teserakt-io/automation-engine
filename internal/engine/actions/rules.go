@@ -1,6 +1,6 @@
 package actions
 
-//go:generate mockgen -destination=rules_mocks.go -package actions -self_package github.com/teserakt-io/automation-engine/internal/engine/actions github.com/teserakt-io/automation-engine/internal/engine/actions ActionFactory,Action
+//go:generate mockgen -copyright_file ../../../doc/COPYRIGHT_TEMPLATE.txt -destination=rules_mocks.go -package actions -self_package github.com/teserakt-io/automation-engine/internal/engine/actions github.com/teserakt-io/automation-engine/internal/engine/actions ActionFactory,Action
 
 import (
 	"context"

@@ -1,6 +1,6 @@
 package models
 
-//go:generate mockgen -destination converters_mocks.go -package=models -self_package github.com/teserakt-io/automation-engine/internal/models github.com/teserakt-io/automation-engine/internal/models Converter
+//go:generate mockgen -copyright_file ../../doc/COPYRIGHT_TEMPLATE.txt -destination converters_mocks.go -package=models -self_package github.com/teserakt-io/automation-engine/internal/models github.com/teserakt-io/automation-engine/internal/models Converter
 
 import (
 	"github.com/golang/protobuf/ptypes"

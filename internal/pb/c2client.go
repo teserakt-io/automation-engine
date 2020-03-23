@@ -1,6 +1,6 @@
 package pb
 
-//go:generate mockgen -destination=c2client_mocks.go -package=pb -self_package github.com/teserakt-io/automation-engine/internal/pb github.com/teserakt-io/automation-engine/internal/pb C2PbClient,C2PbClientFactory
+//go:generate mockgen -copyright_file ../../doc/COPYRIGHT_TEMPLATE.txt -destination=c2client_mocks.go -package=pb -self_package github.com/teserakt-io/automation-engine/internal/pb github.com/teserakt-io/automation-engine/internal/pb C2PbClient,C2PbClientFactory
 
 import (
 	c2pb "github.com/teserakt-io/c2/pkg/pb"

@@ -1,6 +1,6 @@
 package events
 
-//go:generate mockgen -destination=streamer_mocks.go -package events -self_package github.com/teserakt-io/automation-engine/internal/events github.com/teserakt-io/automation-engine/internal/events Streamer
+//go:generate mockgen -copyright_file ../../doc/COPYRIGHT_TEMPLATE.txt -destination=streamer_mocks.go -package events -self_package github.com/teserakt-io/automation-engine/internal/events github.com/teserakt-io/automation-engine/internal/events Streamer
 
 import (
 	"context"

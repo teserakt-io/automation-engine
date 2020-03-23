@@ -1,6 +1,6 @@
 package events
 
-//go:generate mockgen -destination=listener_mocks.go -package events -self_package github.com/teserakt-io/automation-engine/internal/events github.com/teserakt-io/automation-engine/internal/events StreamListenerFactory,StreamListener
+//go:generate mockgen -copyright_file ../../doc/COPYRIGHT_TEMPLATE.txt -destination=listener_mocks.go -package events -self_package github.com/teserakt-io/automation-engine/internal/events github.com/teserakt-io/automation-engine/internal/events StreamListenerFactory,StreamListener
 
 import (
 	c2pb "github.com/teserakt-io/c2/pkg/pb"

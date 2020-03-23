@@ -1,6 +1,6 @@
 package watchers
 
-//go:generate mockgen -destination=factory_mocks.go -package watchers -self_package github.com/teserakt-io/automation-engine/internal/engine/watchers github.com/teserakt-io/automation-engine/internal/engine/watchers TriggerWatcherFactory,RuleWatcherFactory
+//go:generate mockgen -copyright_file ../../../doc/COPYRIGHT_TEMPLATE.txt -destination=factory_mocks.go -package watchers -self_package github.com/teserakt-io/automation-engine/internal/engine/watchers github.com/teserakt-io/automation-engine/internal/engine/watchers TriggerWatcherFactory,RuleWatcherFactory
 
 import (
 	"fmt"

@@ -32,7 +32,7 @@ test: ## Run tests
 .PHONY: generate
 generate: ## Generate mocks and proto files
 	go generate ./...
-	protoc --proto_path . api.proto --go_out=plugins=grpc:./internal/pb
+	./scripts/buildproto.sh
 
 .PHONY: cover
 cover: test ## Show coverage
