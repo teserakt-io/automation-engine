@@ -18,8 +18,8 @@ fi
 
 echo "Building version $E4_VERSION, commit $E4_GIT_COMMIT\n"
 
-LINKS=$(ldd ${DIR}/../bin/c2ae-api | grep "not a dynamic executable")
-if [ -z "${LINKS}" ]; then
+LINKS=$(ldd ${DIR}/../bin/c2ae-api 2>/dev/null)
+if [ ! -z "${LINKS}" ]; then
     echo "c2ae-api is not a static binary, please rebuild it with CGO_ENABLED=0"
     exit 1
 fi
@@ -33,8 +33,8 @@ docker build \
     -f "${DIR}/../docker/c2ae/Dockerfile" \
     "${DIR}/../"
 
-LINKS=$(ldd ${DIR}/../bin/c2ae-cli | grep "not a dynamic executable")
-if [ -z "${LINKS}" ]; then
+LINKS=$(ldd ${DIR}/../bin/c2ae-cli 2>/dev/null)
+if [ ! -z "${LINKS}" ]; then
     echo "c2ae-cli is not a static binary, please rebuild it with CGO_ENABLED=0"
     exit 1
 fi
