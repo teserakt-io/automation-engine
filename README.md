@@ -1,5 +1,8 @@
-# Automation Engine
+![alt text](logo.png)
 
+[![GoDoc][godoc-image]][godoc-url] ![Go](https://github.com/teserakt-io/automation-engine/workflows/Go/badge.svg?branch=develop)
+
+# Automation Engine
 
 ## Introduction
 
@@ -133,18 +136,26 @@ c2ae-cli add-trigger --rule=1 --type=EVENT --setting eventType=CLIENT_SUBSCRIBED
 
 ### Run from Docker image
 
-The CI automatically push Docker images of the API and CLI after each successful builds and for each branches.
 
-List of available AE images:
-- https://console.cloud.google.com/gcr/images/teserakt-dev/EU/c2ae-api?project=teserakt-dev&authuser=1&organizationId=937373736798&gcrImageListsize=30
-- https://console.cloud.google.com/gcr/images/teserakt-dev/EU/c2ae-cli?project=teserakt-dev&authuser=1&organizationId=937373736798&gcrImageListsize=30
+The Automation Engine and Automation Engine cli applications can be built in lightweight docker containers, with the requirement of having CGO disabled.
+
+To build the docker images, just run:
+
+```
+# Build the c2 and c2cli binaries
+CGO_ENABLED=0 ./scripts/build.sh
+# Build docker images c2ae-api:devel and c2ae-cli:devel
+./scripts/docker-build.sh
+```
+
+Note that sqlite database isn't supported in docker as it requires CGO.
 
 #### API
 
 The api server can be started like so:
 ```
 # Replace <BRANCH_NAME> with the actual branch you want to pull the image from, like master, or devel, or tag...
-docker run -it --name c2ae-api --rm -v $(pwd)/configs:/opt/e4/configs -e C2AE_LISTEN_ADDR=0.0.0.0:5556 -p 5556:5556 eu.gcr.io/teserakt-dev/c2ae-api:<BRANCH_NAME>
+docker run -it --name c2ae-api --rm -v $(pwd)/configs:/opt/e4/configs -e C2AE_LISTEN_ADDR=0.0.0.0:5556 -p 5556:5556 c2ae-api:<BRANCH_NAME>
 ```
 
 It just require a volume to the configs folder (Depending on your configuration, you may also need to get another volumes for the certificate and keys if they're not in the configs folder) and the ports for the GRPC api (which can be removed if not used)
@@ -156,7 +167,7 @@ See `internal/config/config.go` `ViperCfgFields()` for the full list of availabl
 ```
 # Replace <BRANCH_NAME> with the actual branch you want to pull the image from, like master, or devel, or tag...
 # Replace <COMMAND> with the actual command to execute
-docker run -it  --rm --link c2ae-api -e C2AE_API_ENDPOINT="c2ae-api:5556" eu.gcr.io/teserakt-dev/c2ae-cli:<BRANCH_NAME> <COMMAND>
+docker run -it  --rm --link c2ae-api -e C2AE_API_ENDPOINT="c2ae-api:5556" c2ae-cli:<BRANCH_NAME> <COMMAND>
 ```
 
 ## Development
@@ -164,13 +175,5 @@ docker run -it  --rm --link c2ae-api -e C2AE_API_ENDPOINT="c2ae-api:5556" eu.gcr
 A Makefile is provided with various targets, like build, running tests, getting coverage, generating the mocks / protobuf...
 Run ```make``` for the full list of targets and descriptions.
 
-# GCP registry
-
-CI will auto build docker images for all branch. To be able to pull them, you must first login to the GCP registry.
-For this you first need to configure docker to be able to authenticate on GCP:
-```
-# Make sure your current active config points to teserakt-dev project
-gcloud auth configure-docker
-```
-
-From here, you are able to `docker pull eu.gcr.io/teserakt-dev/<image>:<version>`
+[godoc-image]: https://godoc.org/github.com/teserakt-io/automation-engine?status.svg
+[godoc-url]: https://godoc.org/github.com/teserakt-io/automation-engine
