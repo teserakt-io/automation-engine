@@ -131,14 +131,6 @@ c2ae-cli add-trigger --rule=1 --type=EVENT --setting eventType=CLIENT_SUBSCRIBED
 # started a goroutine to make it execute when it will have received 5 client subscribed events for the /sensors/data topic
 ```
 
-### Run from Docker image
-
-The CI automatically push Docker images of the API and CLI after each successful builds and for each branches.
-
-List of available AE images:
-- https://console.cloud.google.com/gcr/images/teserakt-dev/EU/c2ae-api?project=teserakt-dev&authuser=1&organizationId=937373736798&gcrImageListsize=30
-- https://console.cloud.google.com/gcr/images/teserakt-dev/EU/c2ae-cli?project=teserakt-dev&authuser=1&organizationId=937373736798&gcrImageListsize=30
-
 #### API
 
 The api server can be started like so:
@@ -163,14 +155,3 @@ docker run -it  --rm --link c2ae-api -e C2AE_API_ENDPOINT="c2ae-api:5556" eu.gcr
 
 A Makefile is provided with various targets, like build, running tests, getting coverage, generating the mocks / protobuf...
 Run ```make``` for the full list of targets and descriptions.
-
-# GCP registry
-
-CI will auto build docker images for all branch. To be able to pull them, you must first login to the GCP registry.
-For this you first need to configure docker to be able to authenticate on GCP:
-```
-# Make sure your current active config points to teserakt-dev project
-gcloud auth configure-docker
-```
-
-From here, you are able to `docker pull eu.gcr.io/teserakt-dev/<image>:<version>`
