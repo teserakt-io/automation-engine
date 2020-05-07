@@ -225,6 +225,24 @@ func local_request_C2AutomationEngine_DeleteRule_0(ctx context.Context, marshale
 
 }
 
+func request_C2AutomationEngine_HealthCheck_0(ctx context.Context, marshaler runtime.Marshaler, client C2AutomationEngineClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq HealthCheckRequest
+	var metadata runtime.ServerMetadata
+
+	msg, err := client.HealthCheck(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_C2AutomationEngine_HealthCheck_0(ctx context.Context, marshaler runtime.Marshaler, server C2AutomationEngineServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq HealthCheckRequest
+	var metadata runtime.ServerMetadata
+
+	msg, err := server.HealthCheck(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 // RegisterC2AutomationEngineHandlerServer registers the http handlers for service C2AutomationEngine to "mux".
 // UnaryRPC     :call C2AutomationEngineServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -327,6 +345,26 @@ func RegisterC2AutomationEngineHandlerServer(ctx context.Context, mux *runtime.S
 		}
 
 		forward_C2AutomationEngine_DeleteRule_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_C2AutomationEngine_HealthCheck_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_C2AutomationEngine_HealthCheck_0(rctx, inboundMarshaler, server, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_C2AutomationEngine_HealthCheck_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -471,6 +509,26 @@ func RegisterC2AutomationEngineHandlerClient(ctx context.Context, mux *runtime.S
 
 	})
 
+	mux.Handle("GET", pattern_C2AutomationEngine_HealthCheck_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_C2AutomationEngine_HealthCheck_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_C2AutomationEngine_HealthCheck_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	return nil
 }
 
@@ -484,6 +542,8 @@ var (
 	pattern_C2AutomationEngine_UpdateRule_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"rules"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_C2AutomationEngine_DeleteRule_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"rules", "ruleId"}, "", runtime.AssumeColonVerbOpt(true)))
+
+	pattern_C2AutomationEngine_HealthCheck_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"health-check"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
@@ -496,4 +556,6 @@ var (
 	forward_C2AutomationEngine_UpdateRule_0 = runtime.ForwardResponseMessage
 
 	forward_C2AutomationEngine_DeleteRule_0 = runtime.ForwardResponseMessage
+
+	forward_C2AutomationEngine_HealthCheck_0 = runtime.ForwardResponseMessage
 )

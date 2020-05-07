@@ -139,7 +139,7 @@ func (s *apiServer) listenAndServeHTTP(ctx context.Context, lis net.Listener) er
 		return err
 	}
 
-	httpMux := runtime.NewServeMux()
+	httpMux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{OrigName: true, EmitDefaults: true}))
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(creds)}
 	err = pb.RegisterC2AutomationEngineHandlerFromEndpoint(ctx, httpMux, s.cfg.HTTPGRPCAddr, opts)
 	if err != nil {
@@ -309,6 +309,13 @@ func (s *apiServer) DeleteRule(ctx context.Context, req *pb.DeleteRuleRequest) (
 	s.notifyRulesModified()
 
 	return &pb.DeleteRuleResponse{RuleId: int32(rule.ID)}, nil
+}
+
+func (s *apiServer) HealthCheck(ctx context.Context, req *pb.HealthCheckRequest) (*pb.HealthCheckResponse, error) {
+	return &pb.HealthCheckResponse{
+		Code:   0,
+		Status: "OK",
+	}, nil
 }
 
 func (s *apiServer) notifyRulesModified() {
