@@ -15,6 +15,28 @@
     "application/json"
   ],
   "paths": {
+    "/health-check": {
+      "get": {
+        "operationId": "HealthCheck",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/pbHealthCheckResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "C2AutomationEngine"
+        ]
+      }
+    },
     "/rules": {
       "get": {
         "summary": "Retrieve list of existing rules",
@@ -202,6 +224,18 @@
         "ruleId": {
           "type": "integer",
           "format": "int32"
+        }
+      }
+    },
+    "pbHealthCheckResponse": {
+      "type": "object",
+      "properties": {
+        "Code": {
+          "type": "string",
+          "format": "int64"
+        },
+        "Status": {
+          "type": "string"
         }
       }
     },

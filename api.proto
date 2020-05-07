@@ -62,6 +62,12 @@ service C2AutomationEngine {
             delete: "/rules/{ruleId}"
         };
     }
+
+    rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse) {
+        option (google.api.http) = {
+            get: "/health-check"
+        };
+    }
 }
 
 // List of supported ActionType
@@ -146,4 +152,11 @@ message DeleteRuleRequest {
 }
 message DeleteRuleResponse {
     int32 ruleId = 1;
+}
+
+
+message HealthCheckRequest {}
+message HealthCheckResponse {
+  int64 Code  = 1;
+  string Status  = 2;
 }
